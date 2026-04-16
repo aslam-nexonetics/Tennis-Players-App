@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/player.dart';
+import '../widgets/glass_widgets.dart';
 
 class PlayerDetailScreen extends StatelessWidget {
   final Player player;
@@ -11,133 +12,208 @@ class PlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(player.name)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: player.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: player.imageUrl!,
-                        height: 250,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const SizedBox(
-                          height: 250,
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          height: 250,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.person, size: 100),
-                        ),
-                      )
-                    : Container(
-                        height: 250,
-                        width: double.infinity,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.person, size: 100),
-                      ),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GlassContainer(
+            borderRadius: 12,
+            opacity: 0.1,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
+      ),
+      body: Stack(
+        children: [
+          // Splash background
+          if (player.imageUrl != null)
+            Hero(
+              tag: 'player-${player.id}', // Standard search tag
+              child: CachedNetworkImage(
+                imageUrl: player.imageUrl!,
+                height: 400,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
+            )
+          else
+            Container(
+              height: 400,
+              width: double.infinity,
+              color: Colors.indigo.withOpacity(0.1),
+              child: const Icon(Icons.person, size: 100, color: Colors.blue),
             ),
-            const SizedBox(height: 24),
-            Text(
-              player.name,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              player.country ?? 'Unknown Country',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
-            ),
-            const Divider(height: 32),
-            _buildStatRow('Ranking', '#${player.ranking ?? 'N/A'}'),
-            _buildStatRow(
-              'Highest Ranking',
-              '#${player.highestRanking ?? 'N/A'}',
-            ),
-            _buildStatRow(
-              'Birth Date',
-              player.birthDate != null
-                  ? DateFormat('MMM dd, yyyy').format(player.birthDate!)
-                  : 'N/A',
-            ),
-            _buildStatRow('Height', player.height ?? 'N/A'),
-            _buildStatRow('Weight', player.weight ?? 'N/A'),
-            _buildStatRow('Style', player.playingStyle ?? 'N/A'),
-            const SizedBox(height: 16),
-            const Text(
-              'Career Stats',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
+
+          // Content
+          SingleChildScrollView(
+            child: Column(
               children: [
-                _buildSimpleStat('Wins', player.wins.toString(), Colors.green),
-                const SizedBox(width: 16),
-                _buildSimpleStat(
-                  'Losses',
-                  player.losses.toString(),
-                  Colors.red,
+                const SizedBox(height: 350), // Overlap trigger
+                GlassContainer(
+                  borderRadius: 40,
+                  opacity: 0.2, // Slightly more visible glass
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Text(
+                        player.name,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      Text(
+                        player.country ?? 'Professional Tennis Pro',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                      ),
+                      const Divider(height: 40, thickness: 1),
+
+                      _buildStatGrid(context),
+
+                      const SizedBox(height: 32),
+                      const Text(
+                        'Career Performance',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildSimpleStat(
+                              'WINS',
+                              player.wins.toString(),
+                              Colors.green[400]!,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildSimpleStat(
+                              'LOSSES',
+                              player.losses.toString(),
+                              Colors.red[400]!,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      if (player.source != null)
+                        Text(
+                          'Verified by ${player.source}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Data Source: ${player.source ?? 'Unknown'}',
-              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Widget _buildStatGrid(BuildContext context) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _buildStatCard(
+          'Rank',
+          '#${player.ranking ?? 'N/A'}',
+          Icons.military_tech,
+        ),
+        _buildStatCard('Height', player.height ?? 'N/A', Icons.height),
+        _buildStatCard(
+          'Style',
+          player.playingStyle ?? 'N/A',
+          Icons.sports_tennis,
+        ),
+        _buildStatCard(
+          'Born',
+          player.birthDate != null
+              ? DateFormat('yyyy').format(player.birthDate!)
+              : 'N/A',
+          Icons.calendar_today,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon) {
+    return Container(
+      width: 160,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          Icon(icon, size: 20, color: Colors.indigo),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
           ),
-          Text(value, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
 
   Widget _buildSimpleStat(String label, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.5)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              label,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
+    return GlassContainer(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 20,
+      opacity: 0.1,
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              letterSpacing: 1.2,
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
