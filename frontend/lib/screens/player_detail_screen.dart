@@ -12,6 +12,7 @@ class PlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFCFDEF3), // Matches liquid theme
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -139,35 +140,53 @@ class PlayerDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStatGrid(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _buildStatCard(
-          'Rank',
-          '#${player.ranking ?? 'N/A'}',
-          Icons.military_tech,
-        ),
-        _buildStatCard('Height', player.height ?? 'N/A', Icons.height),
-        _buildStatCard(
-          'Style',
-          player.playingStyle ?? 'N/A',
-          Icons.sports_tennis,
-        ),
-        _buildStatCard(
-          'Born',
-          player.birthDate != null
-              ? DateFormat('yyyy').format(player.birthDate!)
-              : 'N/A',
-          Icons.calendar_today,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _buildStatCard(
+              cardWidth,
+              'Rank',
+              '#${player.ranking ?? 'N/A'}',
+              Icons.military_tech,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Height',
+              player.height ?? 'N/A',
+              Icons.height,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Style',
+              player.playingStyle ?? 'N/A',
+              Icons.sports_tennis,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Born',
+              player.birthDate != null
+                  ? DateFormat('yyyy').format(player.birthDate!)
+                  : 'N/A',
+              Icons.calendar_today,
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon) {
+  Widget _buildStatCard(
+    double width,
+    String label,
+    String value,
+    IconData icon,
+  ) {
     return Container(
-      width: 160,
+      width: width,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.4),
@@ -177,15 +196,23 @@ class PlayerDetailScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: Colors.indigo),
           const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

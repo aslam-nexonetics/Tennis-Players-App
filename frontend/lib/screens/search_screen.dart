@@ -74,7 +74,11 @@ class SearchScreen extends StatelessWidget {
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 120,
+                  ),
                   itemCount: playerProvider.players.length,
                   itemBuilder: (context, index) {
                     final player = playerProvider.players[index];
@@ -149,7 +153,6 @@ class SearchScreen extends StatelessWidget {
                   },
                 ),
         ),
-        const SizedBox(height: 100), // Space for fab-style bottom bar
       ],
     );
   }
