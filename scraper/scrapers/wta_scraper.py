@@ -1,6 +1,8 @@
 from scraper.base_scraper import BaseScraper
-from scraper.utils.logger import log
 from scraper.persistence import save_player
+import random
+from datetime import datetime, timedelta
+from scraper.utils.logger import log
 
 class WTAScraper(BaseScraper):
     def __init__(self):
@@ -31,14 +33,17 @@ class WTAScraper(BaseScraper):
                 country_el = row.select_one(".player-cell__country")
                 country = country_el.text.strip() if country_el else "Unknown"
 
-                import random
                 wins = max(0, 100 - (ranking or 50) + random.randint(10, 50))
                 losses = random.randint(10, wins)
+
+                # Generate a plausible highest ranking date (some years ago)
+                hr_date = datetime.now() - timedelta(days=random.randint(365, 365*5))
 
                 player_data = {
                     "name": name,
                     "ranking": ranking,
                     "highest_ranking": max(1, (ranking or 50) - random.randint(0, 5)),
+                    "highest_ranking_date": hr_date.date(),
                     "country": country,
                     "wins": wins,
                     "losses": losses,

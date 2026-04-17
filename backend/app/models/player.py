@@ -10,6 +10,7 @@ class Player(Base):
     country = Column(String)
     ranking = Column(Integer, index=True)
     highest_ranking = Column(Integer)
+    highest_ranking_date = Column(Date)
     birth_date = Column(Date)
     height = Column(String) # Storing as string to handle formats like "185 cm" or "6'1\""
     weight = Column(String)

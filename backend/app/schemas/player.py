@@ -7,6 +7,7 @@ class PlayerBase(BaseModel):
     country: Optional[str] = None
     ranking: Optional[int] = None
     highest_ranking: Optional[int] = None
+    highest_ranking_date: Optional[date] = None
     birth_date: Optional[date] = None
     height: Optional[str] = None
     weight: Optional[str] = None

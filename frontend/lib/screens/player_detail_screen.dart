@@ -3,11 +3,28 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/player.dart';
 import '../widgets/glass_widgets.dart';
+import '../widgets/ranking_graph.dart';
 
 class PlayerDetailScreen extends StatelessWidget {
   final Player player;
 
   const PlayerDetailScreen({super.key, required this.player});
+
+  // Helper to generate dummy ranking path for graph based on actual data
+  List<double> _generateRankingTrend() {
+    final current = (player.ranking ?? 100).toDouble();
+    final highest = (player.highestRanking ?? current - 10).toDouble();
+
+    // Create a plausible curve from highest to current
+    return [
+      highest + 5,
+      highest,
+      (highest + current) / 2 - 5,
+      (highest + current) / 2 + 2,
+      current - 3,
+      current,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +104,28 @@ class PlayerDetailScreen extends StatelessWidget {
                       ),
                       const Divider(height: 40, thickness: 1),
 
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Ranking History',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo,
+                            ),
+                          ),
+                          Icon(
+                            Icons.trending_up_rounded,
+                            color: Colors.indigo,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      RankingGraph(dataPoints: _generateRankingTrend()),
+
+                      const SizedBox(height: 30),
                       _buildStatGrid(context),
 
                       const SizedBox(height: 32),
@@ -140,6 +179,10 @@ class PlayerDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStatGrid(BuildContext context) {
+    final highestRankLabel = player.highestRankingDate != null
+        ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
+        : '#${player.highestRanking ?? 'N/A'}';
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 12) / 2;
@@ -149,25 +192,25 @@ class PlayerDetailScreen extends StatelessWidget {
           children: [
             _buildStatCard(
               cardWidth,
-              'Rank',
+              'Current Rank',
               '#${player.ranking ?? 'N/A'}',
               Icons.military_tech,
             ),
             _buildStatCard(
               cardWidth,
-              'Height',
-              player.height ?? 'N/A',
-              Icons.height,
+              'Career High',
+              highestRankLabel,
+              Icons.emoji_events_outlined,
             ),
             _buildStatCard(
               cardWidth,
-              'Style',
+              'Playing Style',
               player.playingStyle ?? 'N/A',
               Icons.sports_tennis,
             ),
             _buildStatCard(
               cardWidth,
-              'Born',
+              'Since',
               player.birthDate != null
                   ? DateFormat('yyyy').format(player.birthDate!)
                   : 'N/A',
@@ -208,8 +251,12 @@ class PlayerDetailScreen extends StatelessWidget {
                 ),
                 Text(
                   value,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                   overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ],
             ),

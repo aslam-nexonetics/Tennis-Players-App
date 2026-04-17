@@ -45,7 +45,8 @@ class WikiScraper(BaseScraper):
             "Born": "birth_date",
             "Height": "height",
             "Weight": "weight",
-            "Plays": "playing_style"
+            "Plays": "playing_style",
+            "Highest ranking": "highest_ranking"
         }
 
         for row in infobox.select("tr"):

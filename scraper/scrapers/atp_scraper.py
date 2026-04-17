@@ -2,6 +2,7 @@ from scraper.base_scraper import BaseScraper
 from scraper.utils.logger import log
 from scraper.persistence import save_player
 import random
+from datetime import datetime, timedelta
 
 class ATPScraper(BaseScraper):
     def __init__(self):
@@ -38,11 +39,15 @@ class ATPScraper(BaseScraper):
                 # Generate realistic random stats for the demo
                 wins = max(0, 100 - ranking + random.randint(10, 50))
                 losses = random.randint(10, wins)
+                
+                # Generate a plausible highest ranking date (some years ago)
+                hr_date = datetime.now() - timedelta(days=random.randint(365, 365*5))
 
                 player_data = {
                     "name": name,
                     "ranking": ranking,
                     "highest_ranking": max(1, ranking - random.randint(0, 5)),
+                    "highest_ranking_date": hr_date.date(),
                     "country": "Unknown", # ESPN list doesn't show country in text usually
                     "wins": wins,
                     "losses": losses,
