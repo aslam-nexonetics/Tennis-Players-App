@@ -46,7 +46,10 @@ class WikiScraper(BaseScraper):
             "Height": "height",
             "Weight": "weight",
             "Plays": "playing_style",
-            "Highest ranking": "highest_ranking"
+            "Highest ranking": "highest_ranking",
+            "Nationality": "country",
+            "Citizenship": "country",
+            "Country": "country"
         }
 
         for row in infobox.select("tr"):

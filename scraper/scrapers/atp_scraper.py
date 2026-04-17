@@ -36,6 +36,12 @@ class ATPScraper(BaseScraper):
                 name = name_cell.text.strip()
                 if not name: continue
 
+                # Extract Country from image title if available
+                country = "Unknown"
+                img_tag = name_cell.select_one("img")
+                if img_tag and img_tag.has_attr("title"):
+                    country = img_tag["title"].strip()
+                
                 # Generate realistic random stats for the demo
                 wins = max(0, 100 - ranking + random.randint(10, 50))
                 losses = random.randint(10, wins)
@@ -48,7 +54,7 @@ class ATPScraper(BaseScraper):
                     "ranking": ranking,
                     "highest_ranking": max(1, ranking - random.randint(0, 5)),
                     "highest_ranking_date": hr_date.date(),
-                    "country": "Unknown", # ESPN list doesn't show country in text usually
+                    "country": country,
                     "wins": wins,
                     "losses": losses,
                     "source": "ESPN / ATP"
