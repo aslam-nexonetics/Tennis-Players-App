@@ -33,6 +33,17 @@ class Player {
     required this.lastUpdated,
   });
 
+  int? get age {
+    if (birthDate == null) return null;
+    final now = DateTime.now();
+    int age = now.year - birthDate!.year;
+    if (now.month < birthDate!.month ||
+        (now.month == birthDate!.month && now.day < birthDate!.day)) {
+      age--;
+    }
+    return age;
+  }
+
   factory Player.fromJson(Map<String, dynamic> json) {
     return Player(
       id: json['id'],

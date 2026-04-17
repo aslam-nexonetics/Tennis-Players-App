@@ -10,19 +10,30 @@ class PlayerDetailScreen extends StatelessWidget {
 
   const PlayerDetailScreen({super.key, required this.player});
 
-  // Helper to generate dummy ranking path for graph based on actual data
-  List<double> _generateRankingTrend() {
-    final current = (player.ranking ?? 100).toDouble();
-    final highest = (player.highestRanking ?? current - 10).toDouble();
+  // Helper to generate ranking path for graph
+  List<RankingPoint> _generateRankingTrend() {
+    final current = player.ranking ?? 100;
+    final highest = player.highestRanking ?? current - 10;
+    final highestDate =
+        player.highestRankingDate ??
+        DateTime.now().subtract(const Duration(days: 365 * 2));
 
-    // Create a plausible curve from highest to current
+    // Generate 4-5 points to show a trend
     return [
-      highest + 5,
-      highest,
-      (highest + current) / 2 - 5,
-      (highest + current) / 2 + 2,
-      current - 3,
-      current,
+      RankingPoint(
+        ranking: highest + 5,
+        date: highestDate.subtract(const Duration(days: 180)),
+      ),
+      RankingPoint(ranking: highest, date: highestDate),
+      RankingPoint(
+        ranking: (highest + current) ~/ 2,
+        date: highestDate.add(const Duration(days: 180)),
+      ),
+      RankingPoint(
+        ranking: current + 2,
+        date: DateTime.now().subtract(const Duration(days: 30)),
+      ),
+      RankingPoint(ranking: current, date: DateTime.now()),
     ];
   }
 
@@ -90,17 +101,51 @@ class PlayerDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 30),
-                      Text(
-                        player.name,
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -1,
-                        ),
-                      ),
-                      Text(
-                        player.country ?? 'Professional Tennis Pro',
-                        style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  player.name,
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -1,
+                                  ),
+                                ),
+                                Text(
+                                  '${player.country ?? "N/A"} • ${player.age != null ? "${player.age} years" : "Pro Athlete"}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (player.country != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                player.country!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const Divider(height: 40, thickness: 1),
 
@@ -108,7 +153,7 @@ class PlayerDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Ranking History',
+                            'Ranking Progress',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -116,14 +161,14 @@ class PlayerDetailScreen extends StatelessWidget {
                             ),
                           ),
                           Icon(
-                            Icons.trending_up_rounded,
+                            Icons.query_stats_rounded,
                             color: Colors.indigo,
                             size: 20,
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      RankingGraph(dataPoints: _generateRankingTrend()),
+                      RankingGraph(points: _generateRankingTrend()),
 
                       const SizedBox(height: 30),
                       _buildStatGrid(context),
@@ -200,7 +245,7 @@ class PlayerDetailScreen extends StatelessWidget {
               cardWidth,
               'Career High',
               highestRankLabel,
-              Icons.emoji_events_outlined,
+              Icons.stars_rounded,
             ),
             _buildStatCard(
               cardWidth,
@@ -210,11 +255,9 @@ class PlayerDetailScreen extends StatelessWidget {
             ),
             _buildStatCard(
               cardWidth,
-              'Since',
-              player.birthDate != null
-                  ? DateFormat('yyyy').format(player.birthDate!)
-                  : 'N/A',
-              Icons.calendar_today,
+              'Height',
+              player.height ?? 'N/A',
+              Icons.height,
             ),
           ],
         );
