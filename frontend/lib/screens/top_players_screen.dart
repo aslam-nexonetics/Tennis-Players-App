@@ -57,6 +57,7 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: GlassContainer(
+                        blur: 0,
                         borderRadius: 20,
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(12),
