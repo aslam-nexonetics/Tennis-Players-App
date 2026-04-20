@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import players
+from app.api.endpoints import players, tt_players
 from app.db.session import engine, Base
 import uvicorn
 
@@ -24,6 +24,7 @@ app.add_middleware(
 
 # Include routes
 app.include_router(players.router, prefix="/players", tags=["Players"])
+app.include_router(tt_players.router, prefix="/tt-players", tags=["Table Tennis"])
 
 @app.post("/trigger", tags=["Admin"])
 def trigger_scraper():
@@ -34,6 +35,17 @@ def trigger_scraper():
         scraper_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "scraper", "main_scraper.py"))
         subprocess.Popen(["python3", scraper_path])
         return {"message": "Scraper triggered in background"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/trigger-tt", tags=["Admin"])
+def trigger_tt_scraper():
+    import subprocess
+    import os
+    try:
+        scraper_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "scraper", "main_scraper.py"))
+        subprocess.Popen(["python3", scraper_path, "--tt-only"])
+        return {"message": "TT Scraper triggered in background"}
     except Exception as e:
         return {"error": str(e)}
 
