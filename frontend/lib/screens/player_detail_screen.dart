@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
+import 'player_compare_screen.dart';
 
 class PlayerDetailScreen extends StatelessWidget {
   final Player player;
@@ -40,6 +41,23 @@ class PlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton.extended(
+          heroTag: 'compare-tennis-${player.id}',
+          backgroundColor: Colors.indigo,
+          icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
+          label: const Text('Compare',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PlayerCompareScreen(playerA: player),
+            ),
+          ),
+        ),
+      ),
       backgroundColor: const Color(0xFFCFDEF3), // Matches liquid theme
       extendBodyBehindAppBar: true,
       appBar: AppBar(

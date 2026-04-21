@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/tt_player_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'tt_player_detail_screen.dart';
+import 'tt_player_compare_screen.dart';
 
 class TtSearchScreen extends StatelessWidget {
   const TtSearchScreen({super.key});
@@ -157,6 +158,15 @@ class TtSearchScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) =>
                                     TtPlayerDetailScreen(player: player),
+                              ),
+                            );
+                          },
+                          onLongPress: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    TtPlayerCompareScreen(playerA: player),
                               ),
                             );
                           },

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/player_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'player_detail_screen.dart';
+import 'player_compare_screen.dart';
 
 class TopPlayersScreen extends StatefulWidget {
   const TopPlayersScreen({super.key});
@@ -128,6 +129,15 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                               MaterialPageRoute(
                                 builder: (context) =>
                                     PlayerDetailScreen(player: player),
+                              ),
+                            );
+                          },
+                          onLongPress: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    PlayerCompareScreen(playerA: player),
                               ),
                             );
                           },
