@@ -110,10 +110,14 @@ class TtSearchScreen extends StatelessWidget {
                                 width: 2,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.sports_tennis,
-                              color: Color(0xFF0F9D58),
-                              size: 24,
+                            child: ClipOval(
+                              child: player.imageUrl != null
+                                  ? Image.network(
+                                      player.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => _initialsWidget(player.name, 18),
+                                    )
+                                  : _initialsWidget(player.name, 18),
                             ),
                           ),
                           title: Text(
@@ -165,6 +169,25 @@ class TtSearchScreen extends StatelessWidget {
       ],
     );
   }
+}
+
+Widget _initialsWidget(String name, double fontSize) {
+  final parts = name.trim().split(' ');
+  final initials = parts.length >= 2
+      ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+      : name.isNotEmpty
+          ? name[0].toUpperCase()
+          : '?';
+  return Center(
+    child: Text(
+      initials,
+      style: TextStyle(
+        color: const Color(0xFF0F9D58),
+        fontWeight: FontWeight.bold,
+        fontSize: fontSize,
+      ),
+    ),
+  );
 }
 
 class _GenderFilterChips extends StatelessWidget {

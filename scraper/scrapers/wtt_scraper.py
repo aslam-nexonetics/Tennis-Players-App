@@ -5,6 +5,7 @@ Scrapes men's and women's rankings from worldtabletennis.com with Wikipedia fall
 import sys
 import os
 import random
+import urllib.parse
 from datetime import datetime, timedelta
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -18,6 +19,9 @@ from scraper.tt_persistence import save_tt_player
 # Wikipedia TT ranking pages — static HTML, highly reliable
 WTT_MEN_URL = "https://en.wikipedia.org/wiki/ITTF_World_Ranking"
 WTT_WOMEN_URL = "https://en.wikipedia.org/wiki/ITTF_World_Ranking"
+
+# Wikipedia REST API for player thumbnail images
+WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
 # Known top men's TT players (fallback dataset, used when scraping fails)
 KNOWN_MEN = [
@@ -220,8 +224,20 @@ class WTTScraper(BaseScraper):
                 log.error(f"Error saving known TT player {name}: {e}")
         return saved
 
+    def _fetch_wiki_image(self, name: str) -> str | None:
+        """Fetch a player's thumbnail image URL from the Wikipedia REST summary API."""
+        try:
+            encoded = urllib.parse.quote(name.replace(" ", "_"))
+            url = f"{WIKI_SUMMARY_API}{encoded}"
+            data = self.get_json(url)
+            if data and 'thumbnail' in data:
+                return data['thumbnail'].get('source')
+        except Exception as e:
+            log.debug(f"Wiki image fetch failed for {name}: {e}")
+        return None
+
     def _build_player_data(self, name: str, country: str, ranking: int, gender: str) -> dict:
-        """Build a player data dict with realistic stats."""
+        """Build a player data dict with realistic stats and a Wikipedia photo."""
         wins = max(0, 200 - ranking * 2 + random.randint(10, 60))
         losses = random.randint(5, max(6, wins // 3))
         hr_date = datetime.now() - timedelta(days=random.randint(180, 365 * 4))
@@ -229,6 +245,13 @@ class WTTScraper(BaseScraper):
         # Generate a plausible birth date (age 18-40)
         age_years = random.randint(18, 40)
         birth_date = (datetime.now() - timedelta(days=365 * age_years)).date()
+
+        # Try to get a real Wikipedia photo
+        image_url = self._fetch_wiki_image(name)
+        if image_url:
+            log.debug(f"Got Wikipedia image for {name}")
+        else:
+            log.debug(f"No Wikipedia image found for {name}")
 
         return {
             "name": name,
@@ -247,6 +270,7 @@ class WTTScraper(BaseScraper):
             ]),
             "wins": wins,
             "losses": losses,
+            "image_url": image_url,
             "gender": gender,
             "source": "WTT / ITTF",
         }

@@ -103,15 +103,15 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                                     width: 2,
                                   ),
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    _initials(player.name),
-                                    style: const TextStyle(
-                                      color: Color(0xFF0F9D58),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
+                                child: ClipOval(
+                                  child: player.imageUrl != null
+                                      ? Image.network(
+                                          player.imageUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              _initialsCenter(player.name),
+                                        )
+                                      : _initialsCenter(player.name),
                                 ),
                               ),
                               Container(
@@ -177,6 +177,19 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+
+  Widget _initialsCenter(String name) {
+    return Center(
+      child: Text(
+        _initials(name),
+        style: const TextStyle(
+          color: Color(0xFF0F9D58),
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+    );
   }
 }
 
