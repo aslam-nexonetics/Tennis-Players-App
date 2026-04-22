@@ -1,12 +1,12 @@
 {
-    "name": "frontend",
-    "short_name": "frontend",
+    "name": "Sports Player Search",
+    "short_name": "SportsSearch",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#CFDEF3",
+    "theme_color": "#5D5FEF",
+    "description": "Find and compare top Tennis and Table Tennis players worldwide.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

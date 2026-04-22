@@ -1,20 +1,22 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../models/player.dart';
 import '../models/tt_player.dart';
 
 class ApiService {
   static String get baseUrl {
     if (kIsWeb) {
+      // Web: same machine as the browser
       return 'http://localhost:8000';
-    } else if (Platform.isAndroid) {
-      // return 'http://10.0.2.2:8000'; // 10.0.2.2 is localhost for Android Emulators
-      return 'http://192.168.29.84:8000'; // Use
-    } else {
-      return 'http://localhost:8000'; // iOS Simulator or desktop
     }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      // Physical Android device on LAN
+      return 'http://192.168.29.84:8000';
+    }
+    // iOS simulator, macOS, Linux, Windows desktop
+    return 'http://localhost:8000';
   }
 
   Future<PlayerListResponse> getPlayers({int page = 1, int size = 20}) async {

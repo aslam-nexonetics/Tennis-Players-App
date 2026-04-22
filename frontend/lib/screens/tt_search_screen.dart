@@ -85,10 +85,10 @@ class TtSearchScreen extends StatelessWidget {
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.only(
+                  padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
-                    bottom: 120,
+                    bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
                   itemCount: provider.players.length,
                   itemBuilder: (context, index) {

@@ -147,7 +147,7 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                   },
                 ),
         ),
-        const SizedBox(height: 100),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
       ],
     );
   }
