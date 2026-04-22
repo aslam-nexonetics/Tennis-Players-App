@@ -20,8 +20,8 @@ def run_tennis_scraper():
     wiki = WikiScraper()
 
     # 1. Scrape Rankings
-    atp.scrape_rankings(limit=50)
-    wta.scrape_rankings(limit=50)
+    atp.scrape_rankings(limit=200)
+    wta.scrape_rankings(limit=200)
 
     # 2. Enrich missing data
     db = SessionLocal()
@@ -46,7 +46,7 @@ def run_tennis_scraper():
 def run_tt_scraper():
     log.info("Starting table tennis player scraper...")
     wtt = WTTScraper()
-    wtt.scrape_rankings(limit=50)
+    wtt.scrape_rankings(limit=200)
     log.info("Table tennis scraper run completed successfully.")
 
 

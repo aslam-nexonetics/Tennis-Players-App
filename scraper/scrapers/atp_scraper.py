@@ -8,7 +8,7 @@ class ATPScraper(BaseScraper):
     def __init__(self):
         super().__init__("https://www.espn.com/tennis/rankings/_/type/atp")
 
-    def scrape_rankings(self, limit=50):
+    def scrape_rankings(self, limit=200):
         log.info(f"Scraping ATP rankings (top {limit})...")
         soup = self.get_soup(self.base_url)
         if not soup:
