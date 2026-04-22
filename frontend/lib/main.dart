@@ -3,10 +3,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/tt_player_provider.dart';
+import 'providers/football_player_provider.dart';
 import 'screens/search_screen.dart';
 import 'screens/top_players_screen.dart';
 import 'screens/tt_search_screen.dart';
 import 'screens/tt_top_players_screen.dart';
+import 'screens/football_search_screen.dart';
+import 'screens/football_top_players_screen.dart';
 import 'widgets/glass_widgets.dart';
 
 void main() {
@@ -15,6 +18,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
         ChangeNotifierProvider(create: (_) => TtPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => FootballPlayerProvider()),
       ],
       child: const TennisApp(),
     ),
@@ -70,13 +74,17 @@ class _MainNavigationState extends State<MainNavigation> {
     TopPlayersScreen(),
     TtSearchScreen(),
     TtTopPlayersScreen(),
+    FootballSearchScreen(),
+    FootballTopPlayersScreen(),
   ];
 
   static const List<_NavDef> _navItems = [
-    _NavDef(Icons.search_rounded, 'Tennis Search', Colors.indigo),
+    _NavDef(Icons.search_rounded, 'Tennis', Colors.indigo),
     _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
     _NavDef(Icons.sports_tennis, 'TT Search', Color(0xFF0F9D58)),
-    _NavDef(Icons.emoji_events, 'TT Rankings', Color(0xFF0F9D58)),
+    _NavDef(Icons.emoji_events, 'TT Rank', Color(0xFF0F9D58)),
+    _NavDef(Icons.sports_soccer, 'Football', Color(0xFFE4405F)),
+    _NavDef(Icons.stars, 'FB Rank', Color(0xFFE4405F)),
   ];
 
   @override

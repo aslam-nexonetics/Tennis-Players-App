@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../models/player.dart';
 import '../models/tt_player.dart';
+import '../models/football_player.dart';
 
 class ApiService {
   static String get baseUrl {
@@ -105,6 +106,44 @@ class ApiService {
       return data.map((i) => TableTennisPlayer.fromJson(i)).toList();
     } else {
       throw Exception('Failed to load top TT players');
+    }
+  }
+
+  // ── Football ─────────────────────────────────────────────────────────────
+
+  Future<FootballPlayerListResponse> searchFootballPlayers(
+    String query, {
+    int page = 1,
+    int size = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/football-players/search?q=$query&page=$page&size=$size'),
+    );
+    if (response.statusCode == 200) {
+      return FootballPlayerListResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to search football players');
+    }
+  }
+
+  Future<FootballPlayer> getFootballPlayerDetail(int id) async {
+    final response = await http.get(Uri.parse('$baseUrl/football-players/$id'));
+    if (response.statusCode == 200) {
+      return FootballPlayer.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load football player details');
+    }
+  }
+
+  Future<List<FootballPlayer>> getFootballTopPlayers({int limit = 50}) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/football-players/top?limit=$limit'),
+    );
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return data.map((i) => FootballPlayer.fromJson(i)).toList();
+    } else {
+      throw Exception('Failed to load top football players');
     }
   }
 }
