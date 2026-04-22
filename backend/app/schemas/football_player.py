@@ -8,6 +8,12 @@ class FootballPlayerBase(BaseModel):
     ranking: Optional[int] = None
     current_club: Optional[str] = None
     position: Optional[str] = None
+    preferred_foot: Optional[str] = None
+    jersey_number: Optional[int] = None
+    contract_until: Optional[str] = None
+    rating: Optional[int] = None
+    international_caps: Optional[int] = 0
+    international_goals: Optional[int] = 0
     birth_date: Optional[date] = None
     height: Optional[str] = None
     weight: Optional[str] = None

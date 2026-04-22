@@ -5,6 +5,12 @@ class FootballPlayer {
   final int? ranking;
   final String? currentClub;
   final String? position;
+  final String? preferredFoot;
+  final int? jerseyNumber;
+  final String? contractUntil;
+  final int? rating;
+  final int internationalCaps;
+  final int internationalGoals;
   final DateTime? birthDate;
   final String? height;
   final String? weight;
@@ -22,6 +28,12 @@ class FootballPlayer {
     this.ranking,
     this.currentClub,
     this.position,
+    this.preferredFoot,
+    this.jerseyNumber,
+    this.contractUntil,
+    this.rating,
+    this.internationalCaps = 0,
+    this.internationalGoals = 0,
     this.birthDate,
     this.height,
     this.weight,
@@ -52,6 +64,12 @@ class FootballPlayer {
       ranking: json['ranking'],
       currentClub: json['current_club'],
       position: json['position'],
+      preferredFoot: json['preferred_foot'],
+      jerseyNumber: json['jersey_number'],
+      contractUntil: json['contract_until'],
+      rating: json['rating'],
+      internationalCaps: json['international_caps'] ?? 0,
+      internationalGoals: json['international_goals'] ?? 0,
       birthDate: json['birth_date'] != null
           ? DateTime.parse(json['birth_date'])
           : null,

@@ -136,6 +136,32 @@ class FootballPlayerDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  if (player.rating != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '${player.rating} OVR',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -190,10 +216,88 @@ class FootballPlayerDetailScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                          if (player.jerseyNumber != null)
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFE4405F).withOpacity(0.1),
+                              ),
+                              child: Text(
+                                '#${player.jerseyNumber}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFE4405F),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                       const Divider(height: 40, thickness: 1),
 
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Technical Profile',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE4405F),
+                            ),
+                          ),
+                          Icon(
+                            Icons.psychology_rounded,
+                            color: Color(0xFFE4405F),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTechnicalStats(),
+
+                      const SizedBox(height: 30),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'International Stats',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE4405F),
+                            ),
+                          ),
+                          Icon(
+                            Icons.public,
+                            color: Color(0xFFE4405F),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildSimpleStat(
+                              'CAPS',
+                              '${player.internationalCaps}',
+                              Colors.blue[400]!,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildSimpleStat(
+                              'INTL GOALS',
+                              '${player.internationalGoals}',
+                              Colors.amber[700]!,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 30),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -279,6 +383,49 @@ class FootballPlayerDetailScreen extends StatelessWidget {
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 
+  Widget _buildTechnicalStats() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildTechnicalCard(
+            'Preferred Foot',
+            player.preferredFoot ?? 'Right',
+            Icons.directions_run,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildTechnicalCard(
+            'Position',
+            player.position ?? 'Midfielder',
+            Icons.gps_fixed,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTechnicalCard(String label, String value, IconData icon) {
+    return GlassContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      borderRadius: 15,
+      opacity: 0.1,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFFE4405F)),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatGrid(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -301,15 +448,15 @@ class FootballPlayerDetailScreen extends StatelessWidget {
             ),
             _buildStatCard(
               cardWidth,
-              'Age',
-              player.age != null ? '${player.age} yrs' : 'N/A',
-              Icons.calendar_today,
+              'Contract Until',
+              player.contractUntil ?? 'N/A',
+              Icons.assignment_ind,
             ),
             _buildStatCard(
               cardWidth,
-              'Height',
-              player.height ?? 'N/A',
-              Icons.height,
+              'Height / Weight',
+              '${player.height ?? 'N/A'} / ${player.weight ?? 'N/A'}',
+              Icons.monitor_weight_outlined,
             ),
           ],
         );

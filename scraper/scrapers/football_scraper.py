@@ -113,11 +113,26 @@ class FootballScraper(BaseScraper):
     def _build_player_data(self, name: str, country: str, ranking: int, club: str, position: str) -> dict:
         """Build a player data dict with realistic stats."""
         # Generate some plausible stats
-        goals = random.randint(5, 40) if position == "Forward" else random.randint(0, 15)
-        assists = random.randint(5, 20) if position in ["Forward", "Midfielder"] else random.randint(0, 5)
+        goals = random.randint(15, 45) if position == "Forward" else random.randint(0, 10)
+        assists = random.randint(10, 25) if position in ["Forward", "Midfielder"] else random.randint(0, 5)
         
+        # New football-specific fields
+        preferred_foot = random.choice(["Right", "Right", "Right", "Left"]) # 75% Right
+        jersey_number = random.choice([7, 9, 10, 11]) if position == "Forward" else random.choice([4, 5, 6, 8, 17, 21])
+        contract_year = random.randint(2026, 2029)
+        contract_until = f"June {contract_year}"
+        
+        # Rating (0-99)
+        # Higher rank = higher rating
+        base_rating = 95 - (ranking // 5)
+        rating = max(80, min(99, base_rating + random.randint(-2, 2)))
+
+        # International stats
+        caps = random.randint(30, 150)
+        int_goals = random.randint(5, caps // 2) if position == "Forward" else random.randint(0, caps // 8)
+
         # Market value in Millions
-        val = random.randint(30, 180)
+        val = random.randint(50, 180)
         market_value = f"€{val}M"
 
         # Try to get a real Wikipedia photo
@@ -129,6 +144,12 @@ class FootballScraper(BaseScraper):
             "ranking": ranking,
             "current_club": club,
             "position": position,
+            "preferred_foot": preferred_foot,
+            "jersey_number": jersey_number,
+            "contract_until": contract_until,
+            "rating": rating,
+            "international_caps": caps,
+            "international_goals": int_goals,
             "market_value": market_value,
             "goals": goals,
             "assists": assists,
