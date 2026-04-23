@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/tt_player_provider.dart';
 import 'providers/football_player_provider.dart';
+import 'providers/sport_provider.dart';
 import 'screens/search_screen.dart';
 import 'screens/top_players_screen.dart';
 import 'screens/tt_search_screen.dart';
@@ -19,6 +20,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
         ChangeNotifierProvider(create: (_) => TtPlayerProvider()),
         ChangeNotifierProvider(create: (_) => FootballPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => SportProvider()),
       ],
       child: const TennisApp(),
     ),
@@ -67,57 +69,82 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _selectedIndex = 0;
-
-  static const List<Widget> _screens = [
-    SearchScreen(),
-    TopPlayersScreen(),
-    TtSearchScreen(),
-    TtTopPlayersScreen(),
-    FootballSearchScreen(),
-    FootballTopPlayersScreen(),
-  ];
-
-  static const List<_NavDef> _navItems = [
-    _NavDef(Icons.search_rounded, 'Tennis', Colors.indigo),
-    _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
-    _NavDef(Icons.sports_tennis, 'TT Search', Color(0xFF0F9D58)),
-    _NavDef(Icons.emoji_events, 'TT Rank', Color(0xFF0F9D58)),
-    _NavDef(Icons.sports_soccer, 'Football', Color(0xFFE4405F)),
-    _NavDef(Icons.stars, 'FB Rank', Color(0xFFE4405F)),
-  ];
+  int _selectedIndex = 0; // 0: Search, 1: Rankings
 
   @override
   Widget build(BuildContext context) {
+    final sportProvider = Provider.of<SportProvider>(context);
+    final currentSport = sportProvider.currentSport;
+
+    final List<Widget> screens = [
+      _getSearchScreen(currentSport.type),
+      _getRankingsScreen(currentSport.type),
+    ];
+
+    final List<_NavDef> navItems = [
+      const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
+      const _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
+    ];
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= _kCompactBreakpoint;
-        return isWide ? _wideLayout(context) : _compactLayout(context);
+        return isWide
+            ? _wideLayout(context, screens, navItems, currentSport, sportProvider)
+            : _compactLayout(context, screens, navItems, currentSport, sportProvider);
       },
     );
   }
 
+  Widget _getSearchScreen(SportType type) {
+    switch (type) {
+      case SportType.tennis:
+        return const SearchScreen();
+      case SportType.tableTennis:
+        return const TtSearchScreen();
+      case SportType.football:
+        return const FootballSearchScreen();
+    }
+  }
+
+  Widget _getRankingsScreen(SportType type) {
+    switch (type) {
+      case SportType.tennis:
+        return const TopPlayersScreen();
+      case SportType.tableTennis:
+        return const TtTopPlayersScreen();
+      case SportType.football:
+        return const FootballTopPlayersScreen();
+    }
+  }
+
   // ── Wide layout (web / tablet) ─────────────────────────────────────────────
-  Widget _wideLayout(BuildContext context) {
+  Widget _wideLayout(BuildContext context, List<Widget> screens,
+      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider) {
     return LiquidBackground(
       child: Scaffold(
+        appBar: _buildAppBar(context, currentSport),
         body: Row(
           children: [
-            // Side rail
             _SideRail(
               selectedIndex: _selectedIndex,
-              navItems: _navItems,
+              navItems: navItems,
               onTap: (i) => setState(() => _selectedIndex = i),
+              currentSport: currentSport,
             ),
             const VerticalDivider(width: 1, thickness: 1),
-            // Content — constrained to a sensible max width, centred
             Expanded(
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 720),
-                  child: IndexedStack(
-                    index: _selectedIndex,
-                    children: _screens,
+                  child: Column(
+                    children: [
+                      _SportCategoryBar(
+                        sportProvider: sportProvider,
+                        currentSport: currentSport,
+                      ),
+                      Expanded(child: screens[_selectedIndex]),
+                    ],
                   ),
                 ),
               ),
@@ -129,22 +156,33 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   // ── Compact layout (mobile) ────────────────────────────────────────────────
-  Widget _compactLayout(BuildContext context) {
+  Widget _compactLayout(BuildContext context, List<Widget> screens,
+      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider) {
     return LiquidBackground(
       child: Scaffold(
         extendBody: true,
-        body: IndexedStack(index: _selectedIndex, children: _screens),
+        appBar: _buildAppBar(context, currentSport),
+        body: Column(
+          children: [
+            _SportCategoryBar(
+              sportProvider: sportProvider,
+              currentSport: currentSport,
+            ),
+            Expanded(child: screens[_selectedIndex]),
+          ],
+        ),
         bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+          padding: const EdgeInsets.only(left: 48, right: 48, bottom: 24),
           child: GlassContainer(
             borderRadius: 30,
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(
-                _navItems.length,
+                navItems.length,
                 (i) => _BottomNavItem(
-                  def: _navItems[i],
+                  def: navItems[i],
+                  accentColor: currentSport.accentColor,
                   isSelected: _selectedIndex == i,
                   onTap: () => setState(() => _selectedIndex = i),
                 ),
@@ -152,6 +190,98 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, Sport currentSport) {
+    return AppBar(
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(currentSport.icon, color: currentSport.accentColor, size: 24),
+          const SizedBox(width: 10),
+          Text(currentSport.name),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Sport Category Bar ───────────────────────────────────────────────────────
+class _SportCategoryBar extends StatelessWidget {
+  final SportProvider sportProvider;
+  final Sport currentSport;
+
+  const _SportCategoryBar({
+    required this.sportProvider,
+    required this.currentSport,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 70,
+      margin: const EdgeInsets.only(top: 8),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: SportProvider.allSports.length,
+        itemBuilder: (context, index) {
+          final sport = SportProvider.allSports[index];
+          final isSelected = currentSport.type == sport.type;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 12, bottom: 8),
+            child: GestureDetector(
+              onTap: () => sportProvider.setSport(sport),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? sport.accentColor.withOpacity(0.15)
+                      : Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? sport.accentColor
+                        : Colors.white.withOpacity(0.2),
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: sport.accentColor.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      sport.icon,
+                      color: isSelected ? sport.accentColor : Colors.grey[600],
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      sport.name,
+                      style: TextStyle(
+                        color: isSelected ? sport.accentColor : Colors.grey[700],
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -170,11 +300,13 @@ class _SideRail extends StatelessWidget {
   final int selectedIndex;
   final List<_NavDef> navItems;
   final ValueChanged<int> onTap;
+  final Sport currentSport;
 
   const _SideRail({
     required this.selectedIndex,
     required this.navItems,
     required this.onTap,
+    required this.currentSport,
   });
 
   @override
@@ -216,6 +348,7 @@ class _SideRail extends StatelessWidget {
               navItems.length,
               (i) => _SideRailItem(
                 def: navItems[i],
+                accentColor: currentSport.accentColor,
                 isSelected: selectedIndex == i,
                 onTap: () => onTap(i),
               ),
@@ -228,9 +361,7 @@ class _SideRail extends StatelessWidget {
                 child: Text(
                   'Sports Player Search\nWeb Edition',
                   style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[500],
-                      height: 1.5),
+                      fontSize: 10, color: Colors.grey[500], height: 1.5),
                 ),
               ),
           ],
@@ -242,11 +373,13 @@ class _SideRail extends StatelessWidget {
 
 class _SideRailItem extends StatelessWidget {
   final _NavDef def;
+  final Color accentColor;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _SideRailItem({
     required this.def,
+    required this.accentColor,
     required this.isSelected,
     required this.onTap,
   });
@@ -258,12 +391,9 @@ class _SideRailItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? def.accent.withOpacity(0.12)
-              : Colors.transparent,
+          color: isSelected ? accentColor.withOpacity(0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -271,7 +401,7 @@ class _SideRailItem extends StatelessWidget {
             Icon(
               def.icon,
               size: 20,
-              color: isSelected ? def.accent : Colors.grey[600],
+              color: isSelected ? accentColor : Colors.grey[600],
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -279,9 +409,8 @@ class _SideRailItem extends StatelessWidget {
                 def.label,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? def.accent : Colors.grey[700],
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? accentColor : Colors.grey[700],
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -296,11 +425,13 @@ class _SideRailItem extends StatelessWidget {
 // ── Bottom nav item (mobile) ───────────────────────────────────────────────────
 class _BottomNavItem extends StatelessWidget {
   final _NavDef def;
+  final Color accentColor;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _BottomNavItem({
     required this.def,
+    required this.accentColor,
     required this.isSelected,
     required this.onTap,
   });
@@ -311,12 +442,9 @@ class _BottomNavItem extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? def.accent.withOpacity(0.1)
-              : Colors.transparent,
+          color: isSelected ? accentColor.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -324,19 +452,16 @@ class _BottomNavItem extends StatelessWidget {
           children: [
             Icon(
               def.icon,
-              color: isSelected ? def.accent : Colors.grey[600],
+              color: isSelected ? accentColor : Colors.grey[600],
               size: 22,
             ),
             const SizedBox(height: 2),
             Text(
-              def.label.length > 8
-                  ? '${def.label.substring(0, 7)}…'
-                  : def.label,
+              def.label,
               style: TextStyle(
                 fontSize: 10,
-                color: isSelected ? def.accent : Colors.grey[600],
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? accentColor : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
@@ -345,3 +470,5 @@ class _BottomNavItem extends StatelessWidget {
     );
   }
 }
+
+
