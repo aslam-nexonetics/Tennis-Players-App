@@ -49,7 +49,7 @@ class BasketballScraper:
                 "fg_pct": 54.0,
                 "three_pt_pct": 41.0,
                 "ft_pct": 75.0,
-                "image_url": "https://img.bleacherreport.net/img/images/photos/003/926/845/8d10b7b1349a888c3a778e36398f62b1_crop_north.jpg?h=900&w=1350&q=70&crop_x=center&crop_y=top",
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/1966.png",
                 "source": "NBA Data Simulation"
             },
             {
@@ -72,7 +72,7 @@ class BasketballScraper:
                 "fg_pct": 45.0,
                 "three_pt_pct": 40.8,
                 "ft_pct": 92.3,
-                "image_url": "https://img.bleacherreport.net/img/images/photos/003/926/847/5a0c868953187c3e1e92d24294a61f43_crop_north.jpg?h=900&w=1350&q=70&crop_x=center&crop_y=top",
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3975.png",
                 "source": "NBA Data Simulation"
             },
             {
@@ -95,7 +95,7 @@ class BasketballScraper:
                 "fg_pct": 52.3,
                 "three_pt_pct": 41.3,
                 "ft_pct": 85.6,
-                "image_url": "https://img.bleacherreport.net/img/images/photos/003/926/848/7e97f7422f960f2597405e6085a676b7_crop_north.jpg?h=900&w=1350&q=70&crop_x=center&crop_y=top",
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3202.png",
                 "source": "NBA Data Simulation"
             },
             {
@@ -118,7 +118,7 @@ class BasketballScraper:
                 "fg_pct": 61.1,
                 "three_pt_pct": 27.4,
                 "ft_pct": 65.7,
-                "image_url": "https://img.bleacherreport.net/img/images/photos/003/926/849/f635f79a9f9390234a96b797f3987f22_crop_north.jpg?h=900&w=1350&q=70&crop_x=center&crop_y=top",
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3032977.png",
                 "source": "NBA Data Simulation"
             },
             {
@@ -141,14 +141,133 @@ class BasketballScraper:
                 "fg_pct": 58.3,
                 "three_pt_pct": 35.9,
                 "ft_pct": 81.7,
-                "image_url": "https://img.bleacherreport.net/img/images/photos/003/926/850/c215e98f62f3f124483a3026369799c9_crop_north.jpg?h=900&w=1350&q=70&crop_x=center&crop_y=top",
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3112335.png",
+                "source": "NBA Data Simulation"
+            },
+            {
+                "name": "Luka Doncic",
+                "country": "Slovenia",
+                "ranking": 6,
+                "team": "Dallas Mavericks",
+                "position": "PG/SG",
+                "jersey_number": 77,
+                "height": "6'7\"",
+                "weight": "230 lbs",
+                "college": "None",
+                "draft_year": 2018,
+                "draft_pick": 3,
+                "ppg": 33.9,
+                "rpg": 9.2,
+                "apg": 9.8,
+                "spg": 1.4,
+                "bpg": 0.5,
+                "fg_pct": 48.7,
+                "three_pt_pct": 38.2,
+                "ft_pct": 78.6,
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3945233.png",
+                "source": "NBA Data Simulation"
+            },
+            {
+                "name": "Joel Embiid",
+                "country": "Cameroon",
+                "ranking": 7,
+                "team": "Philadelphia 76ers",
+                "position": "C",
+                "jersey_number": 21,
+                "height": "7'0\"",
+                "weight": "280 lbs",
+                "college": "Kansas",
+                "draft_year": 2014,
+                "draft_pick": 3,
+                "ppg": 34.7,
+                "rpg": 11.0,
+                "apg": 5.6,
+                "spg": 1.2,
+                "bpg": 1.7,
+                "fg_pct": 52.9,
+                "three_pt_pct": 38.8,
+                "ft_pct": 88.3,
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3059318.png",
+                "source": "NBA Data Simulation"
+            },
+            {
+                "name": "Jayson Tatum",
+                "country": "USA",
+                "ranking": 8,
+                "team": "Boston Celtics",
+                "position": "SF/PF",
+                "jersey_number": 0,
+                "height": "6'8\"",
+                "weight": "210 lbs",
+                "college": "Duke",
+                "draft_year": 2017,
+                "draft_pick": 3,
+                "ppg": 26.9,
+                "rpg": 8.1,
+                "apg": 4.9,
+                "spg": 1.0,
+                "bpg": 0.6,
+                "fg_pct": 47.1,
+                "three_pt_pct": 37.6,
+                "ft_pct": 83.3,
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/4065648.png",
+                "source": "NBA Data Simulation"
+            },
+            {
+                "name": "Shai Gilgeous-Alexander",
+                "country": "Canada",
+                "ranking": 9,
+                "team": "Oklahoma City Thunder",
+                "position": "PG/SG",
+                "jersey_number": 2,
+                "height": "6'6\"",
+                "weight": "195 lbs",
+                "college": "Kentucky",
+                "draft_year": 2018,
+                "draft_pick": 11,
+                "ppg": 30.1,
+                "rpg": 5.5,
+                "apg": 6.2,
+                "spg": 2.0,
+                "bpg": 0.9,
+                "fg_pct": 53.5,
+                "three_pt_pct": 35.3,
+                "ft_pct": 87.4,
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/4277811.png",
+                "source": "NBA Data Simulation"
+            },
+            {
+                "name": "Anthony Edwards",
+                "country": "USA",
+                "ranking": 10,
+                "team": "Minnesota Timberwolves",
+                "position": "SG",
+                "jersey_number": 5,
+                "height": "6'4\"",
+                "weight": "225 lbs",
+                "college": "Georgia",
+                "draft_year": 2020,
+                "draft_pick": 1,
+                "ppg": 25.9,
+                "rpg": 5.4,
+                "apg": 5.1,
+                "spg": 1.3,
+                "bpg": 0.5,
+                "fg_pct": 46.1,
+                "three_pt_pct": 35.7,
+                "ft_pct": 83.6,
+                "image_url": "https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/4431611.png",
                 "source": "NBA Data Simulation"
             }
         ]
 
-        # Add some more generic players
-        for i in range(6, 51):
-            name = f"Basketball Player {i}"
+        # Add some more generic players with realistic names
+        first_names = ["James", "Michael", "Kevin", "Chris", "Derrick", "Kyrie", "Klay", "Damian", "Paul", "Kawhi", "Devin", "Jimmy", "Donovan", "Bam", "De'Aaron", "Tyrese", "Domantas", "Jaylen", "Trae", "Ja"]
+        last_names = ["Harden", "Thompson", "Lillard", "George", "Leonard", "Booker", "Butler", "Mitchell", "Adebayo", "Fox", "Haliburton", "Sabonis", "Brown", "Young", "Morant", "Irving", "Rose", "Anthony", "Davis", "Green"]
+        
+        for i in range(11, 51):
+            name = f"{random.choice(first_names)} {random.choice(last_names)}"
+            # Ensure no duplicates with the main list if possible, or just accept it for demo
             players_data.append({
                 "name": name,
                 "country": random.choice(["USA", "Canada", "France", "Spain", "Germany", "Australia"]),
@@ -169,7 +288,7 @@ class BasketballScraper:
                 "fg_pct": round(random.uniform(40.0, 60.0), 1),
                 "three_pt_pct": round(random.uniform(25.0, 45.0), 1),
                 "ft_pct": round(random.uniform(60.0, 95.0), 1),
-                "image_url": f"https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+                "image_url": "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=500&auto=format&fit=crop",
                 "source": "Generated Data"
             })
 
