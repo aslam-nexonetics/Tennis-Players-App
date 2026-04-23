@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum SportType { tennis, tableTennis, football }
+enum SportType { tennis, tableTennis, football, basketball }
 
 class Sport {
   final SportType type;
@@ -35,6 +35,12 @@ class SportProvider with ChangeNotifier {
       name: 'Football',
       icon: Icons.sports_soccer,
       accentColor: Color(0xFFE4405F),
+    ),
+    Sport(
+      type: SportType.basketball,
+      name: 'Basketball',
+      icon: Icons.sports_basketball,
+      accentColor: Colors.orange,
     ),
   ];
 

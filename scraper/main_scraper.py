@@ -9,6 +9,7 @@ from scraper.scrapers.wta_scraper import WTAScraper
 from scraper.scrapers.wiki_scraper import WikiScraper
 from scraper.scrapers.wtt_scraper import WTTScraper
 from scraper.scrapers.football_scraper import FootballScraper
+from scraper.scrapers.basketball_scraper import BasketballScraper
 from scraper.utils.logger import log
 from scraper.persistence import SessionLocal, Player
 
@@ -58,6 +59,13 @@ def run_football_scraper():
     log.info("Football scraper run completed successfully.")
 
 
+def run_basketball_scraper():
+    log.info("Starting basketball player scraper...")
+    bb = BasketballScraper()
+    bb.scrape_basketball_players()
+    log.info("Basketball scraper run completed successfully.")
+
+
 def run_scraper():
     """Legacy entry point — runs tennis scraper only."""
     run_tennis_scraper()
@@ -67,6 +75,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Tennis & Table Tennis & Football scraper")
     parser.add_argument("--tt-only", action="store_true", help="Run only the table tennis scraper")
     parser.add_argument("--football-only", action="store_true", help="Run only the football scraper")
+    parser.add_argument("--basketball-only", action="store_true", help="Run only the basketball scraper")
     parser.add_argument("--all", action="store_true", help="Run all scrapers")
     args = parser.parse_args()
 
@@ -74,10 +83,13 @@ if __name__ == "__main__":
         run_tt_scraper()
     elif args.football_only:
         run_football_scraper()
+    elif args.basketball_only:
+        run_basketball_scraper()
     elif args.all:
         run_tennis_scraper()
         run_tt_scraper()
         run_football_scraper()
+        run_basketball_scraper()
     else:
         # Default: run tennis scraper (backward compat)
         run_tennis_scraper()
