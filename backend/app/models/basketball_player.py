@@ -37,6 +37,10 @@ class BasketballPlayer(Base):
 
     ranking_history = relationship("BasketballRankingHistory", back_populates="player", cascade="all, delete-orphan")
 
+    __table_args__ = (
+        Index("ix_basketball_players_name_lower", func.lower(name)),
+    )
+
 class BasketballRankingHistory(Base):
     __tablename__ = "basketball_ranking_history"
 
@@ -46,7 +50,3 @@ class BasketballRankingHistory(Base):
     date = Column(DateTime(timezone=True), server_default=func.now())
 
     player = relationship("BasketballPlayer", back_populates="ranking_history")
-
-    __table_args__ = (
-        Index("ix_basketball_players_name_lower", func.lower(name)),
-    )
