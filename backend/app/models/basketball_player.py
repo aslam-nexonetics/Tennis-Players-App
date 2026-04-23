@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Index
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Index, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.session import Base
 
@@ -33,6 +34,18 @@ class BasketballPlayer(Base):
     image_url = Column(String)
     source = Column(String)
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    ranking_history = relationship("BasketballRankingHistory", back_populates="player", cascade="all, delete-orphan")
+
+class BasketballRankingHistory(Base):
+    __tablename__ = "basketball_ranking_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("basketball_players.id"))
+    ranking = Column(Integer, nullable=False)
+    date = Column(DateTime(timezone=True), server_default=func.now())
+
+    player = relationship("BasketballPlayer", back_populates="ranking_history")
 
     __table_args__ = (
         Index("ix_basketball_players_name_lower", func.lower(name)),

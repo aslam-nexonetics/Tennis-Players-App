@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.models.basketball_player import BasketballPlayer
+from app.models.basketball_player import BasketballPlayer, BasketballRankingHistory
 from app.schemas.basketball_player import BasketballPlayerCreate
 from typing import List, Optional
 
@@ -30,13 +30,25 @@ class BasketballPlayerService:
     @staticmethod
     def create_or_update_player(db: Session, player_data: BasketballPlayerCreate):
         db_player = db.query(BasketballPlayer).filter(BasketballPlayer.name == player_data.name).first()
+        
+        # Exclude ranking_history as it's a relationship
+        update_data = player_data.model_dump(exclude={"ranking_history"}, exclude_unset=True)
+        
         if db_player:
-            for key, value in player_data.model_dump(exclude_unset=True).items():
+            for key, value in update_data.items():
                 setattr(db_player, key, value)
         else:
-            db_player = BasketballPlayer(**player_data.model_dump())
+            db_player = BasketballPlayer(**update_data)
             db.add(db_player)
         
         db.commit()
         db.refresh(db_player)
         return db_player
+
+    @staticmethod
+    def add_ranking_history(db: Session, history_data):
+        db_history = BasketballRankingHistory(**history_data.model_dump())
+        db.add(db_history)
+        db.commit()
+        db.refresh(db_history)
+        return db_history
