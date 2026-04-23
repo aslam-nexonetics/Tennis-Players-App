@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 
 from app.db.session import SessionLocal
 from app.services.basketball_player_service import BasketballPlayerService
-from app.schemas.basketball_player import BasketballPlayerCreate
+from app.schemas.basketball_player import BasketballPlayerCreate, BasketballRankingHistoryCreate
 
 class BasketballScraper:
     def __init__(self):
@@ -299,6 +299,27 @@ class BasketballScraper:
                 print(f"Saved: {p['name']}")
             except Exception as e:
                 print(f"Error saving {p['name']}: {e}")
+
+        # Add some ranking history
+        print("Generating ranking history...")
+        all_players = BasketballPlayerService.get_players(self.db, limit=100)[0]
+        for p in all_players:
+            # Generate 6 months of history
+            current_rank = p.ranking
+            for m in range(1, 7):
+                # Randomize a bit but stay close to current rank
+                hist_rank = max(1, current_rank + random.randint(-5, 10))
+                date = datetime(2023, 12 + (m if m <= 0 else m-12), random.randint(1, 28))
+                if m > 4: # recent months in 2024
+                     date = datetime(2024, m-4, random.randint(1, 28))
+                
+                hist_create = BasketballRankingHistoryCreate(
+                    player_id=p.id,
+                    ranking=hist_rank,
+                    date=date
+                )
+                BasketballPlayerService.add_ranking_history(self.db, hist_create)
+            print(f"Added history for: {p.name}")
 
         self.db.close()
         print("Basketball scraping completed.")

@@ -3,6 +3,20 @@ from datetime import date, datetime
 from typing import Optional, List
 
 
+class BasketballRankingHistoryBase(BaseModel):
+    ranking: int
+    date: datetime
+
+class BasketballRankingHistoryCreate(BasketballRankingHistoryBase):
+    player_id: int
+
+class BasketballRankingHistory(BasketballRankingHistoryBase):
+    id: int
+    player_id: int
+
+    class Config:
+        from_attributes = True
+
 class BasketballPlayerBase(BaseModel):
     name: str
     country: Optional[str] = None
@@ -24,8 +38,9 @@ class BasketballPlayerBase(BaseModel):
     spg: Optional[float] = 0.0
     bpg: Optional[float] = 0.0
     fg_pct: Optional[float] = 0.0
-    three_pt_pct: Optional[float] = 0.0
-    ft_pct: Optional[float] = 0.0
+    three_pt_pct: Optional[float] = None
+    ft_pct: Optional[float] = None
+    ranking_history: List[BasketballRankingHistory] = []
     
     image_url: Optional[str] = None
     source: Optional[str] = None
