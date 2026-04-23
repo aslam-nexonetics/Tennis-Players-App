@@ -30,7 +30,7 @@ KNOWN_PLAYERS = [
     ("Mohamed Salah", "Egypt", 7, "Liverpool", "Forward"),
     ("Vinícius Júnior", "Brazil", 8, "Real Madrid", "Forward"),
     ("Lionel Messi", "Argentina", 9, "Inter Miami", "Forward"),
-    ("Cristiano Ronaldo", "Portugal", 10, "Al-Nassr", "Forward"),
+    ("Cristiano Ronaldo", "Portugal", 10, "Al Nassr", "Forward"),
     ("Antoine Griezmann", "France", 11, "Atlético Madrid", "Forward"),
     ("Bernardo Silva", "Portugal", 12, "Manchester City", "Midfielder"),
     ("Bukayo Saka", "England", 13, "Arsenal", "Forward"),
@@ -51,8 +51,77 @@ KNOWN_PLAYERS = [
     ("Pedri", "Spain", 28, "Barcelona", "Midfielder"),
     ("Gavi", "Spain", 29, "Barcelona", "Midfielder"),
     ("Phil Foden", "England", 30, "Manchester City", "Forward"),
+    ("Cole Palmer", "England", 31, "Chelsea", "Midfielder"),
+    ("Ollie Watkins", "England", 32, "Aston Villa", "Forward"),
+    ("Alexander Isak", "Sweden", 33, "Newcastle United", "Forward"),
+    ("William Saliba", "France", 34, "Arsenal", "Defender"),
+    ("Gabriel Magalhães", "Brazil", 35, "Arsenal", "Defender"),
+    ("Alexis Mac Allister", "Argentina", 36, "Liverpool", "Midfielder"),
+    ("Dominik Szoboszlai", "Hungary", 37, "Liverpool", "Midfielder"),
+    ("Luis Díaz", "Colombia", 38, "Liverpool", "Forward"),
+    ("Darwin Núñez", "Uruguay", 39, "Liverpool", "Forward"),
+    ("Julian Alvarez", "Argentina", 40, "Atletico Madrid", "Forward"),
+    ("John Stones", "England", 41, "Manchester City", "Defender"),
+    ("Kyle Walker", "England", 42, "Manchester City", "Defender"),
+    ("Ederson", "Brazil", 43, "Manchester City", "Goalkeeper"),
+    ("Emi Martinez", "Argentina", 44, "Aston Villa", "Goalkeeper"),
+    ("Douglas Luiz", "Brazil", 45, "Juventus", "Midfielder"),
+    ("Lamine Yamal", "Spain", 46, "Barcelona", "Forward"),
+    ("Nico Williams", "Spain", 47, "Athletic Bilbao", "Forward"),
+    ("Aurélien Tchouaméni", "France", 48, "Real Madrid", "Midfielder"),
+    ("Eduardo Camavinga", "France", 49, "Real Madrid", "Midfielder"),
+    ("Thibaut Courtois", "Belgium", 50, "Real Madrid", "Goalkeeper"),
+    ("Jan Oblak", "Slovenia", 51, "Atlético Madrid", "Goalkeeper"),
+    ("Ronald Araújo", "Uruguay", 52, "Barcelona", "Defender"),
+    ("Frenkie de Jong", "Netherlands", 53, "Barcelona", "Midfielder"),
+    ("Raphinha", "Brazil", 54, "Barcelona", "Forward"),
+    ("Takefusa Kubo", "Japan", 55, "Real Sociedad", "Forward"),
+    ("Florian Wirtz", "Germany", 56, "Bayer Leverkusen", "Midfielder"),
+    ("Granit Xhaka", "Switzerland", 57, "Bayer Leverkusen", "Midfielder"),
+    ("Jeremie Frimpong", "Netherlands", 58, "Bayer Leverkusen", "Defender"),
+    ("Alejandro Grimaldo", "Spain", 59, "Bayer Leverkusen", "Defender"),
+    ("Leroy Sané", "Germany", 60, "Bayern Munich", "Forward"),
+    ("Joshua Kimmich", "Germany", 61, "Bayern Munich", "Midfielder"),
+    ("Alphonso Davies", "Canada", 62, "Bayern Munich", "Defender"),
+    ("Manuel Neuer", "Germany", 63, "Bayern Munich", "Goalkeeper"),
+    ("Gregor Kobel", "Switzerland", 64, "Borussia Dortmund", "Goalkeeper"),
+    ("Nico Schlotterbeck", "Germany", 65, "Borussia Dortmund", "Defender"),
+    ("Rafael Leão", "Portugal", 66, "AC Milan", "Forward"),
+    ("Khvicha Kvaratskhelia", "Georgia", 67, "Napoli", "Forward"),
+    ("Theo Hernández", "France", 68, "AC Milan", "Defender"),
+    ("Mike Maignan", "France", 69, "AC Milan", "Goalkeeper"),
+    ("Nicolò Barella", "Italy", 70, "Inter Milan", "Midfielder"),
+    ("Alessandro Bastoni", "Italy", 71, "Inter Milan", "Defender"),
+    ("Hakan Çalhanoğlu", "Turkey", 72, "Inter Milan", "Midfielder"),
+    ("Dusan Vlahovic", "Serbia", 73, "Juventus", "Forward"),
+    ("Paulo Dybala", "Argentina", 74, "AS Roma", "Forward"),
+    ("Marcus Thuram", "France", 75, "Inter Milan", "Forward"),
+    ("Ousmane Dembélé", "France", 76, "Paris Saint-Germain", "Forward"),
+    ("Achraf Hakimi", "Morocco", 77, "Paris Saint-Germain", "Defender"),
+    ("Marquinhos", "Brazil", 78, "Paris Saint-Germain", "Defender"),
+    ("Gianluigi Donnarumma", "Italy", 79, "Paris Saint-Germain", "Goalkeeper"),
+    ("Warren Zaïre-Emery", "France", 80, "Paris Saint-Germain", "Midfielder"),
+    ("Jonathan David", "Canada", 81, "Lille", "Forward"),
+    ("Alexandre Lacazette", "France", 82, "Lyon", "Forward"),
+    ("Neymar Jr", "Brazil", 83, "Al Hilal", "Forward"),
+    ("Karim Benzema", "France", 84, "Al Ittihad", "Forward"),
+    ("Sadio Mané", "Senegal", 85, "Al Nassr", "Forward"),
+    ("Riyad Mahrez", "Algeria", 86, "Al Ahli", "Forward"),
+    ("N'Golo Kanté", "France", 87, "Al Ittihad", "Midfielder"),
+    ("Sergej Milinković-Savić", "Serbia", 88, "Al Hilal", "Midfielder"),
+    ("Luis Suárez", "Uruguay", 89, "Inter Miami", "Forward"),
+    ("Sergio Busquets", "Spain", 90, "Inter Miami", "Midfielder"),
+    ("Jordi Alba", "Spain", 91, "Inter Miami", "Defender"),
+    ("Emiliano Buendía", "Argentina", 92, "Aston Villa", "Midfielder"),
+    ("Enzo Fernández", "Argentina", 93, "Chelsea", "Midfielder"),
+    ("Moisés Caicedo", "Ecuador", 94, "Chelsea", "Midfielder"),
+    ("Bruno Guimarães", "Brazil", 95, "Newcastle United", "Midfielder"),
+    ("Lucas Paquetá", "Brazil", 96, "West Ham United", "Midfielder"),
+    ("James Maddison", "England", 97, "Tottenham Hotspur", "Midfielder"),
+    ("Cristian Romero", "Argentina", 98, "Tottenham Hotspur", "Defender"),
+    ("Micky van de Ven", "Netherlands", 99, "Tottenham Hotspur", "Defender"),
+    ("Guglielmo Vicario", "Italy", 100, "Tottenham Hotspur", "Goalkeeper"),
 ]
-
 
 class FootballScraper(BaseScraper):
     """Scrapes football player rankings and data."""
@@ -61,30 +130,75 @@ class FootballScraper(BaseScraper):
         # Using a reliable source for top players list if possible
         super().__init__("https://www.theguardian.com/football/ng-interactive/2023/dec/19/the-100-best-male-footballers-in-the-world-2023")
 
-    def scrape_rankings(self, limit=100):
-        """Scrape top football players."""
-        log.info("Starting football player scraping...")
+    def scrape_rankings(self, limit=500):
+        """Scrape football players from live Wikipedia league categories."""
+        log.info("Starting live football player scraping...")
         
-        # For now, we'll use the known dataset as the primary source 
-        # because the Guardian's interactive pages are hard to scrape without JS
-        # but we'll attempt a basic scrape first.
-        scraped = 0
+        # We start with the known top stars to ensure they are always present and ranked high
+        log.info("Processing top stars first...")
+        scraped = self._save_known_dataset(KNOWN_PLAYERS, 100)
+
+        # Expanding to "Every League" via Wikipedia Categories
+        # This provides live, up-to-date data as Wikipedia is updated daily by fans
+        leagues = [
+            "Category:Premier League players",
+            "Category:La Liga players",
+            "Category:Bundesliga players",
+            "Category:Serie A players",
+            "Category:Ligue 1 players",
+            "Category:Major League Soccer players",
+            "Category:Saudi Pro League players",
+            "Category:Eredivisie players",
+            "Category:Primeira Liga players"
+        ]
+        
+        for league_cat in leagues:
+            if scraped >= limit: break
+            log.info(f"Scraping live data for {league_cat}...")
+            league_scraped = self.scrape_league_category(league_cat, limit=30)
+            scraped += league_scraped
+            log.info(f"Added {league_scraped} players from {league_cat}")
+
+        log.info(f"Live football scraping complete: {scraped} players in database.")
+
+    def scrape_league_category(self, category_name: str, limit: int = 20) -> int:
+        """Fetch player names from a Wikipedia category and build data."""
+        saved = 0
         try:
-            soup = self.get_soup(self.base_url)
-            if soup:
-                # Attempt to parse (this is just a placeholder logic, 
-                # interactive pages often need Selenium or hardcoded fallbacks)
-                log.info("Attempting to parse Guardian rankings...")
-                # ... parsing logic would go here if it was simple HTML
+            # MediaWiki API to get category members
+            encoded_cat = urllib.parse.quote(category_name)
+            url = f"https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle={encoded_cat}&cmlimit={limit}&format=json"
+            data = self.get_json(url)
+            
+            if data and 'query' in data:
+                members = data['query'].get('categorymembers', [])
+                for member in members:
+                    name = member['title']
+                    if name.startswith("Category:"): continue # Skip subcats
+                    
+                    # Try to build data for this player
+                    # We'll use "Unknown" for some fields as we don't have them yet
+                    # but the detail view will still work
+                    try:
+                        # Simple heuristics for club/country based on category
+                        country = "Unknown"
+                        if "Premier League" in category_name: country = "England (League)"
+                        elif "La Liga" in category_name: country = "Spain (League)"
+                        
+                        player_data = self._build_player_data(
+                            name=name,
+                            country=country,
+                            ranking=100 + saved, # High ranking for expanded list
+                            club="Professional Club",
+                            position="Footballer"
+                        )
+                        save_football_player(player_data)
+                        saved += 1
+                    except Exception as e:
+                        log.debug(f"Failed to expand player {name}: {e}")
         except Exception as e:
-            log.warning(f"Live football scrape failed: {e}")
-
-        # Always ensure we have some data
-        if scraped == 0:
-            log.info("Using known football dataset")
-            scraped = self._save_known_dataset(KNOWN_PLAYERS, limit)
-
-        log.info(f"Football scraping complete: {scraped} players saved.")
+            log.warning(f"Category scrape failed for {category_name}: {e}")
+        return saved
 
     def _save_known_dataset(self, dataset, limit: int) -> int:
         """Save from hardcoded known players dataset."""
