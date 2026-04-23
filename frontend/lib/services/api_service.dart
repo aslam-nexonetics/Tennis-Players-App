@@ -10,8 +10,8 @@ import '../models/basketball_player.dart';
 class ApiService {
   static String get baseUrl {
     if (kIsWeb) {
-      // Web: same machine as the browser
-      return 'http://localhost:8000';
+      // Production backend on Render
+      return 'https://tennis-players-app.onrender.com';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Physical Android device on LAN
