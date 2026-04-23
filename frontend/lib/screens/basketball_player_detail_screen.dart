@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/basketball_player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
+import 'basketball_player_compare_screen.dart';
 
 class BasketballPlayerDetailScreen extends StatelessWidget {
   final BasketballPlayer player;
@@ -31,6 +32,23 @@ class BasketballPlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton.extended(
+          heroTag: 'compare-bb-${player.id}',
+          backgroundColor: Colors.orange,
+          icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
+          label: const Text('Compare',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BasketballPlayerCompareScreen(playerA: player),
+            ),
+          ),
+        ),
+      ),
       backgroundColor: const Color(0xFFFFF3E0), // Orange-tinted glass theme
       extendBodyBehindAppBar: true,
       appBar: AppBar(

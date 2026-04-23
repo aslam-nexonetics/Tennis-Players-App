@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/basketball_player_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'basketball_player_detail_screen.dart';
+import 'basketball_player_compare_screen.dart';
 
 class BasketballSearchScreen extends StatelessWidget {
   const BasketballSearchScreen({super.key});
@@ -151,6 +152,15 @@ class BasketballSearchScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) =>
                                     BasketballPlayerDetailScreen(player: player),
+                              ),
+                            );
+                          },
+                          onLongPress: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    BasketballPlayerCompareScreen(playerA: player),
                               ),
                             );
                           },

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/basketball_player_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'basketball_player_detail_screen.dart';
+import 'basketball_player_compare_screen.dart';
 
 class BasketballTopPlayersScreen extends StatefulWidget {
   const BasketballTopPlayersScreen({super.key});
@@ -149,6 +150,15 @@ class _BasketballTopPlayersScreenState extends State<BasketballTopPlayersScreen>
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         BasketballPlayerDetailScreen(player: player),
+                                  ),
+                                );
+                              },
+                              onLongPress: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        BasketballPlayerCompareScreen(playerA: player),
                                   ),
                                 );
                               },
