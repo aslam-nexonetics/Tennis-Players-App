@@ -12,6 +12,7 @@ class FootballClub {
   final String? website;
   final String? description;
   final int? ranking;
+  final int? domesticRanking;
   
   // Enhanced Statistics
   final int totalTrophies;
@@ -21,6 +22,9 @@ class FootballClub {
   final String? owner;
   final String? mainRivals;
   final int? averageAttendance;
+  
+  // Detailed Honors
+  final Map<String, int>? honors;
 
   FootballClub({
     required this.id,
@@ -36,6 +40,7 @@ class FootballClub {
     this.website,
     this.description,
     this.ranking,
+    this.domesticRanking,
     this.totalTrophies = 0,
     this.marketValue,
     this.leaguePosition,
@@ -43,6 +48,7 @@ class FootballClub {
     this.owner,
     this.mainRivals,
     this.averageAttendance,
+    this.honors,
   });
 
   factory FootballClub.fromJson(Map<String, dynamic> json) {
@@ -60,6 +66,7 @@ class FootballClub {
       website: json['website'],
       description: json['description'],
       ranking: json['ranking'],
+      domesticRanking: json['domestic_ranking'],
       totalTrophies: json['total_trophies'] ?? 0,
       marketValue: json['market_value'],
       leaguePosition: json['league_position'],
@@ -67,6 +74,9 @@ class FootballClub {
       owner: json['owner'],
       mainRivals: json['main_rivals'],
       averageAttendance: json['average_attendance'],
+      honors: json['honors_json'] != null 
+          ? Map<String, int>.from(json['honors_json']) 
+          : null,
     );
   }
 }

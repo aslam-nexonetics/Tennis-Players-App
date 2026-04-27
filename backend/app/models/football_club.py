@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Index, Text, BigInteger
+from sqlalchemy import Column, Integer, String, DateTime, Index, Text, JSON
 from sqlalchemy.sql import func
 from app.db.session import Base
 
@@ -18,16 +18,21 @@ class FootballClub(Base):
     image_url = Column(String)
     website = Column(String)
     description = Column(Text)
-    ranking = Column(Integer, index=True)
+    ranking = Column(Integer, index=True) # World Ranking
     
     # Enhanced Statistics
     total_trophies = Column(Integer, default=0)
-    market_value = Column(String) # e.g. "€1.2B"
+    market_value = Column(String)
     league_position = Column(Integer)
+    domestic_ranking = Column(Integer)
     captain = Column(String)
     owner = Column(String)
-    main_rivals = Column(String) # Comma separated list
+    main_rivals = Column(String)
     average_attendance = Column(Integer)
+    
+    # Detailed Honors (Stored as JSON for flexibility)
+    # Example: {"Champions League": 15, "La Liga": 36, "Copa del Rey": 20}
+    honors_json = Column(JSON)
 
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

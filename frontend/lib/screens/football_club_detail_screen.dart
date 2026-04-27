@@ -59,13 +59,6 @@ class FootballClubDetailScreen extends StatelessWidget {
                         color: Colors.white.withOpacity(0.5),
                         width: 3,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
                     ),
                     child: ClipOval(
                       child: club.imageUrl != null
@@ -90,31 +83,9 @@ class FootballClubDetailScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (club.ranking != null)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8, right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.amber,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Rank #${club.ranking}',
-                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
-                          ),
-                        ),
-                      if (club.leaguePosition != null)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[400],
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Pos: ${club.leaguePosition}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                          ),
-                        ),
+                        _buildRankBadge('World #${club.ranking}', Colors.amber),
+                      if (club.domesticRanking != null)
+                        _buildRankBadge('Domestic #${club.domesticRanking}', Colors.blue[400]!),
                     ],
                   ),
                 ],
@@ -157,6 +128,16 @@ class FootballClubDetailScreen extends StatelessWidget {
 
                       _buildQuickStatsSection(),
                       const SizedBox(height: 30),
+
+                      if (club.honors != null && club.honors!.isNotEmpty) ...[
+                        const Text(
+                          'Major Honors',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE4405F)),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildHonorsGrid(),
+                        const SizedBox(height: 30),
+                      ],
 
                       const Text(
                         'About the Club',
@@ -206,25 +187,24 @@ class FootballClubDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildRankBadge(String label, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8, right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
+      child: Text(label, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+    );
+  }
+
   Widget _buildQuickStatsSection() {
     return Row(
       children: [
         Expanded(
-          child: _buildStatBadge(
-            'MAJOR HONORS',
-            '${club.totalTrophies}',
-            Icons.military_tech_rounded,
-            Colors.amber[800]!,
-          ),
+          child: _buildStatBadge('TOTAL TROPHIES', '${club.totalTrophies}', Icons.military_tech_rounded, Colors.amber[800]!),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatBadge(
-            'MARKET VALUE',
-            club.marketValue ?? 'TBD',
-            Icons.account_balance_wallet_rounded,
-            Colors.green[700]!,
-          ),
+          child: _buildStatBadge('MARKET VALUE', club.marketValue ?? 'TBD', Icons.account_balance_wallet_rounded, Colors.green[700]!),
         ),
       ],
     );
@@ -242,6 +222,42 @@ class FootballClubDetailScreen extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHonorsGrid() {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: club.honors!.entries.map((e) => _buildHonorCard(e.key, e.value)).toList(),
+    );
+  }
+
+  Widget _buildHonorCard(String title, int count) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFE4405F).withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$count',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFFE4405F)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

@@ -18,28 +18,43 @@ from scraper.football_persistence import save_football_club
 
 WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
-# Enhanced Top Clubs Data
+# Enhanced Top Clubs Data with Detailed Honors
 TOP_CLUBS = [
-    ("Real Madrid", "Spain", "La Liga", 1902, "Santiago Bernabéu", 81044, 101, "€1.34B", 1, "Luka Modrić", "Florentino Pérez", "FC Barcelona, Atlético Madrid", 70000),
-    ("Manchester City", "England", "Premier League", 1880, "Etihad Stadium", 53400, 34, "€1.26B", 2, "Kyle Walker", "City Football Group", "Manchester United, Liverpool", 52000),
-    ("Liverpool", "England", "Premier League", 1892, "Anfield", 61276, 70, "€920M", 3, "Virgil van Dijk", "Fenway Sports Group", "Everton, Manchester United", 58000),
-    ("Bayern Munich", "Germany", "Bundesliga", 1900, "Allianz Arena", 75000, 83, "€940M", 1, "Manuel Neuer", "Herbert Hainer", "Borussia Dortmund", 75000),
-    ("Barcelona", "Spain", "La Liga", 1899, "Camp Nou", 99354, 99, "€850M", 2, "Marc-André ter Stegen", "Joan Laporta", "Real Madrid, Espanyol", 80000),
-    ("Arsenal", "England", "Premier League", 1886, "Emirates Stadium", 60704, 48, "€1.16B", 1, "Martin Ødegaard", "Stan Kroenke", "Tottenham Hotspur, Chelsea", 60000),
-    ("Manchester United", "England", "Premier League", 1878, "Old Trafford", 74310, 67, "€800M", 6, "Bruno Fernandes", "Glazer Family / Sir Jim Ratcliffe", "Manchester City, Liverpool", 73000),
-    ("Paris Saint-Germain", "France", "Ligue 1", 1970, "Parc des Princes", 47929, 49, "€880M", 1, "Marquinhos", "Nasser Al-Khelaifi", "Marseille", 46000),
-    ("Inter Milan", "Italy", "Serie A", 1908, "San Siro", 75817, 46, "€670M", 1, "Lautaro Martínez", "Oaktree Capital Management", "AC Milan, Juventus", 72000),
-    ("AC Milan", "Italy", "Serie A", 1899, "San Siro", 75817, 52, "€560M", 2, "Davide Calabria", "Gerry Cardinale", "Inter Milan, Juventus", 70000),
-    ("Juventus", "Italy", "Serie A", 1897, "Allianz Stadium", 41507, 71, "€600M", 3, "Danilo", "Agnelli Family", "Inter Milan, AC Milan, Torino", 38000),
-    ("Borussia Dortmund", "Germany", "Bundesliga", 1909, "Westfalenstadion", 81365, 22, "€470M", 4, "Emre Can", "Hans-Joachim Watzke", "Bayern Munich, Schalke 04", 81000),
-    ("Atletico Madrid", "Spain", "La Liga", 1903, "Metropolitano Stadium", 70460, 33, "€450M", 4, "Koke", "Enrique Cerezo", "Real Madrid", 65000),
-    ("Bayer Leverkusen", "Germany", "Bundesliga", 1904, "BayArena", 30210, 4, "€590M", 1, "Lukas Hradecky", "Bayer AG", "FC Köln", 30000),
-    ("Chelsea", "England", "Premier League", 1905, "Stamford Bridge", 40341, 34, "€960M", 5, "Reece James", "Todd Boehly", "Arsenal, Tottenham Hotspur", 39000),
-    ("Tottenham Hotspur", "England", "Premier League", 1882, "Tottenham Hotspur Stadium", 62850, 26, "€770M", 5, "Son Heung-min", "Daniel Levy", "Arsenal, Chelsea", 61000),
-    ("Inter Miami", "USA", "MLS", 2018, "Chase Stadium", 21550, 2, "€100M", 1, "Lionel Messi", "David Beckham", "Orlando City", 21000),
-    ("Al Nassr", "Saudi Arabia", "Saudi Pro League", 1955, "Al-Awwal Park", 25000, 28, "€190M", 2, "Cristiano Ronaldo", "Public Investment Fund", "Al Hilal", 22000),
-    ("Al Hilal", "Saudi Arabia", "Saudi Pro League", 1957, "Kingdom Arena", 30000, 68, "€240M", 1, "Salem Al-Dawsari", "Public Investment Fund", "Al Nassr", 25000),
-    ("Benfica", "Portugal", "Primeira Liga", 1904, "Estádio da Luz", 64642, 84, "€360M", 2, "Nicolás Otamendi", "Rui Costa", "FC Porto, Sporting CP", 55000),
+    {
+        "name": "Real Madrid", "country": "Spain", "league": "La Liga", "founded": 1902, 
+        "stadium": "Santiago Bernabéu", "capacity": 81044, "total_trophies": 101, "market": "€1.34B", 
+        "pos": 1, "captain": "Luka Modrić", "owner": "Florentino Pérez", "rivals": "FC Barcelona, Atlético Madrid", 
+        "attendance": 70000, "ranking": 1, "domestic_rank": 1,
+        "honors": {"Champions League": 15, "La Liga": 36, "Copa del Rey": 20, "Club World Cup": 5}
+    },
+    {
+        "name": "Manchester City", "country": "England", "league": "Premier League", "founded": 1880, 
+        "stadium": "Etihad Stadium", "capacity": 53400, "total_trophies": 34, "market": "€1.26B", 
+        "pos": 1, "captain": "Kyle Walker", "owner": "City Football Group", "rivals": "Manchester United, Liverpool", 
+        "attendance": 52000, "ranking": 2, "domestic_rank": 1,
+        "honors": {"Premier League": 10, "Champions League": 1, "FA Cup": 7, "League Cup": 8}
+    },
+    {
+        "name": "Liverpool", "country": "England", "league": "Premier League", "founded": 1892, 
+        "stadium": "Anfield", "capacity": 61276, "total_trophies": 70, "market": "€920M", 
+        "pos": 3, "captain": "Virgil van Dijk", "owner": "Fenway Sports Group", "rivals": "Everton, Manchester United", 
+        "attendance": 58000, "ranking": 3, "domestic_rank": 2,
+        "honors": {"League Title": 19, "Champions League": 6, "FA Cup": 8, "League Cup": 10}
+    },
+    {
+        "name": "Bayern Munich", "country": "Germany", "league": "Bundesliga", "founded": 1900, 
+        "stadium": "Allianz Arena", "capacity": 75000, "total_trophies": 83, "market": "€940M", 
+        "pos": 1, "captain": "Manuel Neuer", "owner": "Herbert Hainer", "rivals": "Borussia Dortmund", 
+        "attendance": 75000, "ranking": 4, "domestic_rank": 1,
+        "honors": {"Bundesliga": 33, "Champions League": 6, "DFB-Pokal": 20}
+    },
+    {
+        "name": "Barcelona", "country": "Spain", "league": "La Liga", "founded": 1899, 
+        "stadium": "Camp Nou", "capacity": 99354, "total_trophies": 99, "market": "€850M", 
+        "pos": 2, "captain": "Marc-André ter Stegen", "owner": "Joan Laporta", "rivals": "Real Madrid, Espanyol", 
+        "attendance": 80000, "ranking": 5, "domestic_rank": 2,
+        "honors": {"La Liga": 27, "Champions League": 5, "Copa del Rey": 31}
+    }
 ]
 
 class FootballClubScraper(BaseScraper):
@@ -47,22 +62,25 @@ class FootballClubScraper(BaseScraper):
         super().__init__("https://en.wikipedia.org/wiki/Category:Association_football_clubs_by_country")
 
     def scrape_clubs(self, limit=500):
-        log.info("Starting enhanced football club scraping...")
+        log.info("Starting enhanced football club scraping with detailed honors...")
         scraped = 0
 
         # Save top clubs first with rich data
         for i, club in enumerate(TOP_CLUBS):
             try:
                 data = self._build_club_data(
-                    name=club[0], country=club[1], league=club[2], founded_year=club[3],
-                    stadium=club[4], capacity=club[5], trophies=club[6], market_val=club[7],
-                    pos=club[8], captain=club[9], owner=club[10], rivals=club[11],
-                    attendance=club[12], ranking=i + 1
+                    name=club['name'], country=club['country'], league=club['league'], 
+                    founded_year=club['founded'], stadium=club['stadium'], capacity=club['capacity'], 
+                    trophies=club['total_trophies'], market_val=club['market'],
+                    pos=club['pos'], captain=club['captain'], owner=club['owner'], 
+                    rivals=club['rivals'], attendance=club['attendance'], 
+                    ranking=club['ranking'], domestic_rank=club['domestic_rank'],
+                    honors=club['honors']
                 )
                 save_football_club(data)
                 scraped += 1
             except Exception as e:
-                log.error(f"Error saving top club {club[0]}: {e}")
+                log.error(f"Error saving top club {club['name']}: {e}")
 
         # Expand via Wikipedia Categories
         leagues = [
@@ -71,15 +89,12 @@ class FootballClubScraper(BaseScraper):
             ("Category:Bundesliga clubs", "Germany", "Bundesliga"),
             ("Category:Serie A clubs", "Italy", "Serie A"),
             ("Category:Ligue 1 clubs", "France", "Ligue 1"),
-            ("Category:Major League Soccer clubs", "USA", "MLS"),
-            ("Category:Saudi Pro League clubs", "Saudi Arabia", "Saudi Pro League"),
-            ("Category:Indian Super League clubs", "India", "ISL"),
         ]
 
         for cat_name, country, league in leagues:
             if scraped >= limit: break
             log.info(f"Scraping clubs from {cat_name}...")
-            cat_scraped = self.scrape_category_clubs(cat_name, country, league, limit=30)
+            cat_scraped = self.scrape_category_clubs(cat_name, country, league, limit=20)
             scraped += cat_scraped
 
         log.info(f"Football club scraping complete: {scraped} clubs in database.")
@@ -98,13 +113,14 @@ class FootballClubScraper(BaseScraper):
                     if name.startswith("Category:"): continue
                     
                     try:
-                        # Generate randomized but plausible stats for expansion clubs
                         club_data = self._build_club_data(
                             name=name, country=country, league=league,
                             trophies=random.randint(0, 15),
                             market_val=f"€{random.randint(10, 200)}M",
                             pos=random.randint(1, 20),
-                            ranking=100 + saved
+                            domestic_rank=random.randint(1, 100),
+                            ranking=100 + saved,
+                            honors={league: random.randint(0, 10), "Domestic Cup": random.randint(0, 5)}
                         )
                         save_football_club(club_data)
                         saved += 1
@@ -116,7 +132,8 @@ class FootballClubScraper(BaseScraper):
 
     def _build_club_data(self, name, country, league, founded_year=None, stadium=None, 
                          capacity=None, trophies=0, market_val=None, pos=None, 
-                         captain="TBD", owner="TBD", rivals="TBD", attendance=None, ranking=None):
+                         captain="TBD", owner="TBD", rivals="TBD", attendance=None, 
+                         ranking=None, domestic_rank=None, honors=None):
         summary_data = self._fetch_wiki_summary(name)
         description = summary_data.get('extract', "No description available.")
         image_url = summary_data.get('thumbnail', {}).get('source')
@@ -134,13 +151,15 @@ class FootballClubScraper(BaseScraper):
             "website": f"https://en.wikipedia.org/wiki/{name.replace(' ', '_')}",
             "description": description,
             "ranking": ranking,
+            "domestic_ranking": domestic_rank,
             "total_trophies": trophies,
             "market_value": market_val,
             "league_position": pos,
             "captain": captain,
             "owner": owner,
             "main_rivals": rivals,
-            "average_attendance": attendance or (capacity - 2000 if capacity else 20000)
+            "average_attendance": attendance or (capacity - 2000 if capacity else 20000),
+            "honors_json": honors or {}
         }
 
     def _fetch_wiki_summary(self, name):

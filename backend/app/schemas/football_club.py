@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class FootballClubBase(BaseModel):
     name: str
@@ -20,10 +20,14 @@ class FootballClubBase(BaseModel):
     total_trophies: Optional[int] = 0
     market_value: Optional[str] = None
     league_position: Optional[int] = None
+    domestic_ranking: Optional[int] = None
     captain: Optional[str] = None
     owner: Optional[str] = None
     main_rivals: Optional[str] = None
     average_attendance: Optional[int] = None
+    
+    # Detailed Honors
+    honors_json: Optional[Dict[str, int]] = None
 
 class FootballClubCreate(FootballClubBase):
     pass
