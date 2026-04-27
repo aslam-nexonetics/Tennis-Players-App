@@ -118,7 +118,9 @@ class ApiService {
     int size = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/football-players/search?q=$query&page=$page&size=$size'),
+      Uri.parse(
+        '$baseUrl/football-players/search?q=$query&page=$page&size=$size',
+      ),
     );
     if (response.statusCode == 200) {
       return FootballPlayerListResponse.fromJson(json.decode(response.body));
@@ -156,7 +158,9 @@ class ApiService {
     int size = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/basketball-players/search?q=$query&page=$page&size=$size'),
+      Uri.parse(
+        '$baseUrl/basketball-players/search?q=$query&page=$page&size=$size',
+      ),
     );
     if (response.statusCode == 200) {
       return BasketballPlayerListResponse.fromJson(json.decode(response.body));
@@ -166,7 +170,9 @@ class ApiService {
   }
 
   Future<BasketballPlayer> getBasketballPlayerDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/basketball-players/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/basketball-players/$id'),
+    );
     if (response.statusCode == 200) {
       return BasketballPlayer.fromJson(json.decode(response.body));
     } else {
@@ -174,7 +180,9 @@ class ApiService {
     }
   }
 
-  Future<List<BasketballPlayer>> getBasketballTopPlayers({int limit = 50}) async {
+  Future<List<BasketballPlayer>> getBasketballTopPlayers({
+    int limit = 50,
+  }) async {
     final response = await http.get(
       Uri.parse('$baseUrl/basketball-players/top?limit=$limit'),
     );
