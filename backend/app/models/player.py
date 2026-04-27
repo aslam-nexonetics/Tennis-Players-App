@@ -18,6 +18,7 @@ class Player(Base):
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
     image_url = Column(String)
+    gender = Column(String, index=True) # "M" for ATP, "F" for WTA
     source = Column(String)
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

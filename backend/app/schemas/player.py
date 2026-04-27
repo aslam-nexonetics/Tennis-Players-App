@@ -15,6 +15,7 @@ class PlayerBase(BaseModel):
     wins: Optional[int] = 0
     losses: Optional[int] = 0
     image_url: Optional[str] = None
+    gender: Optional[str] = None # "M" or "F"
     source: Optional[str] = None
 
 class PlayerCreate(PlayerBase):

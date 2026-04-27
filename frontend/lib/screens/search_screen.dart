@@ -30,8 +30,10 @@ class SearchScreen extends StatelessWidget {
           'Find your favorite athletes',
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
+        const SizedBox(height: 12),
+        _GenderFilterChips(provider: playerProvider),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
           child: GlassContainer(
             borderRadius: 30,
             opacity: 0.1,
@@ -98,28 +100,32 @@ class SearchScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.indigo.withOpacity(0.3),
                                   width: 2,
                                 ),
-                                image: player.imageUrl != null
-                                    ? DecorationImage(
+                                color: Colors.indigo.withOpacity(0.12),
+                              ),
+                              child: ClipOval(
+                                child: player.imageUrl != null
+                                    ? Image(
                                         image: CachedNetworkImageProvider(
                                           player.imageUrl!,
                                         ),
                                         fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            _initialsWidget(player.name, 18),
                                       )
-                                    : null,
+                                    : _initialsWidget(player.name, 18),
                               ),
-                              child: player.imageUrl == null
-                                  ? const Icon(Icons.person)
-                                  : null,
                             ),
                           ),
                           title: Text(
                             player.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text(player.country ?? 'Unknown'),
+                          subtitle: Text(
+                            '${player.country ?? 'Unknown'} • ${player.gender == 'M' ? 'ATP' : player.gender == 'F' ? 'WTA' : ''}',
+                          ),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -165,6 +171,72 @@ class SearchScreen extends StatelessWidget {
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _initialsWidget(String name, double fontSize) {
+    final parts = name.trim().split(' ');
+    final initials = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+        : name.isNotEmpty
+            ? name[0].toUpperCase()
+            : '?';
+    return Center(
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: Colors.indigo,
+          fontWeight: FontWeight.bold,
+          fontSize: fontSize,
+        ),
+      ),
+    );
+  }
+}
+
+class _GenderFilterChips extends StatelessWidget {
+  final PlayerProvider provider;
+  const _GenderFilterChips({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _chip(context, null, 'All'),
+        const SizedBox(width: 8),
+        _chip(context, 'M', 'ATP (Men)'),
+        const SizedBox(width: 8),
+        _chip(context, 'F', 'WTA (Women)'),
+      ],
+    );
+  }
+
+  Widget _chip(BuildContext context, String? value, String label) {
+    final selected = provider.selectedGender == value;
+    return GestureDetector(
+      onTap: () => provider.setGender(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? Colors.indigo.withOpacity(0.15)
+              : Colors.white.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? Colors.indigo : Colors.grey.withOpacity(0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.indigo : Colors.grey[600],
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 }

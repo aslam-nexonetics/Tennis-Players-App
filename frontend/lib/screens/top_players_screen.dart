@@ -41,114 +41,186 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
         ),
         const SizedBox(height: 5),
         const Text(
-          'Top 50 Tennis Pros',
+          'Top Tennis Pros',
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
+        _GenderFilterChips(provider: playerProvider),
+        const SizedBox(height: 12),
         Expanded(
           child: playerProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : playerProvider.error != null
-              ? Center(child: Text('Error: ${playerProvider.error}'))
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: playerProvider.topPlayers.length,
-                  itemBuilder: (context, index) {
-                    final player = playerProvider.topPlayers[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: GlassContainer(
-                        blur: 0,
-                        borderRadius: 20,
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-                          leading: Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              Hero(
-                                tag: 'top-player-${player.id}',
-                                child: Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.5),
-                                      width: 2,
+                  ? Center(child: Text('Error: ${playerProvider.error}'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: playerProvider.topPlayers.length,
+                      itemBuilder: (context, index) {
+                        final player = playerProvider.topPlayers[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: GlassContainer(
+                            blur: 0,
+                            borderRadius: 20,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(12),
+                              leading: Stack(
+                                alignment: Alignment.bottomRight,
+                                children: [
+                                  Hero(
+                                    tag: 'top-player-${player.id}',
+                                    child: Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.indigo.withOpacity(0.3),
+                                          width: 2,
+                                        ),
+                                        color: Colors.indigo.withOpacity(0.12),
+                                      ),
+                                      child: ClipOval(
+                                        child: player.imageUrl != null
+                                            ? Image(
+                                                image:
+                                                    CachedNetworkImageProvider(
+                                                  player.imageUrl!,
+                                                ),
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) =>
+                                                    _initialsWidget(
+                                                        player.name, 18),
+                                              )
+                                            : _initialsWidget(player.name, 18),
+                                      ),
                                     ),
-                                    image: player.imageUrl != null
-                                        ? DecorationImage(
-                                            image: CachedNetworkImageProvider(
-                                              player.imageUrl!,
-                                            ),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
                                   ),
-                                  child: player.imageUrl == null
-                                      ? const Icon(Icons.person)
-                                      : null,
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.indigo,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              title: Text(
+                                player.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.indigo,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                              subtitle: Text(
+                                '${player.country ?? 'Unknown'} • ${player.gender == 'M' ? 'ATP' : player.gender == 'F' ? 'WTA' : ''}',
+                                style: TextStyle(color: Colors.grey[600]),
                               ),
-                            ],
-                          ),
-                          title: Text(
-                            player.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PlayerDetailScreen(player: player),
+                                  ),
+                                );
+                              },
+                              onLongPress: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        PlayerCompareScreen(playerA: player),
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                          subtitle: Text(
-                            player.country ?? 'Unknown',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PlayerDetailScreen(player: player),
-                              ),
-                            );
-                          },
-                          onLongPress: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    PlayerCompareScreen(playerA: player),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
         ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
+        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
       ],
+    );
+  }
+
+  Widget _initialsWidget(String name, double fontSize) {
+    final parts = name.trim().split(' ');
+    final initials = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+        : name.isNotEmpty
+            ? name[0].toUpperCase()
+            : '?';
+    return Center(
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: Colors.indigo,
+          fontWeight: FontWeight.bold,
+          fontSize: fontSize,
+        ),
+      ),
+    );
+  }
+}
+
+class _GenderFilterChips extends StatelessWidget {
+  final PlayerProvider provider;
+  const _GenderFilterChips({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _chip(context, null, 'All'),
+        const SizedBox(width: 8),
+        _chip(context, 'M', 'ATP (Men)'),
+        const SizedBox(width: 8),
+        _chip(context, 'F', 'WTA (Women)'),
+      ],
+    );
+  }
+
+  Widget _chip(BuildContext context, String? value, String label) {
+    final selected = provider.selectedGender == value;
+    return GestureDetector(
+      onTap: () => provider.setGender(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? Colors.indigo.withOpacity(0.15)
+              : Colors.white.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? Colors.indigo : Colors.grey.withOpacity(0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.indigo : Colors.grey[600],
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 }

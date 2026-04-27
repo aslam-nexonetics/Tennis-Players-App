@@ -18,7 +18,22 @@ class PlayerProvider with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  String? _selectedGender; // null for both, "M" for ATP, "F" for WTA
+  String? get selectedGender => _selectedGender;
+
   Timer? _debounce;
+  String _lastQuery = '';
+
+  void setGender(String? gender) {
+    if (_selectedGender != gender) {
+      _selectedGender = gender;
+      fetchTopPlayers();
+      if (_lastQuery.isNotEmpty) {
+        searchPlayers(_lastQuery);
+      }
+      notifyListeners();
+    }
+  }
 
   Future<void> fetchTopPlayers() async {
     _isLoading = true;
@@ -26,7 +41,7 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _topPlayers = await _apiService.getTopPlayers();
+      _topPlayers = await _apiService.getTopPlayers(gender: _selectedGender);
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -36,6 +51,7 @@ class PlayerProvider with ChangeNotifier {
   }
 
   void onSearchChanged(String query) {
+    _lastQuery = query;
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {
@@ -53,7 +69,8 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.searchPlayers(query);
+      final response =
+          await _apiService.searchPlayers(query, gender: _selectedGender);
       _players = response.items;
     } catch (e) {
       _error = e.toString();

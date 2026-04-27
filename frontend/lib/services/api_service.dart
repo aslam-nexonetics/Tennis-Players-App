@@ -22,9 +22,14 @@ class ApiService {
     return 'http://localhost:8000';
   }
 
-  Future<PlayerListResponse> getPlayers({int page = 1, int size = 20}) async {
+  Future<PlayerListResponse> getPlayers({
+    int page = 1,
+    int size = 20,
+    String? gender,
+  }) async {
+    final genderParam = gender != null ? '&gender=$gender' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/players/?page=$page&size=$size'),
+      Uri.parse('$baseUrl/players/?page=$page&size=$size$genderParam'),
     );
     if (response.statusCode == 200) {
       return PlayerListResponse.fromJson(json.decode(response.body));
@@ -37,9 +42,13 @@ class ApiService {
     String query, {
     int page = 1,
     int size = 20,
+    String? gender,
   }) async {
+    final genderParam = gender != null ? '&gender=$gender' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/players/search?q=$query&page=$page&size=$size'),
+      Uri.parse(
+        '$baseUrl/players/search?q=$query&page=$page&size=$size$genderParam',
+      ),
     );
     if (response.statusCode == 200) {
       return PlayerListResponse.fromJson(json.decode(response.body));
@@ -57,9 +66,10 @@ class ApiService {
     }
   }
 
-  Future<List<Player>> getTopPlayers({int limit = 10}) async {
+  Future<List<Player>> getTopPlayers({int limit = 10, String? gender}) async {
+    final genderParam = gender != null ? '&gender=$gender' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/players/top?limit=$limit'),
+      Uri.parse('$baseUrl/players/top?limit=$limit$genderParam'),
     );
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);

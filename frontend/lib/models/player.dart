@@ -12,6 +12,7 @@ class Player {
   final int wins;
   final int losses;
   final String? imageUrl;
+  final String? gender;
   final String? source;
   final DateTime lastUpdated;
 
@@ -29,6 +30,7 @@ class Player {
     this.wins = 0,
     this.losses = 0,
     this.imageUrl,
+    this.gender,
     this.source,
     required this.lastUpdated,
   });
@@ -63,6 +65,7 @@ class Player {
       wins: json['wins'] ?? 0,
       losses: json['losses'] ?? 0,
       imageUrl: json['image_url'],
+      gender: json['gender'],
       source: json['source'],
       lastUpdated: DateTime.parse(json['last_updated']),
     );
