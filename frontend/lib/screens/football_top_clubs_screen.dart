@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/football_player_provider.dart';
+import '../providers/football_club_provider.dart';
 import '../widgets/glass_widgets.dart';
-import 'football_player_detail_screen.dart';
+import 'football_club_detail_screen.dart';
 
-class FootballTopPlayersScreen extends StatefulWidget {
-  const FootballTopPlayersScreen({super.key});
+class FootballTopClubsScreen extends StatefulWidget {
+  const FootballTopClubsScreen({super.key});
 
   @override
-  State<FootballTopPlayersScreen> createState() => _FootballTopPlayersScreenState();
+  State<FootballTopClubsScreen> createState() => _FootballTopClubsScreenState();
 }
 
-class _FootballTopPlayersScreenState extends State<FootballTopPlayersScreen> {
+class _FootballTopClubsScreenState extends State<FootballTopClubsScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FootballPlayerProvider>(context, listen: false).fetchTopPlayers();
+      Provider.of<FootballClubProvider>(context, listen: false).fetchTopClubs();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<FootballPlayerProvider>(context);
+    final provider = Provider.of<FootballClubProvider>(context);
 
     return Column(
       children: [
@@ -33,7 +33,7 @@ class _FootballTopPlayersScreenState extends State<FootballTopPlayersScreen> {
             const Icon(Icons.stars, color: Color(0xFFE4405F), size: 26),
             const SizedBox(width: 8),
             const Text(
-              'Top Footballers',
+              'Top Football Clubs',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -45,34 +45,34 @@ class _FootballTopPlayersScreenState extends State<FootballTopPlayersScreen> {
         ),
         const SizedBox(height: 5),
         const Text(
-          'World rankings based on performance',
+          'World rankings based on club coefficients',
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 20),
         Expanded(
-          child: provider.isLoading && provider.topPlayers.isEmpty
+          child: provider.isLoading && provider.topClubs.isEmpty
               ? const Center(child: CircularProgressIndicator(color: Color(0xFFE4405F)))
-              : provider.error != null && provider.topPlayers.isEmpty
+              : provider.error != null && provider.topClubs.isEmpty
                   ? Center(child: Text('Error: ${provider.error}'))
                   : RefreshIndicator(
                       color: const Color(0xFFE4405F),
-                      onRefresh: provider.fetchTopPlayers,
+                      onRefresh: provider.fetchTopClubs,
                       child: ListView.builder(
                         padding: EdgeInsets.only(
                           left: 16,
                           right: 16,
                           bottom: MediaQuery.of(context).padding.bottom + 100,
                         ),
-                        itemCount: provider.topPlayers.length,
+                        itemCount: provider.topClubs.length,
                         itemBuilder: (context, index) {
-                          final player = provider.topPlayers[index];
+                          final club = provider.topClubs[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
                             child: GlassContainer(
                               borderRadius: 20,
                               child: ListTile(
                                 leading: Text(
-                                  '#${player.ranking}',
+                                  '#${club.ranking}',
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -80,17 +80,17 @@ class _FootballTopPlayersScreenState extends State<FootballTopPlayersScreen> {
                                   ),
                                 ),
                                 title: Text(
-                                  player.name,
+                                  club.name,
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                subtitle: Text('${player.currentClub} • ${player.country}'),
+                                subtitle: Text('${club.league} • ${club.country}'),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          FootballPlayerDetailScreen(player: player),
+                                          FootballClubDetailScreen(club: club),
                                     ),
                                   );
                                 },

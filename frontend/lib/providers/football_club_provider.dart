@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../models/football_player.dart';
+import '../models/football_club.dart';
 import '../services/api_service.dart';
 
-class FootballPlayerProvider with ChangeNotifier {
+class FootballClubProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  List<FootballPlayer> _players = [];
-  List<FootballPlayer> get players => _players;
+  List<FootballClub> _clubs = [];
+  List<FootballClub> get clubs => _clubs;
 
-  List<FootballPlayer> _topPlayers = [];
-  List<FootballPlayer> get topPlayers => _topPlayers;
+  List<FootballClub> _topClubs = [];
+  List<FootballClub> get topClubs => _topClubs;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -20,13 +20,13 @@ class FootballPlayerProvider with ChangeNotifier {
 
   Timer? _debounce;
 
-  Future<void> fetchTopPlayers() async {
+  Future<void> fetchTopClubs() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _topPlayers = await _apiService.getFootballTopPlayers(limit: 50);
+      _topClubs = await _apiService.getFootballTopClubs(limit: 50);
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -39,22 +39,22 @@ class FootballPlayerProvider with ChangeNotifier {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {
-        searchPlayers(query);
+        searchClubs(query);
       } else {
-        _players = [];
+        _clubs = [];
         notifyListeners();
       }
     });
   }
 
-  Future<void> searchPlayers(String query) async {
+  Future<void> searchClubs(String query) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final response = await _apiService.searchFootballPlayers(query);
-      _players = response.items;
+      final response = await _apiService.searchFootballClubs(query);
+      _clubs = response.items;
     } catch (e) {
       _error = e.toString();
     } finally {

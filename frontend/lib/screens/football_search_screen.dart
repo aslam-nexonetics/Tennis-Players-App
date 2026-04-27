@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/football_player_provider.dart';
+import '../providers/football_club_provider.dart';
 import '../widgets/glass_widgets.dart';
-import 'football_player_detail_screen.dart';
-import 'football_player_compare_screen.dart';
+import 'football_club_detail_screen.dart';
 
 class FootballSearchScreen extends StatelessWidget {
   const FootballSearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<FootballPlayerProvider>(context);
+    final provider = Provider.of<FootballClubProvider>(context);
 
     return Column(
       children: [
@@ -21,7 +20,7 @@ class FootballSearchScreen extends StatelessWidget {
             const Icon(Icons.sports_soccer, color: Color(0xFFE4405F), size: 26),
             const SizedBox(width: 8),
             const Text(
-              'Football Search',
+              'Football Clubs',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -33,7 +32,7 @@ class FootballSearchScreen extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         const Text(
-          'Find world class footballers',
+          'Explore football clubs globally',
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 12),
@@ -44,7 +43,7 @@ class FootballSearchScreen extends StatelessWidget {
             opacity: 0.1,
             child: TextField(
               decoration: const InputDecoration(
-                hintText: 'Search football players...',
+                hintText: 'Search football clubs...',
                 prefixIcon: Icon(Icons.search, color: Color(0xFFE4405F)),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 15),
@@ -75,11 +74,11 @@ class FootballSearchScreen extends StatelessWidget {
             ),
           ),
         Expanded(
-          child: provider.players.isEmpty && !provider.isLoading
+          child: provider.clubs.isEmpty && !provider.isLoading
               ? const Center(
                   child: Opacity(
                     opacity: 0.5,
-                    child: Text('Search for football players!'),
+                    child: Text('Search for football clubs!'),
                   ),
                 )
               : ListView.builder(
@@ -88,9 +87,9 @@ class FootballSearchScreen extends StatelessWidget {
                     right: 16,
                     bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
-                  itemCount: provider.players.length,
+                  itemCount: provider.clubs.length,
                   itemBuilder: (context, index) {
-                    final player = provider.players[index];
+                    final club = provider.clubs[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: GlassContainer(
@@ -110,35 +109,35 @@ class FootballSearchScreen extends StatelessWidget {
                               ),
                             ),
                             child: ClipOval(
-                              child: player.imageUrl != null
+                              child: club.imageUrl != null
                                   ? Image.network(
-                                      player.imageUrl!,
+                                      club.imageUrl!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => _initialsWidget(player.name, 18),
+                                      errorBuilder: (_, __, ___) => _initialsWidget(club.name, 18),
                                     )
-                                  : _initialsWidget(player.name, 18),
+                                  : _initialsWidget(club.name, 18),
                             ),
                           ),
                           title: Text(
-                            player.name,
+                            club.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${player.country ?? 'Unknown'} • ${player.currentClub ?? 'No Club'}',
+                            '${club.country ?? 'Unknown'} • ${club.league ?? 'No League'}',
                           ),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Rank',
+                                'World Rank',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey[600],
                                 ),
                               ),
                               Text(
-                                '#${player.ranking ?? 'N/A'}',
+                                '#${club.ranking ?? 'N/A'}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFE4405F),
@@ -151,16 +150,7 @@ class FootballSearchScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    FootballPlayerDetailScreen(player: player),
-                              ),
-                            );
-                          },
-                          onLongPress: () {
-                             Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    FootballPlayerCompareScreen(playerA: player),
+                                    FootballClubDetailScreen(club: club),
                               ),
                             );
                           },

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/tt_player_provider.dart';
-import 'providers/football_player_provider.dart';
+import 'providers/football_club_provider.dart';
 import 'providers/basketball_player_provider.dart';
 import 'providers/sport_provider.dart';
 import 'screens/search_screen.dart';
@@ -11,7 +11,7 @@ import 'screens/top_players_screen.dart';
 import 'screens/tt_search_screen.dart';
 import 'screens/tt_top_players_screen.dart';
 import 'screens/football_search_screen.dart';
-import 'screens/football_top_players_screen.dart';
+import 'screens/football_top_clubs_screen.dart';
 import 'screens/basketball_search_screen.dart';
 import 'screens/basketball_top_players_screen.dart';
 import 'widgets/glass_widgets.dart';
@@ -22,7 +22,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
         ChangeNotifierProvider(create: (_) => TtPlayerProvider()),
-        ChangeNotifierProvider(create: (_) => FootballPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => FootballClubProvider()),
         ChangeNotifierProvider(create: (_) => BasketballPlayerProvider()),
         ChangeNotifierProvider(create: (_) => SportProvider()),
       ],
@@ -120,7 +120,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case SportType.tableTennis:
         return const TtTopPlayersScreen();
       case SportType.football:
-        return const FootballTopPlayersScreen();
+        return const FootballTopClubsScreen();
       case SportType.basketball:
         return const BasketballTopPlayersScreen();
     }
