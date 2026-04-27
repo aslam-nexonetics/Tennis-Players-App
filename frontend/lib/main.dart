@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/tt_player_provider.dart';
 import 'providers/football_club_provider.dart';
-import 'providers/basketball_player_provider.dart';
+import 'providers/basketball_club_provider.dart';
 import 'providers/sport_provider.dart';
 import 'screens/search_screen.dart';
 import 'screens/top_players_screen.dart';
@@ -13,7 +13,7 @@ import 'screens/tt_top_players_screen.dart';
 import 'screens/football_search_screen.dart';
 import 'screens/football_top_clubs_screen.dart';
 import 'screens/basketball_search_screen.dart';
-import 'screens/basketball_top_players_screen.dart';
+import 'screens/basketball_top_clubs_screen.dart';
 import 'widgets/glass_widgets.dart';
 
 void main() {
@@ -23,7 +23,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
         ChangeNotifierProvider(create: (_) => TtPlayerProvider()),
         ChangeNotifierProvider(create: (_) => FootballClubProvider()),
-        ChangeNotifierProvider(create: (_) => BasketballPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => BasketballClubProvider()),
         ChangeNotifierProvider(create: (_) => SportProvider()),
       ],
       child: const TennisApp(),
@@ -122,7 +122,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case SportType.football:
         return const FootballTopClubsScreen();
       case SportType.basketball:
-        return const BasketballTopPlayersScreen();
+        return const BasketballTopClubsScreen();
     }
   }
 

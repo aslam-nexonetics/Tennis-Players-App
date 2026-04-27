@@ -38,7 +38,7 @@ class SportProvider with ChangeNotifier {
     ),
     Sport(
       type: SportType.basketball,
-      name: 'Basketball',
+      name: 'Basketball Clubs',
       icon: Icons.sports_basketball,
       accentColor: Colors.orange,
     ),

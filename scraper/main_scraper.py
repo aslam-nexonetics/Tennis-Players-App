@@ -1,95 +1,67 @@
 import sys
 import os
 import argparse
-# Add the project root to sys.path so 'scraper' and 'backend' modules can be found
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scraper.scrapers.atp_scraper import ATPScraper
-from scraper.scrapers.wta_scraper import WTAScraper
-from scraper.scrapers.wiki_scraper import WikiScraper
-from scraper.scrapers.wtt_scraper import WTTScraper
-from scraper.scrapers.football_club_scraper import FootballClubScraper
-from scraper.scrapers.basketball_scraper import BasketballScraper
-from scraper.utils.logger import log
-from scraper.persistence import SessionLocal, Player
+# Add current directory and project root to sys.path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(script_dir, '..'))
+sys.path.append(script_dir)
+sys.path.append(project_root)
+sys.path.append(os.path.join(project_root, 'backend'))
 
+# Local imports from scrapers/ subdirectory
+from scrapers.atp_scraper import ATPScraper
+from scrapers.wta_scraper import WTAScraper
+from scrapers.wtt_scraper import WTTScraper
+from scrapers.football_club_scraper import FootballClubScraper
+from scrapers.basketball_club_scraper import BasketballClubScraper
+from utils.logger import log
 
 def run_tennis_scraper():
-    log.info("Starting tennis player scraper...")
-
+    log.info("Starting Tennis Scraper...")
     atp = ATPScraper()
+    atp.scrape_rankings(limit=100)
     wta = WTAScraper()
-    wiki = WikiScraper()
-
-    # 1. Scrape Rankings
-    atp.scrape_rankings(limit=200)
-    wta.scrape_rankings(limit=200)
-
-    # 2. Enrich missing data
-    db = SessionLocal()
-    try:
-        players = db.query(Player).all()
-        for player in players:
-            if not player.height or not player.birth_date:
-                enriched = wiki.enrich_player(player.name)
-                if enriched:
-                    for key, value in enriched.items():
-                        if not getattr(player, key):
-                            setattr(player, key, value)
-                    db.commit()
-    except Exception as e:
-        log.error(f"Error during enrichment phase: {e}")
-    finally:
-        db.close()
-
-    log.info("Tennis scraper run completed successfully.")
-
+    wta.scrape_rankings(limit=100)
 
 def run_tt_scraper():
-    log.info("Starting table tennis player scraper...")
+    log.info("Starting Table Tennis Scraper...")
     wtt = WTTScraper()
     wtt.scrape_rankings(limit=200)
-    log.info("Table tennis scraper run completed successfully.")
-
 
 def run_football_scraper():
-    log.info("Starting football club scraper...")
+    log.info("Starting Football Club Scraper...")
     fb = FootballClubScraper()
     fb.scrape_clubs(limit=200)
-    log.info("Football scraper run completed successfully.")
-
 
 def run_basketball_scraper():
-    log.info("Starting basketball player scraper...")
-    bb = BasketballScraper()
-    bb.scrape_basketball_players()
-    log.info("Basketball scraper run completed successfully.")
+    log.info("Starting Basketball Club Scraper...")
+    bb = BasketballClubScraper()
+    bb.scrape_clubs(limit=200)
 
-
-def run_scraper():
-    """Legacy entry point — runs tennis scraper only."""
-    run_tennis_scraper()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Tennis & Table Tennis & Football scraper")
-    parser.add_argument("--tt-only", action="store_true", help="Run only the table tennis scraper")
-    parser.add_argument("--football-only", action="store_true", help="Run only the football scraper")
-    parser.add_argument("--basketball-only", action="store_true", help="Run only the basketball scraper")
-    parser.add_argument("--all", action="store_true", help="Run all scrapers")
+def main():
+    parser = argparse.ArgumentParser(description="Multi-Sport Web Scraper")
+    parser.add_argument("--tennis-only", action="store_true", help="Run only Tennis scraper")
+    parser.add_argument("--tt-only", action="store_true", help="Run only Table Tennis scraper")
+    parser.add_argument("--football-only", action="store_true", help="Run only Football Club scraper")
+    parser.add_argument("--basketball-only", action="store_true", help="Run only Basketball Club scraper")
+    
     args = parser.parse_args()
 
-    if args.tt_only:
+    if args.tennis_only:
+        run_tennis_scraper()
+    elif args.tt_only:
         run_tt_scraper()
     elif args.football_only:
         run_football_scraper()
     elif args.basketball_only:
         run_basketball_scraper()
-    elif args.all:
+    else:
+        # Run all scrapers sequentially
         run_tennis_scraper()
         run_tt_scraper()
         run_football_scraper()
         run_basketball_scraper()
-    else:
-        # Default: run tennis scraper (backward compat)
-        run_tennis_scraper()
+
+if __name__ == "__main__":
+    main()

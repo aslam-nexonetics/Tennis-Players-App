@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart'
 import '../models/player.dart';
 import '../models/tt_player.dart';
 import '../models/football_club.dart';
-import '../models/basketball_player.dart';
+import '../models/basketball_club.dart';
 
 class ApiService {
   static String get baseUrl {
     if (kIsWeb) {
       // Production backend on Render
-      // return 'https://tennis-players-app.onrender.com';
-      return 'http://localhost:8000';
+      return 'https://tennis-players-app.onrender.com';
+      // return 'http://localhost:8000';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Physical Android device on LAN
@@ -153,45 +153,41 @@ class ApiService {
 
   // ── Basketball ───────────────────────────────────────────────────────────
 
-  Future<BasketballPlayerListResponse> searchBasketballPlayers(
+  Future<BasketballClubListResponse> searchBasketballClubs(
     String query, {
     int page = 1,
     int size = 20,
   }) async {
     final response = await http.get(
       Uri.parse(
-        '$baseUrl/basketball-players/search?q=$query&page=$page&size=$size',
+        '$baseUrl/basketball-clubs/search?q=$query&page=$page&size=$size',
       ),
     );
     if (response.statusCode == 200) {
-      return BasketballPlayerListResponse.fromJson(json.decode(response.body));
+      return BasketballClubListResponse.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to search basketball players');
+      throw Exception('Failed to search basketball clubs');
     }
   }
 
-  Future<BasketballPlayer> getBasketballPlayerDetail(int id) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/basketball-players/$id'),
-    );
+  Future<BasketballClub> getBasketballClubDetail(int id) async {
+    final response = await http.get(Uri.parse('$baseUrl/basketball-clubs/$id'));
     if (response.statusCode == 200) {
-      return BasketballPlayer.fromJson(json.decode(response.body));
+      return BasketballClub.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to load basketball player details');
+      throw Exception('Failed to load basketball club details');
     }
   }
 
-  Future<List<BasketballPlayer>> getBasketballTopPlayers({
-    int limit = 50,
-  }) async {
+  Future<List<BasketballClub>> getBasketballTopClubs({int limit = 50}) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/basketball-players/top?limit=$limit'),
+      Uri.parse('$baseUrl/basketball-clubs/top?limit=$limit'),
     );
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
-      return data.map((i) => BasketballPlayer.fromJson(i)).toList();
+      return data.map((i) => BasketballClub.fromJson(i)).toList();
     } else {
-      throw Exception('Failed to load top basketball players');
+      throw Exception('Failed to load top basketball clubs');
     }
   }
 }
