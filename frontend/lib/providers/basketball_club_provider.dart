@@ -10,12 +10,26 @@ class BasketballClubProvider with ChangeNotifier {
   List<BasketballClub> _searchResults = [];
   bool _isLoading = false;
   String _error = '';
+  String _selectedCategory = 'men'; // 'men' or 'women'
   Timer? _debounce;
+  String _currentQuery = '';
 
   List<BasketballClub> get topClubs => _topClubs;
   List<BasketballClub> get searchResults => _searchResults;
   bool get isLoading => _isLoading;
   String get error => _error;
+  String get selectedCategory => _selectedCategory;
+
+  void setCategory(String category) {
+    if (_selectedCategory == category) return;
+    _selectedCategory = category;
+    notifyListeners();
+    // Refresh data when category changes
+    fetchTopClubs();
+    if (_currentQuery.isNotEmpty) {
+      searchClubs(_currentQuery);
+    }
+  }
 
   Future<void> fetchTopClubs() async {
     _isLoading = true;
@@ -23,7 +37,7 @@ class BasketballClubProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _topClubs = await _apiService.getBasketballTopClubs();
+      _topClubs = await _apiService.getBasketballTopClubs(category: _selectedCategory);
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -33,6 +47,7 @@ class BasketballClubProvider with ChangeNotifier {
   }
 
   void searchClubs(String query) {
+    _currentQuery = query;
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       if (query.isEmpty) {
@@ -45,7 +60,7 @@ class BasketballClubProvider with ChangeNotifier {
       notifyListeners();
 
       try {
-        final response = await _apiService.searchBasketballClubs(query);
+        final response = await _apiService.searchBasketballClubs(query, category: _selectedCategory);
         _searchResults = response.items;
       } catch (e) {
         _error = e.toString();

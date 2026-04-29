@@ -17,6 +17,7 @@ class BasketballClubBase(BaseModel):
     website: Optional[str] = None
     description: Optional[str] = None
     ranking: Optional[int] = None
+    category: Optional[str] = "men"
     titles: Optional[int] = 0
     playoff_appearances: Optional[int] = 0
     market_value: Optional[str] = None

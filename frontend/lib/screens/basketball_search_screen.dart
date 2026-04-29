@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/basketball_club_provider.dart';
+import '../widgets/glass_widgets.dart';
 import 'basketball_club_detail_screen.dart';
 
 class BasketballSearchScreen extends StatelessWidget {
@@ -8,18 +9,68 @@ class BasketballSearchScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<BasketballClubProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Category Toggle
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => provider.setCategory('men'),
+                    child: GlassContainer(
+                      opacity: provider.selectedCategory == 'men' ? 0.3 : 0.05,
+                      borderRadius: 15,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Center(
+                        child: Text(
+                          'Men',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: provider.selectedCategory == 'men'
+                                ? Colors.orange
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => provider.setCategory('women'),
+                    child: GlassContainer(
+                      opacity: provider.selectedCategory == 'women' ? 0.3 : 0.05,
+                      borderRadius: 15,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Center(
+                        child: Text(
+                          'Women',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: provider.selectedCategory == 'women'
+                                ? Colors.orange
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             TextField(
-              onChanged: (value) =>
-                  context.read<BasketballClubProvider>().searchClubs(value),
+              onChanged: (value) => provider.searchClubs(value),
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Search NBA & Global Clubs...',
+                hintText: 'Search NBA, WNBA & Global Clubs...',
                 hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                 prefixIcon: const Icon(Icons.search, color: Colors.white),
                 filled: true,
@@ -69,7 +120,7 @@ class BasketballSearchScreen extends StatelessWidget {
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${club.league} • ${club.conference}',
+                            '${club.league} • ${club.category.toUpperCase()}',
                             style: TextStyle(color: Colors.white.withOpacity(0.7)),
                           ),
                           trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),

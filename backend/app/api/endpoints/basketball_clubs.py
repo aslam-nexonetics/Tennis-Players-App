@@ -13,6 +13,7 @@ def search_clubs(
     q: str = "",
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
+    category: str = Query(None),
     db: Session = Depends(get_db)
 ):
     query = db.query(BasketballClubModel)
@@ -21,6 +22,9 @@ def search_clubs(
             (func.lower(BasketballClubModel.name).contains(q.lower())) |
             (func.lower(BasketballClubModel.city).contains(q.lower()))
         )
+    
+    if category:
+        query = query.filter(BasketballClubModel.category == category)
     
     total = query.count()
     items = query.offset((page - 1) * size).limit(size).all()
@@ -33,8 +37,11 @@ def search_clubs(
     }
 
 @router.get("/top", response_model=List[BasketballClub])
-def get_top_clubs(limit: int = 50, db: Session = Depends(get_db)):
-    return db.query(BasketballClubModel).order_by(BasketballClubModel.ranking.asc()).limit(limit).all()
+def get_top_clubs(limit: int = 50, category: str = Query(None), db: Session = Depends(get_db)):
+    query = db.query(BasketballClubModel)
+    if category:
+        query = query.filter(BasketballClubModel.category == category)
+    return query.order_by(BasketballClubModel.ranking.asc()).limit(limit).all()
 
 @router.get("/{club_id}", response_model=BasketballClub)
 def get_club(club_id: int, db: Session = Depends(get_db)):

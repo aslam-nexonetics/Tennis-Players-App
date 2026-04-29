@@ -22,6 +22,7 @@ class BasketballClub(Base):
     
     # Rankings & Stats
     ranking = Column(Integer, index=True) # Power Ranking
+    category = Column(String, index=True, default="men") # 'men' or 'women'
     titles = Column(Integer, default=0) # e.g., NBA Championships
     playoff_appearances = Column(Integer, default=0)
     market_value = Column(String)

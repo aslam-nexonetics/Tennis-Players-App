@@ -20,36 +20,45 @@ WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
 # Additional Basketball Categories
 BASKETBALL_CATEGORIES = [
-    ("Category:National Basketball Association teams", "USA", "NBA"),
-    ("Category:EuroLeague teams", "Europe", "EuroLeague"),
-    ("Category:Liga ACB teams", "Spain", "Liga ACB"),
-    ("Category:Lega Basket Serie A teams", "Italy", "Serie A"),
-    ("Category:Basketball Bundesliga teams", "Germany", "Bundesliga"),
-    ("Category:Chinese Basketball Association teams", "China", "CBA"),
-    ("Category:National Basketball League (Australia) teams", "Australia", "NBL"),
-    ("Category:Turkish Basketball Super League teams", "Turkey", "BSL"),
-    ("Category:Greek Basketball League teams", "Greece", "GBL"),
-    ("Category:VTB United League teams", "Eastern Europe", "VTB"),
+    # Women's Leagues (Prioritized)
+    ("Category:Women's National Basketball Association teams", "USA", "WNBA", "women"),
+    ("Category:EuroLeague Women teams", "Europe", "EuroLeague Women", "women"),
+    ("Category:Liga Femenina de Baloncesto teams", "Spain", "Liga Femenina", "women"),
+    ("Category:Women's National Basketball League (Australia) teams", "Australia", "WNBL", "women"),
+    
+    # Men's Leagues
+    ("Category:National Basketball Association teams", "USA", "NBA", "men"),
+    ("Category:EuroLeague teams", "Europe", "EuroLeague", "men"),
+    ("Category:Liga ACB teams", "Spain", "Liga ACB", "men"),
+    ("Category:Lega Basket Serie A teams", "Italy", "Serie A", "men"),
+    ("Category:Basketball Bundesliga teams", "Germany", "Bundesliga", "men"),
+    ("Category:Chinese Basketball Association teams", "China", "CBA", "men"),
+    ("Category:National Basketball League (Australia) teams", "Australia", "NBL", "men"),
+    ("Category:Turkish Basketball Super League teams", "Turkey", "BSL", "men"),
+    ("Category:Greek Basketball League teams", "Greece", "GBL", "men"),
+    ("Category:VTB United League teams", "Eastern Europe", "VTB", "men"),
+    ("Category:B.League teams", "Japan", "B.League", "men"),
+    ("Category:LNB Pro A teams", "France", "LNB Pro A", "men"),
 ]
 
 class BasketballClubScraper(BaseScraper):
     def __init__(self):
         super().__init__("https://en.wikipedia.org/wiki/National_Basketball_Association")
 
-    def scrape_clubs(self, limit=500):
+    def scrape_clubs(self, limit=5000):
         log.info(f"Starting basketball club scraping (Target: {limit}+)...")
         scraped = 0
 
         # 1. Scrape multiple categories
-        for cat_name, country, league in BASKETBALL_CATEGORIES:
-            log.info(f"Scraping clubs from {cat_name}...")
-            cat_scraped = self.scrape_category_clubs(cat_name, country, league, limit=60)
+        for cat_name, country, league, category in BASKETBALL_CATEGORIES:
+            log.info(f"Scraping clubs from {cat_name} ({category})...")
+            cat_scraped = self.scrape_category_clubs(cat_name, country, league, category, limit=100)
             scraped += cat_scraped
-            if scraped >= limit: break
+            # if scraped >= limit: break
 
         log.info(f"Basketball club scraping complete: {scraped} clubs saved.")
 
-    def scrape_category_clubs(self, category_name, country, league, limit=60):
+    def scrape_category_clubs(self, category_name, country, league, category, limit=100):
         saved = 0
         try:
             encoded_cat = urllib.parse.quote(category_name)
@@ -64,7 +73,7 @@ class BasketballClubScraper(BaseScraper):
 
                     try:
                         club_data = self._build_club_data(
-                            name=name, country=country, league=league,
+                            name=name, country=country, league=league, category=category,
                             ranking=saved + 1,
                             titles=random.randint(0, 10),
                             playoffs=random.randint(5, 50),
@@ -79,7 +88,7 @@ class BasketballClubScraper(BaseScraper):
             log.warning(f"Category scrape failed for {category_name}: {e}")
         return saved
 
-    def _build_club_data(self, name, country, league, city=None, conf=None, founded=None, 
+    def _build_club_data(self, name, country, league, category="men", city=None, conf=None, founded=None, 
                          arena=None, cap=None, coach="TBD", ranking=None, titles=0, 
                          playoffs=0, market=None, record=None, star="TBD", owner="TBD", 
                          gm="TBD", honors=None):
@@ -92,6 +101,7 @@ class BasketballClubScraper(BaseScraper):
             "city": city or country,
             "country": country,
             "league": league,
+            "category": category,
             "conference": conf or ("Eastern" if random.random() > 0.5 else "Western"),
             "founded_year": founded or random.randint(1946, 2010),
             "arena": arena or f"{name} Center",
@@ -122,4 +132,4 @@ class BasketballClubScraper(BaseScraper):
 
 if __name__ == "__main__":
     scraper = BasketballClubScraper()
-    scraper.scrape_clubs(limit=500)
+    scraper.scrape_clubs(limit=5000)

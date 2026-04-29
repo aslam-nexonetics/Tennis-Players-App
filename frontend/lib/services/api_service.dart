@@ -170,10 +170,12 @@ class ApiService {
     String query, {
     int page = 1,
     int size = 20,
+    String? category,
   }) async {
+    final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
       Uri.parse(
-        '$baseUrl/basketball-clubs/search?q=$query&page=$page&size=$size',
+        '$baseUrl/basketball-clubs/search?q=$query&page=$page&size=$size$categoryParam',
       ),
     );
     if (response.statusCode == 200) {
@@ -192,9 +194,10 @@ class ApiService {
     }
   }
 
-  Future<List<BasketballClub>> getBasketballTopClubs({int limit = 50}) async {
+  Future<List<BasketballClub>> getBasketballTopClubs({int limit = 50, String? category}) async {
+    final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/basketball-clubs/top?limit=$limit'),
+      Uri.parse('$baseUrl/basketball-clubs/top?limit=$limit$categoryParam'),
     );
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);

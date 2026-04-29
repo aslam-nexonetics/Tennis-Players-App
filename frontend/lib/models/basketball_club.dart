@@ -14,6 +14,7 @@ class BasketballClub {
   final String? website;
   final String? description;
   final int? ranking;
+  final String category;
   
   // Stats & Personnel
   final int titles;
@@ -43,6 +44,7 @@ class BasketballClub {
     this.website,
     this.description,
     this.ranking,
+    required this.category,
     this.titles = 0,
     this.playoffAppearances = 0,
     this.marketValue,
@@ -70,6 +72,7 @@ class BasketballClub {
       website: json['website'],
       description: json['description'],
       ranking: json['ranking'],
+      category: json['category'] ?? 'men',
       titles: json['titles'] ?? 0,
       playoffAppearances: json['playoff_appearances'] ?? 0,
       marketValue: json['market_value'],

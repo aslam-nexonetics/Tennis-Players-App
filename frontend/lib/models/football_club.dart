@@ -13,6 +13,7 @@ class FootballClub {
   final String? description;
   final int? ranking;
   final int? domesticRanking;
+  final String category;
   
   // Enhanced Statistics
   final int totalTrophies;
@@ -41,6 +42,7 @@ class FootballClub {
     this.description,
     this.ranking,
     this.domesticRanking,
+    required this.category,
     this.totalTrophies = 0,
     this.marketValue,
     this.leaguePosition,
@@ -67,6 +69,7 @@ class FootballClub {
       description: json['description'],
       ranking: json['ranking'],
       domesticRanking: json['domestic_ranking'],
+      category: json['category'] ?? 'men',
       totalTrophies: json['total_trophies'] ?? 0,
       marketValue: json['market_value'],
       leaguePosition: json['league_position'],
