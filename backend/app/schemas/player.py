@@ -1,6 +1,6 @@
 from pydantic import BaseModel, HttpUrl
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class PlayerBase(BaseModel):
     name: str
@@ -36,3 +36,30 @@ class PlayerList(BaseModel):
     total: int
     page: int
     size: int
+
+# Head-to-Head Schemas
+class H2HMatch(BaseModel):
+    year: int
+    event: str
+    round: str
+    surface: str # Hard, Clay, Grass
+    score: str
+    winner_id: int
+    winner_name: str
+
+class H2HStats(BaseModel):
+    matches_played: int
+    player1_wins: int
+    player2_wins: int
+    player1_win_pct: float
+    player2_win_pct: float
+    hard_court_wins: Dict[int, int] # player_id -> wins
+    clay_court_wins: Dict[int, int]
+    grass_court_wins: Dict[int, int]
+    last_match: Optional[H2HMatch] = None
+
+class H2HResponse(BaseModel):
+    player1: Player
+    player2: Player
+    stats: H2HStats
+    history: List[H2HMatch]

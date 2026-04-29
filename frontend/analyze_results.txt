@@ -1,0 +1,116 @@
+Analyzing frontend...                                           
+
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:271:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:272:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:277:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:283:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:345:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:347:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:424:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/main.dart:475:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_club_detail_screen.dart:45:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_club_detail_screen.dart:75:80 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_club_detail_screen.dart:81:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_club_detail_screen.dart:149:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_club_detail_screen.dart:202:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_club_detail_screen.dart:204:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_search_screen.dart:74:58 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_search_screen.dart:77:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_search_screen.dart:95:62 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_search_screen.dart:104:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_search_screen.dart:124:66 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_top_clubs_screen.dart:99:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/basketball_top_clubs_screen.dart:128:132 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:57:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:59:45 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/football_club_detail_screen.dart:68:49 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/football_club_detail_screen.dart:68:53 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:77:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:113:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:243:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:245:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_club_detail_screen.dart:322:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_search_screen.dart:157:62 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/football_search_screen.dart:159:64 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/football_search_screen.dart:168:57 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/football_search_screen.dart:168:61 • unnecessary_underscores
+   info • Statements in an if should be enclosed in a block • lib/screens/player_compare_screen.dart:80:16 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/player_compare_screen.dart:80:41 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/player_compare_screen.dart:95:18 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/player_compare_screen.dart:95:44 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:246:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:248:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:367:79 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:561:37 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/screens/player_compare_screen.dart:571:68 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:584:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:610:57 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:614:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:635:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_compare_screen.dart:636:23 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/player_compare_screen.dart:644:34 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/player_compare_screen.dart:644:38 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_detail_screen.dart:95:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_detail_screen.dart:116:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_detail_screen.dart:155:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/player_detail_screen.dart:296:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/search_screen.dart:103:56 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/search_screen.dart:106:54 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/search_screen.dart:115:59 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/search_screen.dart:115:63 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/search_screen.dart:224:31 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/search_screen.dart:225:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/search_screen.dart:228:59 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps • lib/screens/top_players_screen.dart:22:39 • use_build_context_synchronously
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/top_players_screen.dart:78:64 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/top_players_screen.dart:81:62 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/top_players_screen.dart:91:67 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/top_players_screen.dart:91:71 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/top_players_screen.dart:208:31 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/top_players_screen.dart:209:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/top_players_screen.dart:212:59 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/screens/tt_player_compare_screen.dart:84:16 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/tt_player_compare_screen.dart:84:41 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/tt_player_compare_screen.dart:99:18 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/tt_player_compare_screen.dart:99:44 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:240:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:242:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:284:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:383:73 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:511:57 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:515:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:535:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_compare_screen.dart:536:23 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/tt_player_compare_screen.dart:543:34 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/tt_player_compare_screen.dart:543:38 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_detail_screen.dart:102:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_detail_screen.dart:104:45 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/tt_player_detail_screen.dart:113:49 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/tt_player_detail_screen.dart:113:53 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_detail_screen.dart:159:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_detail_screen.dart:186:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_detail_screen.dart:225:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_player_detail_screen.dart:377:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_search_screen.dart:108:62 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_search_screen.dart:110:64 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/tt_search_screen.dart:119:57 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/tt_search_screen.dart:119:61 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_search_screen.dart:230:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_search_screen.dart:231:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_search_screen.dart:236:31 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_top_players_screen.dart:99:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_top_players_screen.dart:103:39 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/tt_top_players_screen.dart:112:61 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/tt_top_players_screen.dart:112:65 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_top_players_screen.dart:233:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_top_players_screen.dart:234:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/tt_top_players_screen.dart:239:31 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/glass_widgets.dart:31:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/glass_widgets.dart:33:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/glass_widgets.dart:79:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/glass_widgets.dart:84:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/ranking_graph.dart:47:23 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/ranking_graph.dart:56:24 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/ranking_graph.dart:56:48 • deprecated_member_use
+
+112 issues found. (ran in 2.6s)

@@ -94,3 +94,103 @@ class PlayerListResponse {
     );
   }
 }
+
+class H2HMatch {
+  final int year;
+  final String event;
+  final String round;
+  final String surface;
+  final String score;
+  final int winnerId;
+  final String winnerName;
+
+  H2HMatch({
+    required this.year,
+    required this.event,
+    required this.round,
+    required this.surface,
+    required this.score,
+    required this.winnerId,
+    required this.winnerName,
+  });
+
+  factory H2HMatch.fromJson(Map<String, dynamic> json) {
+    return H2HMatch(
+      year: json['year'],
+      event: json['event'],
+      round: json['round'],
+      surface: json['surface'],
+      score: json['score'],
+      winnerId: json['winner_id'],
+      winnerName: json['winner_name'],
+    );
+  }
+}
+
+class H2HStats {
+  final int matchesPlayed;
+  final int player1Wins;
+  final int player2Wins;
+  final double player1WinPct;
+  final double player2WinPct;
+  final Map<int, int> hardCourtWins;
+  final Map<int, int> clayCourtWins;
+  final Map<int, int> grassCourtWins;
+  final H2HMatch? lastMatch;
+
+  H2HStats({
+    required this.matchesPlayed,
+    required this.player1Wins,
+    required this.player2Wins,
+    required this.player1WinPct,
+    required this.player2WinPct,
+    required this.hardCourtWins,
+    required this.clayCourtWins,
+    required this.grassCourtWins,
+    this.lastMatch,
+  });
+
+  factory H2HStats.fromJson(Map<String, dynamic> json) {
+    return H2HStats(
+      matchesPlayed: json['matches_played'],
+      player1Wins: json['player1_wins'],
+      player2Wins: json['player2_wins'],
+      player1WinPct: (json['player1_win_pct'] as num).toDouble(),
+      player2WinPct: (json['player2_win_pct'] as num).toDouble(),
+      hardCourtWins: Map<String, int>.from(json['hard_court_wins'])
+          .map((key, value) => MapEntry(int.parse(key), value)),
+      clayCourtWins: Map<String, int>.from(json['clay_court_wins'])
+          .map((key, value) => MapEntry(int.parse(key), value)),
+      grassCourtWins: Map<String, int>.from(json['grass_court_wins'])
+          .map((key, value) => MapEntry(int.parse(key), value)),
+      lastMatch: json['last_match'] != null
+          ? H2HMatch.fromJson(json['last_match'])
+          : null,
+    );
+  }
+}
+
+class H2HResponse {
+  final Player player1;
+  final Player player2;
+  final H2HStats stats;
+  final List<H2HMatch> history;
+
+  H2HResponse({
+    required this.player1,
+    required this.player2,
+    required this.stats,
+    required this.history,
+  });
+
+  factory H2HResponse.fromJson(Map<String, dynamic> json) {
+    return H2HResponse(
+      player1: Player.fromJson(json['player1']),
+      player2: Player.fromJson(json['player2']),
+      stats: H2HStats.fromJson(json['stats']),
+      history: (json['history'] as List)
+          .map((i) => H2HMatch.fromJson(i))
+          .toList(),
+    );
+  }
+}

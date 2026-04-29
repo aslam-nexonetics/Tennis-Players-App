@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.schemas.player import Player, PlayerList
+from app.schemas.player import Player, PlayerList, H2HResponse
 from app.services.player_service import PlayerService
 from typing import List, Optional
 
@@ -44,3 +44,10 @@ def get_player(id: int, db: Session = Depends(get_db)):
     if not player:
         raise HTTPException(status_code=404, detail="Player not found")
     return player
+
+@router.get("/h2h/{p1_id}/{p2_id}", response_model=H2HResponse)
+def get_h2h(p1_id: int, p2_id: int, db: Session = Depends(get_db)):
+    h2h = PlayerService.get_h2h(db, p1_id, p2_id)
+    if not h2h:
+        raise HTTPException(status_code=404, detail="Players not found")
+    return h2h

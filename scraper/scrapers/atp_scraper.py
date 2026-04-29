@@ -52,7 +52,9 @@ class ATPScraper(BaseScraper):
                 if not name_link: continue
                 name = name_link.text.strip()
                 
-                if not name or "List of" in name: continue
+                # Validation: Skip names that are dates or lists
+                if not name or "List of" in name or any(month in name for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]):
+                    continue
 
                 # Country
                 country = "Unknown"
