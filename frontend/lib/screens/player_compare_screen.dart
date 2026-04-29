@@ -6,8 +6,8 @@ import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
 
 class PlayerCompareScreen extends StatefulWidget {
-  final Player playerA;
-  const PlayerCompareScreen({super.key, required this.playerA});
+  final Player? playerA;
+  const PlayerCompareScreen({super.key, this.playerA});
 
   @override
   State<PlayerCompareScreen> createState() => _PlayerCompareScreenState();
@@ -15,65 +15,115 @@ class PlayerCompareScreen extends StatefulWidget {
 
 class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     with TickerProviderStateMixin {
+  Player? _playerA;
   Player? _playerB;
-  bool _searching = false;
-  String? _searchError;
-  List<Player> _searchResults = [];
-  final TextEditingController _searchCtrl = TextEditingController();
-  Timer? _debounce;
+  
+  bool _searchingA = false;
+  bool _searchingB = false;
+  
+  List<Player> _resultsA = [];
+  List<Player> _resultsB = [];
+  
+  final TextEditingController _ctrlA = TextEditingController();
+  final TextEditingController _ctrlB = TextEditingController();
+  
+  Timer? _debounceA;
+  Timer? _debounceB;
+  
+  bool _showComparison = false;
+
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
 
   @override
   void initState() {
     super.initState();
+    _playerA = widget.playerA;
+    if (_playerA != null) {
+      _ctrlA.text = _playerA!.name;
+    }
+    
     _fadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
+        vsync: this, duration: const Duration(milliseconds: 600));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
+    
+    if (_playerA != null) {
+      _showComparison = false;
+    }
   }
 
   @override
   void dispose() {
     _fadeCtrl.dispose();
-    _searchCtrl.dispose();
-    _debounce?.cancel();
+    _ctrlA.dispose();
+    _ctrlB.dispose();
+    _debounceA?.cancel();
+    _debounceB?.cancel();
     super.dispose();
   }
 
-  void _onSearchChanged(String q) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
-      if (q.trim().isNotEmpty) _doSearch(q.trim());
+  void _onSearchA(String q) {
+    if (_debounceA?.isActive ?? false) _debounceA!.cancel();
+    _debounceA = Timer(const Duration(milliseconds: 400), () {
+      if (q.trim().isNotEmpty) _doSearch(q.trim(), true);
     });
   }
 
-  Future<void> _doSearch(String q) async {
+  void _onSearchB(String q) {
+    if (_debounceB?.isActive ?? false) _debounceB!.cancel();
+    _debounceB = Timer(const Duration(milliseconds: 400), () {
+      if (q.trim().isNotEmpty) _doSearch(q.trim(), false);
+    });
+  }
+
+  Future<void> _doSearch(String q, bool isA) async {
     setState(() {
-      _searching = true;
-      _searchError = null;
+      if (isA) _searchingA = true; else _searchingB = true;
     });
     try {
-      final res = await ApiService().searchPlayers(q, size: 10);
-      setState(() => _searchResults =
-          res.items.where((p) => p.id != widget.playerA.id).toList());
+      final res = await ApiService().searchPlayers(q, size: 5);
+      setState(() {
+        if (isA) {
+          _resultsA = res.items;
+        } else {
+          _resultsB = res.items;
+        }
+      });
     } catch (e) {
-      setState(() => _searchError = e.toString());
+      // Handle error
     } finally {
-      setState(() => _searching = false);
+      setState(() {
+        if (isA) _searchingA = false; else _searchingB = false;
+      });
     }
   }
 
-  void _selectPlayerB(Player p) {
-    FocusScope.of(context).unfocus();
+  void _selectA(Player p) {
     setState(() {
-      _playerB = p;
-      _searchResults = [];
-      _searchCtrl.clear();
+      _playerA = p;
+      _resultsA = [];
+      _ctrlA.text = p.name;
+      _showComparison = false;
     });
-    _fadeCtrl.forward(from: 0);
+    FocusScope.of(context).unfocus();
   }
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  void _selectB(Player p) {
+    setState(() {
+      _playerB = p;
+      _resultsB = [];
+      _ctrlB.text = p.name;
+      _showComparison = false;
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  void _compare() {
+    if (_playerA != null && _playerB != null) {
+      setState(() => _showComparison = true);
+      _fadeCtrl.forward(from: 0);
+    }
+  }
 
   String _winRate(Player p) {
     final total = p.wins + p.losses;
@@ -81,331 +131,343 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     return '${((p.wins / total) * 100).toStringAsFixed(1)}%';
   }
 
-  // Returns -1 (A wins), 0 (tie), 1 (B wins) for a stat where LOWER is better
-  int _cmpLower(num? a, num? b) {
-    if (a == null && b == null) return 0;
-    if (a == null) return 1;
-    if (b == null) return -1;
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
-  }
-
-  // Returns -1 (A wins), 0 (tie), 1 (B wins) for a stat where HIGHER is better
-  int _cmpHigher(num? a, num? b) => _cmpLower(b, a);
-
   @override
   Widget build(BuildContext context) {
-    final a = widget.playerA;
     return Scaffold(
-      backgroundColor: const Color(0xFFCFDEF3),
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: GlassContainer(
-            borderRadius: 12,
-            opacity: 0.1,
-            child: IconButton(
-              icon:
-                  const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
-        title: const Text(
-          'Head-to-Head',
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Color(0xFF1D1D1F)),
-        ),
-      ),
+      backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              // ── Player cards row ──────────────────────────────────────
-              Row(
-                children: [
-                  Expanded(child: _PlayerCard(player: a, accent: Colors.indigo)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.indigo.withOpacity(0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Text('VS',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 11,
-                                color: Colors.indigo)),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 50),
+                    const Text(
+                      'Head to Head',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: Color(0xFF1D1D1F),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: _playerB == null
-                        ? _PickPlayerCard(accent: Colors.purple)
-                        : _PlayerCard(
-                            player: _playerB!, accent: Colors.purple),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // ── Search box for player B ───────────────────────────────
-              GlassContainer(
-                borderRadius: 30,
-                opacity: 0.1,
-                child: TextField(
-                  controller: _searchCtrl,
-                  decoration: InputDecoration(
-                    hintText: _playerB == null
-                        ? 'Search opponent...'
-                        : 'Change opponent...',
-                    prefixIcon:
-                        const Icon(Icons.search, color: Colors.indigo),
-                    border: InputBorder.none,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onChanged: _onSearchChanged,
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Compare athletes side-by-side',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSelectionArea(),
+                    const SizedBox(height: 20),
+                    if (_showComparison && _playerA != null && _playerB != null)
+                      _buildComparisonResults()
+                    else
+                      _buildPlaceholder(),
+                  ],
                 ),
               ),
-
-              if (_searching)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: LinearProgressIndicator(
-                      backgroundColor: Colors.transparent,
-                      minHeight: 2),
-                ),
-
-              if (_searchResults.isNotEmpty)
-                GlassContainer(
-                  borderRadius: 16,
-                  opacity: 0.08,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(
-                    children: _searchResults
-                        .map((p) => ListTile(
-                              dense: true,
-                              leading: _Avatar(
-                                  imageUrl: p.imageUrl,
-                                  name: p.name,
-                                  size: 36,
-                                  accent: Colors.indigo),
-                              title: Text(p.name,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14)),
-                              subtitle: Text(
-                                  '#${p.ranking ?? 'N/A'} • ${p.country ?? ''}',
-                                  style: const TextStyle(fontSize: 12)),
-                              onTap: () => _selectPlayerB(p),
-                            ))
-                        .toList(),
-                  ),
-                ),
-
-              if (_searchError != null)
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(_searchError!,
-                      style: const TextStyle(color: Colors.red)),
-                ),
-
-              const SizedBox(height: 20),
-
-              // ── Comparison table ──────────────────────────────────────
-              if (_playerB != null) ...[
-                FadeTransition(
-                  opacity: _fadeAnim,
-                  child: Column(
-                    children: [
-                      _SectionLabel(label: 'Rankings'),
-                      _CompareRow(
-                        label: 'Current Rank',
-                        aVal: '#${a.ranking ?? 'N/A'}',
-                        bVal: '#${_playerB!.ranking ?? 'N/A'}',
-                        winner: _cmpLower(a.ranking, _playerB!.ranking),
-                      ),
-                      _CompareRow(
-                        label: 'Career High',
-                        aVal: '#${a.highestRanking ?? 'N/A'}',
-                        bVal: '#${_playerB!.highestRanking ?? 'N/A'}',
-                        winner: _cmpLower(
-                            a.highestRanking, _playerB!.highestRanking),
-                      ),
-                      const SizedBox(height: 12),
-                      _SectionLabel(label: 'Performance'),
-                      _CompareRow(
-                        label: 'Wins',
-                        aVal: '${a.wins}',
-                        bVal: '${_playerB!.wins}',
-                        winner: _cmpHigher(a.wins, _playerB!.wins),
-                      ),
-                      _CompareRow(
-                        label: 'Losses',
-                        aVal: '${a.losses}',
-                        bVal: '${_playerB!.losses}',
-                        winner: _cmpLower(a.losses, _playerB!.losses),
-                      ),
-                      _CompareRow(
-                        label: 'Win Rate',
-                        aVal: _winRate(a),
-                        bVal: _winRate(_playerB!),
-                        winner: _cmpHigher(
-                          a.wins + a.losses == 0
-                              ? null
-                              : a.wins / (a.wins + a.losses),
-                          _playerB!.wins + _playerB!.losses == 0
-                              ? null
-                              : _playerB!.wins /
-                                  (_playerB!.wins + _playerB!.losses),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _SectionLabel(label: 'Profile'),
-                      _CompareRow(
-                        label: 'Country',
-                        aVal: a.country ?? 'N/A',
-                        bVal: _playerB!.country ?? 'N/A',
-                        winner: 0,
-                        noHighlight: true,
-                      ),
-                      _CompareRow(
-                        label: 'Age',
-                        aVal: a.age != null ? '${a.age} yrs' : 'N/A',
-                        bVal: _playerB!.age != null
-                            ? '${_playerB!.age} yrs'
-                            : 'N/A',
-                        winner: 0,
-                        noHighlight: true,
-                      ),
-                      _CompareRow(
-                        label: 'Height',
-                        aVal: a.height ?? 'N/A',
-                        bVal: _playerB!.height ?? 'N/A',
-                        winner: 0,
-                        noHighlight: true,
-                      ),
-                      _CompareRow(
-                        label: 'Playing Style',
-                        aVal: a.playingStyle ?? 'N/A',
-                        bVal: _playerB!.playingStyle ?? 'N/A',
-                        winner: 0,
-                        noHighlight: true,
-                      ),
-                      const SizedBox(height: 24),
-                      _OverallWinner(a: a, b: _playerB!),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ] else ...[
-                const SizedBox(height: 40),
-                const Opacity(
-                  opacity: 0.4,
-                  child: Column(
-                    children: [
-                      Icon(Icons.compare_arrows_rounded,
-                          size: 64, color: Colors.indigo),
-                      SizedBox(height: 12),
-                      Text('Search for an opponent above\nto start the comparison',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 15, height: 1.5)),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-// ── Sub-widgets ────────────────────────────────────────────────────────────────
-
-class _PlayerCard extends StatelessWidget {
-  final Player player;
-  final Color accent;
-  const _PlayerCard({required this.player, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSelectionArea() {
     return GlassContainer(
-      borderRadius: 20,
-      opacity: 0.12,
-      padding: const EdgeInsets.all(12),
+      borderRadius: 16,
+      opacity: 0.1,
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          _Avatar(
-              imageUrl: player.imageUrl,
-              name: player.name,
-              size: 56,
-              accent: accent),
-          const SizedBox(height: 8),
-          Text(
-            player.name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 13),
+          Row(
+            children: [
+              Expanded(child: _buildSearchBox(_ctrlA, _onSearchA, _playerA, true)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('VS',
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+              ),
+              Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: (_playerA != null && _playerB != null) ? _compare : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text('COMPARE',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-          Text('#${player.ranking ?? 'N/A'}',
-              style: TextStyle(
-                  color: accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12)),
+          if (_resultsA.isNotEmpty || _resultsB.isNotEmpty)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _resultsA.isNotEmpty
+                      ? _buildResultList(_resultsA, _selectA)
+                      : const SizedBox(),
+                ),
+                const SizedBox(width: 100),
+                Expanded(
+                  child: _resultsB.isNotEmpty
+                      ? _buildResultList(_resultsB, _selectB)
+                      : const SizedBox(),
+                ),
+                const SizedBox(width: 110),
+              ],
+            ),
         ],
       ),
     );
   }
-}
 
-class _PickPlayerCard extends StatelessWidget {
-  final Color accent;
-  const _PickPlayerCard({required this.accent});
+  Widget _buildSearchBox(TextEditingController ctrl, Function(String) onChanged,
+      Player? selected, bool isA) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+      ),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _Avatar(
+              imageUrl: selected?.imageUrl,
+              name: selected?.name ?? '?',
+              size: 32,
+              accent: isA ? Colors.indigo : Colors.pink,
+            ),
+          ),
+          Expanded(
+            child: TextField(
+              controller: ctrl,
+              onChanged: onChanged,
+              style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 14),
+              decoration: InputDecoration(
+                hintText: isA ? 'Search Player 1' : 'Search Player 2',
+                hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          if ((isA && _searchingA) || (!isA && _searchingB))
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.indigo),
+            ),
+          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return GlassContainer(
-      borderRadius: 20,
-      opacity: 0.07,
-      padding: const EdgeInsets.all(12),
+  Widget _buildResultList(List<Player> results, Function(Player) onSelect) {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Column(
+        children: results
+            .map((p) => ListTile(
+                  dense: true,
+                  leading: _Avatar(imageUrl: p.imageUrl, name: p.name, size: 24, accent: Colors.indigo),
+                  title: Text(p.name,
+                      style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 12)),
+                  subtitle: Text('#${p.ranking ?? "N/A"}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                  onTap: () => onSelect(p),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildComparisonResults() {
+    final a = _playerA!;
+    final b = _playerB!;
+    return FadeTransition(
+      opacity: _fadeAnim,
       child: Column(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: accent.withOpacity(0.3), width: 2),
-              color: accent.withOpacity(0.07),
-            ),
-            child: Icon(Icons.add, color: accent, size: 26),
+          _buildSummaryCard(a, b),
+          const SizedBox(height: 20),
+          _buildStatsSummary(a, b),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(Player a, Player b) {
+    return GlassContainer(
+      borderRadius: 20,
+      opacity: 0.1,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildPlayerSummary(a, true),
+              _buildH2HScore(),
+              _buildPlayerSummary(b, false),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text('Pick Opponent',
-              textAlign: TextAlign.center,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlayerSummary(Player p, bool isLeft) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        children: [
+          _Avatar(
+              imageUrl: p.imageUrl,
+              name: p.name,
+              size: 80,
+              accent: isLeft ? Colors.indigo : Colors.pink),
+          const SizedBox(height: 12),
+          Text(p.name,
+              style: const TextStyle(
+                  color: Color(0xFF1D1D1F), fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(p.country ?? "N/A", style: const TextStyle(color: Colors.grey)),
+          Text('Age ${p.age ?? "??"}',
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text('Rank ${p.ranking ?? "N/A"}',
               style: TextStyle(
-                  color: accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12)),
+                  color: isLeft ? Colors.indigo : Colors.pink,
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildH2HScore() {
+    return Column(
+      children: [
+        const Text('HEAD TO HEAD',
+            style: TextStyle(color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text('0',
+                style: TextStyle(
+                    color: Colors.indigo,
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Container(width: 12, height: 2, color: Colors.grey.withOpacity(0.3)),
+            ),
+            const Text('0',
+                style: TextStyle(
+                    color: Colors.pink,
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsSummary(Player a, Player b) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('STATS SUMMARY',
+            style: TextStyle(
+                color: Color(0xFF1D1D1F), fontWeight: FontWeight.bold, letterSpacing: 1)),
+        const SizedBox(height: 12),
+        GlassContainer(
+          borderRadius: 16,
+          opacity: 0.1,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildStatRow('Matches Played', '${a.wins + a.losses}', '${b.wins + b.losses}'),
+              _buildStatRow('Wins', '${a.wins}', '${b.wins}'),
+              _buildStatRow('Win %', _winRate(a), _winRate(b)),
+              _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}', '#${b.ranking ?? "N/A"}', lowerIsBetter: true),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatRow(String label, String aVal, String bVal, {bool lowerIsBetter = false}) {
+    num? nvA = num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+    num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+    bool aWins = false;
+    bool bWins = false;
+    if (nvA != null && nvB != null) {
+      if (lowerIsBetter) {
+        aWins = nvA < nvB; bWins = nvB < nvA;
+      } else {
+        aWins = nvA > nvB; bWins = nvB > nvA;
+      }
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(aVal,
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                    color: aWins ? Colors.indigo : Colors.black87,
+                    fontWeight: aWins ? FontWeight.bold : FontWeight.normal)),
+          ),
+          Expanded(
+            child: Text(label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ),
+          Expanded(
+            child: Text(bVal,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                    color: bWins ? Colors.pink : Colors.black87,
+                    fontWeight: bWins ? FontWeight.bold : FontWeight.normal)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 300,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.compare_arrows, color: Colors.grey.withOpacity(0.3), size: 100),
+          const SizedBox(height: 20),
+          Text('Select two players and press COMPARE\nto see the head-to-head analysis',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],
       ),
     );
@@ -417,17 +479,7 @@ class _Avatar extends StatelessWidget {
   final String name;
   final double size;
   final Color accent;
-  const _Avatar(
-      {required this.imageUrl,
-      required this.name,
-      required this.size,
-      required this.accent});
-
-  String get _initials {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    return name.isNotEmpty ? name[0].toUpperCase() : '?';
-  }
+  const _Avatar({required this.imageUrl, required this.name, required this.size, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -444,228 +496,16 @@ class _Avatar extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: imageUrl!,
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Center(
-                    child: Text(_initials,
-                        style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: size * 0.32))),
+                errorWidget: (_, __, ___) => _initials(),
               )
-            : Center(
-                child: Text(_initials,
-                    style: TextStyle(
-                        color: accent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: size * 0.32))),
+            : _initials(),
       ),
     );
   }
-}
 
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-              width: 4,
-              height: 18,
-              decoration: BoxDecoration(
-                  color: Colors.indigo,
-                  borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 8),
-          Text(label,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.indigo)),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompareRow extends StatelessWidget {
-  final String label;
-  final String aVal;
-  final String bVal;
-  final int winner; // -1 = A, 0 = tie, 1 = B
-  final bool noHighlight;
-
-  const _CompareRow({
-    required this.label,
-    required this.aVal,
-    required this.bVal,
-    required this.winner,
-    this.noHighlight = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final aWins = !noHighlight && winner == -1;
-    final bWins = !noHighlight && winner == 1;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: GlassContainer(
-        borderRadius: 14,
-        opacity: 0.08,
-        blur: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: aWins
-                      ? Colors.indigo.withOpacity(0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    if (aWins)
-                      const Icon(Icons.emoji_events_rounded,
-                          size: 14, color: Colors.indigo),
-                    if (aWins) const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(aVal,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: aWins ? Colors.indigo : Colors.black87),
-                          overflow: TextOverflow.ellipsis),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 90,
-              child: Center(
-                child: Text(label,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500)),
-              ),
-            ),
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: bWins
-                      ? Colors.purple.withOpacity(0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Text(bVal,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color:
-                                  bWins ? Colors.purple : Colors.black87),
-                          overflow: TextOverflow.ellipsis),
-                    ),
-                    if (bWins) const SizedBox(width: 4),
-                    if (bWins)
-                      const Icon(Icons.emoji_events_rounded,
-                          size: 14, color: Colors.purple),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OverallWinner extends StatelessWidget {
-  final Player a;
-  final Player b;
-  const _OverallWinner({required this.a, required this.b});
-
-  @override
-  Widget build(BuildContext context) {
-    int aScore = 0, bScore = 0;
-
-    void check(num? aV, num? bV, {bool lowerBetter = false}) {
-      if (aV == null || bV == null) return;
-      if (lowerBetter) {
-        if (aV < bV) aScore++;
-        if (bV < aV) bScore++;
-      } else {
-        if (aV > bV) aScore++;
-        if (bV > aV) bScore++;
-      }
-    }
-
-    check(a.ranking, b.ranking, lowerBetter: true);
-    check(a.highestRanking, b.highestRanking, lowerBetter: true);
-    check(a.wins, b.wins);
-    check(
-      a.wins + a.losses > 0 ? a.wins / (a.wins + a.losses) : null,
-      b.wins + b.losses > 0 ? b.wins / (b.wins + b.losses) : null,
-    );
-
-    final String winnerName;
-    final Color winnerColor;
-    final IconData winnerIcon;
-
-    if (aScore > bScore) {
-      winnerName = a.name;
-      winnerColor = Colors.indigo;
-      winnerIcon = Icons.emoji_events_rounded;
-    } else if (bScore > aScore) {
-      winnerName = b.name;
-      winnerColor = Colors.purple;
-      winnerIcon = Icons.emoji_events_rounded;
-    } else {
-      winnerName = 'Even Match!';
-      winnerColor = Colors.orange;
-      winnerIcon = Icons.handshake_rounded;
-    }
-
-    return GlassContainer(
-      borderRadius: 20,
-      opacity: 0.12,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Icon(winnerIcon, color: winnerColor, size: 36),
-          const SizedBox(height: 8),
-          const Text('Overall Edge',
-              style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 4),
-          Text(winnerName,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: winnerColor)),
-          if (aScore != bScore)
-            Text('($aScore vs $bScore categories won)',
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
-        ],
-      ),
-    );
+  Widget _initials() {
+    final parts = name.trim().split(' ');
+    final text = parts.length >= 2 ? '${parts[0][0]}${parts[1][0]}' : name.isNotEmpty ? name[0] : '?';
+    return Center(child: Text(text.toUpperCase(), style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: size * 0.4)));
   }
 }

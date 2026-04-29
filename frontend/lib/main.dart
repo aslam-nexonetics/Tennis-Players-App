@@ -14,6 +14,8 @@ import 'screens/football_search_screen.dart';
 import 'screens/football_top_clubs_screen.dart';
 import 'screens/basketball_search_screen.dart';
 import 'screens/basketball_top_clubs_screen.dart';
+import 'screens/player_compare_screen.dart';
+import 'screens/tt_player_compare_screen.dart';
 import 'widgets/glass_widgets.dart';
 
 void main() {
@@ -83,19 +85,26 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> screens = [
       _getSearchScreen(currentSport.type),
       _getRankingsScreen(currentSport.type),
+      if (currentSport.type == SportType.tennis || currentSport.type == SportType.tableTennis)
+        _getCompareScreen(currentSport.type),
     ];
 
     final List<_NavDef> navItems = [
       const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
       const _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
+      if (currentSport.type == SportType.tennis || currentSport.type == SportType.tableTennis)
+        const _NavDef(Icons.compare_arrows_rounded, 'Compare', Colors.indigo),
     ];
+
+    // Safety check: if current sport changed and index is now out of bounds
+    final displayIndex = _selectedIndex >= screens.length ? 0 : _selectedIndex;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= _kCompactBreakpoint;
         return isWide
-            ? _wideLayout(context, screens, navItems, currentSport, sportProvider)
-            : _compactLayout(context, screens, navItems, currentSport, sportProvider);
+            ? _wideLayout(context, screens, navItems, currentSport, sportProvider, displayIndex)
+            : _compactLayout(context, screens, navItems, currentSport, sportProvider, displayIndex);
       },
     );
   }
@@ -126,16 +135,27 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
+  Widget _getCompareScreen(SportType type) {
+    switch (type) {
+      case SportType.tennis:
+        return const PlayerCompareScreen();
+      case SportType.tableTennis:
+        return const TtPlayerCompareScreen();
+      default:
+        return const SizedBox();
+    }
+  }
+
   // ── Wide layout (web / tablet) ─────────────────────────────────────────────
   Widget _wideLayout(BuildContext context, List<Widget> screens,
-      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider) {
+      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider, int displayIndex) {
     return LiquidBackground(
       child: Scaffold(
         appBar: _buildAppBar(context, currentSport),
         body: Row(
           children: [
             _SideRail(
-              selectedIndex: _selectedIndex,
+              selectedIndex: displayIndex,
               navItems: navItems,
               onTap: (i) => setState(() => _selectedIndex = i),
               currentSport: currentSport,
@@ -151,7 +171,7 @@ class _MainNavigationState extends State<MainNavigation> {
                         sportProvider: sportProvider,
                         currentSport: currentSport,
                       ),
-                      Expanded(child: screens[_selectedIndex]),
+                      Expanded(child: screens[displayIndex]),
                     ],
                   ),
                 ),
@@ -165,7 +185,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   // ── Compact layout (mobile) ────────────────────────────────────────────────
   Widget _compactLayout(BuildContext context, List<Widget> screens,
-      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider) {
+      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider, int displayIndex) {
     return LiquidBackground(
       child: Scaffold(
         extendBody: true,
@@ -176,7 +196,7 @@ class _MainNavigationState extends State<MainNavigation> {
               sportProvider: sportProvider,
               currentSport: currentSport,
             ),
-            Expanded(child: screens[_selectedIndex]),
+            Expanded(child: screens[displayIndex]),
           ],
         ),
         bottomNavigationBar: Padding(
@@ -191,7 +211,7 @@ class _MainNavigationState extends State<MainNavigation> {
                 (i) => _BottomNavItem(
                   def: navItems[i],
                   accentColor: currentSport.accentColor,
-                  isSelected: _selectedIndex == i,
+                  isSelected: displayIndex == i,
                   onTap: () => setState(() => _selectedIndex = i),
                 ),
               ),
