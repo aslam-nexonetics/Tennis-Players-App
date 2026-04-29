@@ -49,6 +49,58 @@ class _FootballTopClubsScreenState extends State<FootballTopClubsScreen> {
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 20),
+        // Category Toggle
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => provider.setCategory('men'),
+                  child: GlassContainer(
+                    opacity: provider.selectedCategory == 'men' ? 0.3 : 0.05,
+                    borderRadius: 15,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Center(
+                      child: Text(
+                        'Men',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: provider.selectedCategory == 'men'
+                              ? const Color(0xFFE4405F)
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => provider.setCategory('women'),
+                  child: GlassContainer(
+                    opacity: provider.selectedCategory == 'women' ? 0.3 : 0.05,
+                    borderRadius: 15,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Center(
+                      child: Text(
+                        'Women',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: provider.selectedCategory == 'women'
+                              ? const Color(0xFFE4405F)
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
         Expanded(
           child: provider.isLoading && provider.topClubs.isEmpty
               ? const Center(child: CircularProgressIndicator(color: Color(0xFFE4405F)))

@@ -10,25 +10,37 @@ class FootballClubService:
         return db.query(FootballClub).filter(FootballClub.id == club_id).first()
 
     @staticmethod
-    def get_clubs(db: Session, skip: int = 0, limit: int = 100):
-        total = db.query(func.count(FootballClub.id)).scalar()
-        items = db.query(FootballClub).offset(skip).limit(limit).all()
+    def get_clubs(db: Session, skip: int = 0, limit: int = 100, category: Optional[str] = None):
+        query = db.query(FootballClub)
+        if category:
+            query = query.filter(FootballClub.category == category)
+        total = query.with_entities(func.count(FootballClub.id)).scalar()
+        items = query.offset(skip).limit(limit).all()
         return items, total
 
     @staticmethod
-    def search_clubs(db: Session, query: str, skip: int = 0, limit: int = 20):
+    def search_clubs(db: Session, query: str, skip: int = 0, limit: int = 20, category: Optional[str] = None):
         search_filter = func.lower(FootballClub.name).contains(func.lower(query))
-        total = db.query(func.count(FootballClub.id)).filter(search_filter).scalar()
-        items = db.query(FootballClub).filter(search_filter).offset(skip).limit(limit).all()
+        q = db.query(FootballClub).filter(search_filter)
+        if category:
+            q = q.filter(FootballClub.category == category)
+        total = q.with_entities(func.count(FootballClub.id)).scalar()
+        items = q.offset(skip).limit(limit).all()
         return items, total
 
     @staticmethod
-    def get_top_clubs(db: Session, limit: int = 10):
-        return db.query(FootballClub).filter(FootballClub.ranking != None).order_by(FootballClub.ranking.asc()).limit(limit).all()
+    def get_top_clubs(db: Session, limit: int = 10, category: Optional[str] = None):
+        query = db.query(FootballClub).filter(FootballClub.ranking != None)
+        if category:
+            query = query.filter(FootballClub.category == category)
+        return query.order_by(FootballClub.ranking.asc()).limit(limit).all()
 
     @staticmethod
     def create_or_update_club(db: Session, club_data: FootballClubCreate):
-        db_club = db.query(FootballClub).filter(FootballClub.name == club_data.name).first()
+        db_club = db.query(FootballClub).filter(
+            FootballClub.name == club_data.name,
+            FootballClub.category == club_data.category
+        ).first()
         if db_club:
             for key, value in club_data.model_dump(exclude_unset=True).items():
                 setattr(db_club, key, value)

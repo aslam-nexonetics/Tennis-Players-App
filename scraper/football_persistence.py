@@ -16,7 +16,10 @@ Base.metadata.create_all(bind=engine)
 def save_football_club(club_data: dict):
     db = SessionLocal()
     try:
-        existing = db.query(FootballClub).filter(FootballClub.name == club_data['name']).first()
+        existing = db.query(FootballClub).filter(
+            FootballClub.name == club_data['name'],
+            FootballClub.category == club_data.get('category', 'men')
+        ).first()
         
         if existing:
             # Update existing record

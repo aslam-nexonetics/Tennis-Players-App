@@ -19,6 +19,7 @@ class FootballClub(Base):
     website = Column(String)
     description = Column(Text)
     ranking = Column(Integer, index=True) # World Ranking
+    category = Column(String, index=True, default="men") # 'men' or 'women'
     
     # Enhanced Statistics
     total_trophies = Column(Integer, default=0)

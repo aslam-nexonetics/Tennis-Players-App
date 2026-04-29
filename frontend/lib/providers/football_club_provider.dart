@@ -17,6 +17,9 @@ class FootballClubProvider with ChangeNotifier {
 
   String? _error;
   String? get error => _error;
+  
+  String _selectedCategory = 'men';
+  String get selectedCategory => _selectedCategory;
 
   Timer? _debounce;
 
@@ -24,15 +27,23 @@ class FootballClubProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
+  
     try {
-      _topClubs = await _apiService.getFootballTopClubs(limit: 50);
+      _topClubs = await _apiService.getFootballTopClubs(limit: 50, category: _selectedCategory);
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setCategory(String category) {
+    if (_selectedCategory == category) return;
+    _selectedCategory = category;
+    _clubs = []; // Clear current search results when switching category
+    notifyListeners();
+    fetchTopClubs();
   }
 
   void onSearchChanged(String query) {
@@ -51,9 +62,9 @@ class FootballClubProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
+  
     try {
-      final response = await _apiService.searchFootballClubs(query);
+      final response = await _apiService.searchFootballClubs(query, category: _selectedCategory);
       _clubs = response.items;
     } catch (e) {
       _error = e.toString();

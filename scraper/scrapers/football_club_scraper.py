@@ -47,21 +47,63 @@ TOP_GLOBAL_CLUBS = [
         "trophies": 69, "market": "€921M", "pos": 2, "captain": "Virgil van Dijk", "owner": "John W. Henry",
         "rivals": "Manchester United, Everton", "attendance": 60000,
         "honors": {"Champions League": 6, "Premier League": 19, "FA Cup": 8}
+    },
+    # Women's Giants
+    {
+        "name": "FC Barcelona Femení", "country": "Spain", "league": "Liga F", "stadium": "Estadi Johan Cruyff", 
+        "capacity": 6000, "manager": "Pere Romeu", "nickname": "Blaugranes", "ranking": 1, 
+        "trophies": 35, "market": "€5M", "pos": 1, "captain": "Alexia Putellas", "owner": "Joan Laporta",
+        "rivals": "Real Madrid Femenino", "attendance": 5000, "category": "women",
+        "honors": {"Champions League": 3, "Liga F": 9, "Copa de la Reina": 10}
+    },
+    {
+        "name": "Olympique Lyonnais Féminin", "country": "France", "league": "Division 1 Féminine", "stadium": "Gérard Houllier Stadium", 
+        "capacity": 1500, "manager": "Joe Montemurro", "nickname": "Les Fenottes", "ranking": 2, 
+        "trophies": 38, "market": "€4M", "pos": 1, "captain": "Wendie Renard", "owner": "Michele Kang",
+        "rivals": "PSG Féminine", "attendance": 1200, "category": "women",
+        "honors": {"Champions League": 8, "Division 1": 17}
+    },
+    {
+        "name": "Chelsea F.C. Women", "country": "England", "league": "WSL", "stadium": "Kingsmeadow", 
+        "capacity": 4850, "manager": "Sonia Bompastor", "nickname": "The Blues", "ranking": 3, 
+        "trophies": 20, "market": "€3M", "pos": 1, "captain": "Millie Bright", "owner": "Todd Boehly",
+        "rivals": "Arsenal Women", "attendance": 4000, "category": "women",
+        "honors": {"WSL": 7, "FA Cup": 5}
     }
 ]
 
 # Additional Categories to scrape
 LEAGUE_CATEGORIES = [
-    ("Category:Premier League clubs", "England", "Premier League"),
-    ("Category:La Liga clubs", "Spain", "La Liga"),
-    ("Category:Bundesliga clubs", "Germany", "Bundesliga"),
-    ("Category:Serie A clubs", "Italy", "Serie A"),
-    ("Category:Ligue 1 clubs", "France", "Ligue 1"),
-    ("Category:Major League Soccer teams", "USA", "MLS"),
-    ("Category:Saudi Pro League clubs", "Saudi Arabia", "Saudi Pro League"),
-    ("Category:Eredivisie clubs", "Netherlands", "Eredivisie"),
-    ("Category:Primeira Liga clubs", "Portugal", "Primeira Liga"),
-    ("Category:Brasileirão Série A clubs", "Brazil", "Brasileirão"),
+    # Women's Leagues (Moved to top for faster results)
+    ("Category:FA Women's Super League clubs", "England", "WSL", "women"),
+    ("Category:National Women's Soccer League teams", "USA", "NWSL", "women"),
+    ("Category:Liga F clubs", "Spain", "Liga F", "women"),
+    ("Category:Frauen-Bundesliga clubs", "Germany", "Frauen-Bundesliga", "women"),
+    ("Category:Division 1 Féminine clubs", "France", "Division 1 Féminine", "women"),
+    ("Category:Serie A (women's football) clubs", "Italy", "Serie A Women", "women"),
+    ("Category:A-League Women teams", "Australia", "A-League Women", "women"),
+    ("Category:Damallsvenskan clubs", "Sweden", "Damallsvenskan", "women"),
+
+    # Men's Leagues
+    ("Category:Premier League clubs", "England", "Premier League", "men"),
+    ("Category:La Liga clubs", "Spain", "La Liga", "men"),
+    ("Category:Bundesliga clubs", "Germany", "Bundesliga", "men"),
+    ("Category:Serie A clubs", "Italy", "Serie A", "men"),
+    ("Category:Ligue 1 clubs", "France", "Ligue 1", "men"),
+    ("Category:Major League Soccer teams", "USA", "MLS", "men"),
+    ("Category:Saudi Pro League clubs", "Saudi Arabia", "Saudi Pro League", "men"),
+    ("Category:Eredivisie clubs", "Netherlands", "Eredivisie", "men"),
+    ("Category:Primeira Liga clubs", "Portugal", "Primeira Liga", "men"),
+    ("Category:Brasileirão Série A clubs", "Brazil", "Brasileirão", "men"),
+    ("Category:Argentine Primera División clubs", "Argentina", "Primera División", "men"),
+    ("Category:Liga MX clubs", "Mexico", "Liga MX", "men"),
+    ("Category:Süper Lig clubs", "Turkey", "Süper Lig", "men"),
+    ("Category:Scottish Premiership clubs", "Scotland", "Scottish Premiership", "men"),
+    ("Category:J1 League clubs", "Japan", "J1 League", "men"),
+    ("Category:Championship clubs", "England", "Championship", "men"),
+    ("Category:Segunda División clubs", "Spain", "Segunda División", "men"),
+    ("Category:2. Bundesliga clubs", "Germany", "2. Bundesliga", "men"),
+    ("Category:Serie B clubs", "Italy", "Serie B", "men"),
 ]
 
 class FootballClubScraper(BaseScraper):
@@ -75,13 +117,14 @@ class FootballClubScraper(BaseScraper):
         # 1. Save top global giants
         for club in TOP_GLOBAL_CLUBS:
             try:
+                category = club.get('category', 'men')
                 data = self._build_club_data(
                     name=club['name'], country=club['country'], league=club['league'],
                     stadium=club['stadium'], capacity=club['capacity'], manager=club['manager'],
                     nickname=club['nickname'], ranking=club['ranking'], trophies=club['trophies'],
                     market=club['market'], pos=club['pos'], captain=club['captain'],
                     owner=club['owner'], rivals=club['rivals'], attendance=club['attendance'],
-                    honors=club['honors']
+                    honors=club['honors'], category=category
                 )
                 save_football_club(data)
                 scraped += 1
@@ -89,15 +132,16 @@ class FootballClubScraper(BaseScraper):
                 log.error(f"Error saving giant {club['name']}: {e}")
 
         # 2. Scrape multiple league categories
-        for cat_name, country, league in LEAGUE_CATEGORIES:
-            log.info(f"Scraping clubs from {cat_name}...")
-            cat_scraped = self.scrape_category_clubs(cat_name, country, league, limit=50)
+        for cat_name, country, league, category in LEAGUE_CATEGORIES:
+            log.info(f"Scraping clubs from {cat_name} ({category})...")
+            cat_scraped = self.scrape_category_clubs(cat_name, country, league, category, limit=100)
             scraped += cat_scraped
-            if scraped >= limit: break
+            # Removed break to get as many as possible
+            # if scraped >= limit: break
 
         log.info(f"Football club scraping complete: {scraped} clubs saved.")
 
-    def scrape_category_clubs(self, category_name, country, league, limit=50):
+    def scrape_category_clubs(self, category_name, country, league, category, limit=100):
         saved = 0
         try:
             encoded_cat = urllib.parse.quote(category_name)
@@ -115,7 +159,7 @@ class FootballClubScraper(BaseScraper):
 
                     try:
                         club_data = self._build_club_data(
-                            name=name, country=country, league=league,
+                            name=name, country=country, league=league, category=category,
                             ranking=10 + random.randint(1, 1000),
                             trophies=random.randint(0, 40),
                             market=f"€{random.randint(50, 500)}M",
@@ -130,7 +174,7 @@ class FootballClubScraper(BaseScraper):
             log.warning(f"Category scrape failed for {category_name}: {e}")
         return saved
 
-    def _build_club_data(self, name, country, league, stadium=None, capacity=None, 
+    def _build_club_data(self, name, country, league, category="men", stadium=None, capacity=None, 
                          manager="TBD", nickname=None, ranking=None, trophies=0, 
                          market=None, pos=None, captain="TBD", owner="TBD", 
                          rivals="None", attendance=0, honors=None):
@@ -142,6 +186,7 @@ class FootballClubScraper(BaseScraper):
             "name": name,
             "country": country,
             "league": league,
+            "category": category,
             "founded_year": random.randint(1880, 1920),
             "stadium": stadium or f"{name} Stadium",
             "capacity": capacity or random.randint(20000, 60000),
@@ -172,4 +217,4 @@ class FootballClubScraper(BaseScraper):
 
 if __name__ == "__main__":
     scraper = FootballClubScraper()
-    scraper.scrape_clubs(limit=500)
+    scraper.scrape_clubs(limit=5000)

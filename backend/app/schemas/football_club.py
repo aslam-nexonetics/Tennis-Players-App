@@ -15,6 +15,7 @@ class FootballClubBase(BaseModel):
     website: Optional[str] = None
     description: Optional[str] = None
     ranking: Optional[int] = None
+    category: Optional[str] = "men"
     
     # Enhanced Statistics
     total_trophies: Optional[int] = 0
