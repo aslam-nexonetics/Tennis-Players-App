@@ -11,8 +11,8 @@ class ApiService {
   static String get baseUrl {
     if (kIsWeb) {
       // Production backend on Render
-      // return 'https://tennis-players-app.onrender.com';
-      return 'http://localhost:8000';
+      return 'https://tennis-players-app.onrender.com';
+      // return 'http://localhost:8000';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Physical Android device on LAN
@@ -63,6 +63,17 @@ class ApiService {
       return Player.fromJson(json.decode(response.body));
     } else {
       throw Exception('Failed to load player details');
+    }
+  }
+
+  Future<H2HResponse> getH2H(int p1Id, int p2Id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/players/h2h/$p1Id/$p2Id'),
+    );
+    if (response.statusCode == 200) {
+      return H2HResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load H2H stats');
     }
   }
 
@@ -151,7 +162,10 @@ class ApiService {
     }
   }
 
-  Future<List<FootballClub>> getFootballTopClubs({int limit = 50, String? category}) async {
+  Future<List<FootballClub>> getFootballTopClubs({
+    int limit = 50,
+    String? category,
+  }) async {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
       Uri.parse('$baseUrl/football-clubs/top?limit=$limit$categoryParam'),
@@ -194,7 +208,10 @@ class ApiService {
     }
   }
 
-  Future<List<BasketballClub>> getBasketballTopClubs({int limit = 50, String? category}) async {
+  Future<List<BasketballClub>> getBasketballTopClubs({
+    int limit = 50,
+    String? category,
+  }) async {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
       Uri.parse('$baseUrl/basketball-clubs/top?limit=$limit$categoryParam'),
