@@ -16,6 +16,8 @@ import 'screens/basketball_search_screen.dart';
 import 'screens/basketball_top_clubs_screen.dart';
 import 'screens/player_compare_screen.dart';
 import 'screens/tt_player_compare_screen.dart';
+import 'screens/football_club_compare_screen.dart';
+import 'screens/basketball_club_compare_screen.dart';
 import 'widgets/glass_widgets.dart';
 
 void main() {
@@ -85,14 +87,20 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> screens = [
       _getSearchScreen(currentSport.type),
       _getRankingsScreen(currentSport.type),
-      if (currentSport.type == SportType.tennis || currentSport.type == SportType.tableTennis)
+      if (currentSport.type == SportType.tennis || 
+          currentSport.type == SportType.tableTennis ||
+          currentSport.type == SportType.football ||
+          currentSport.type == SportType.basketball)
         _getCompareScreen(currentSport.type),
     ];
 
     final List<_NavDef> navItems = [
       const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
       const _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
-      if (currentSport.type == SportType.tennis || currentSport.type == SportType.tableTennis)
+      if (currentSport.type == SportType.tennis || 
+          currentSport.type == SportType.tableTennis ||
+          currentSport.type == SportType.football ||
+          currentSport.type == SportType.basketball)
         const _NavDef(Icons.compare_arrows_rounded, 'Compare', Colors.indigo),
     ];
 
@@ -141,6 +149,10 @@ class _MainNavigationState extends State<MainNavigation> {
         return const PlayerCompareScreen();
       case SportType.tableTennis:
         return const TtPlayerCompareScreen();
+      case SportType.football:
+        return const FootballClubCompareScreen();
+      case SportType.basketball:
+        return const BasketballClubCompareScreen();
       default:
         return const SizedBox();
     }
