@@ -1,89 +1,98 @@
-import random
 import urllib.parse
+import re
 from datetime import datetime, timedelta
 from scraper.base_scraper import BaseScraper
 from scraper.utils.logger import log
 from scraper.persistence import save_player
+from scraper.scrapers.wiki_scraper import WikiScraper
 
 WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
 class WTAScraper(BaseScraper):
     def __init__(self):
         super().__init__("https://en.wikipedia.org/wiki/WTA_rankings")
+        self.wiki = WikiScraper()
 
     def scrape_rankings(self, limit=100):
-        log.info(f"Scraping WTA rankings (top {limit})...")
-        soup = self.get_soup(self.base_url)
+        log.info(f"Scraping WTA rankings from official site (limit {limit})...")
+        url = "https://www.wtatennis.com/rankings/singles"
+        soup = self.get_soup_playwright(url)
         if not soup:
-            log.error("Could not fetch WTA rankings from Wikipedia")
+            log.error("Failed to load WTA rankings via Playwright.")
             return
 
         players_scraped = 0
-        # The target table is usually a wikitable with "No." as the first header
-        tables = soup.select("table.wikitable")
-        target_table = None
-        for table in tables:
-            headers = [h.text.strip() for h in table.select("th")]
-            if "No." in headers and "Player" in headers:
-                target_table = table
-                break
+        # Target the rankings table
+        table = soup.select_one("table.rankings-table")
+        if not table:
+            table = soup.select_one("table")
         
-        if not target_table:
-            log.error("Could not find WTA ranking table on Wikipedia.")
+        if not table:
+            log.error("Could not find WTA rankings table.")
             return
 
-        rows = target_table.select("tr")
+        rows = table.select("tbody tr")
         for row in rows:
             if players_scraped >= limit:
                 break
             
             try:
-                cells = row.select("td")
-                if len(cells) < 2: continue
+                # Improved extraction for WTA site:
+                ranking = None
+                rank_el = row.select_one(".player-row__rank")
+                if rank_el:
+                    ranking = int(re.search(r"(\d+)", rank_el.text).group(1))
                 
-                # Rank
-                rank_str = cells[0].text.strip().replace(".", "")
-                if not rank_str.isdigit(): continue
-                ranking = int(rank_str)
+                # Preferred clean name from data attribute
+                name = row.get('data-player-name')
+                if not name:
+                    player_cell = row.select_one(".rankings-table__player") or row.select_one(".player-cell")
+                    if player_cell:
+                        name = " ".join(player_cell.text.split()).strip()
+                        name = re.sub(r'\s+[A-Z]{3}$', '', name)
                 
-                # Name
-                name_cell = cells[1]
-                name_link = name_cell.select_one("a")
-                if not name_link: continue
-                name = name_link.text.strip()
+                if not name or not ranking: continue
+
+                country = row.get('data-player-country')
+                if not country:
+                    country_cell = row.select_one(".rankings-table__country") or row.select_one(".player-row__cell--country")
+                    if country_cell:
+                        country = country_cell.text.strip()
                 
-                # Validation: Skip names that are dates or lists
-                if not name or "List of" in name or any(month in name for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]):
-                    continue
-
-                # Country
-                country = "Unknown"
-                flag_img = name_cell.select_one("img")
-                if flag_img and flag_img.has_attr("alt"):
-                    country = flag_img["alt"].strip()
-
-                # Fetch real photo from Wikipedia
-                image_url = self._fetch_wiki_image(name)
-
-                wins = max(10, 100 - ranking + random.randint(10, 50))
-                losses = random.randint(5, max(6, wins // 2))
-                hr_date = datetime.now() - timedelta(days=random.randint(365, 365*5))
+                country = country or "Unknown"
+                
+                log.info(f"Found {name} (Rank {ranking}). Enriching...")
+                wiki_data = self.wiki.enrich_player(name) or {}
 
                 player_data = {
                     "name": name,
                     "ranking": ranking,
-                    "highest_ranking": max(1, ranking - random.randint(0, 5)),
-                    "highest_ranking_date": hr_date.date(),
-                    "country": country,
-                    "wins": wins,
-                    "losses": losses,
+                    "highest_ranking": wiki_data.get('highest_ranking', ranking),
+                    "highest_ranking_date": wiki_data.get('highest_ranking_date'),
+                    "birth_date": wiki_data.get('birth_date'),
+                    "height": wiki_data.get('height'),
+                    "weight": wiki_data.get('weight'),
+                    "playing_style": wiki_data.get('playing_style'),
+                    "country": wiki_data.get('country', country),
+                    "wins": wiki_data.get('wins', 0),
+                    "losses": wiki_data.get('losses', 0),
+                    "titles": wiki_data.get('titles', 0),
+                    "turned_pro": wiki_data.get('turned_pro'),
+                    "prize_money": wiki_data.get('prize_money'),
                     "gender": "F",
-                    "image_url": image_url,
-                    "source": "Wikipedia / WTA"
+                    "image_url": wiki_data.get('image_url'),
+                    "source": "WTA Tour / Wikipedia"
                 }
-                
+
+                # Parse highest ranking if string
+                if isinstance(player_data['highest_ranking'], str):
+                    match = re.search(r"(\d+)", player_data['highest_ranking'])
+                    player_data['highest_ranking'] = int(match.group(1)) if match else ranking
+
                 save_player(player_data)
                 players_scraped += 1
+            except Exception as e:
+                log.error(f"Error parsing WTA player row: {e}")
             except Exception as e:
                 log.error(f"Error parsing WTA entry: {e}")
 

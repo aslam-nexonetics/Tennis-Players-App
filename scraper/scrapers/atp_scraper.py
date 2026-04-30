@@ -1,90 +1,100 @@
 import random
 import urllib.parse
+import re
 from datetime import datetime, timedelta
 from scraper.base_scraper import BaseScraper
 from scraper.utils.logger import log
 from scraper.persistence import save_player
+from scraper.scrapers.wiki_scraper import WikiScraper
 
 WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
 class ATPScraper(BaseScraper):
     def __init__(self):
         super().__init__("https://en.wikipedia.org/wiki/ATP_rankings")
+        self.wiki = WikiScraper()
 
     def scrape_rankings(self, limit=100):
-        log.info(f"Scraping ATP rankings (top {limit})...")
-        soup = self.get_soup(self.base_url)
+        log.info(f"Scraping ATP rankings from official site (limit {limit})...")
+        url = f"https://www.atptour.com/en/rankings/singles?rankRange=1-{limit}"
+        soup = self.get_soup_playwright(url)
         if not soup:
-            log.error("Failed to load ATP rankings page.")
+            log.error("Failed to load ATP rankings via Playwright.")
             return
 
         players_scraped = 0
-        # The target table is usually a wikitable with "No." as the first header
-        tables = soup.select("table.wikitable")
-        target_table = None
-        for table in tables:
-            headers = [h.text.strip() for h in table.select("th")]
-            if "No." in headers and "Player" in headers:
-                target_table = table
-                break
+        # Target the rankings table
+        table = soup.select_one("table.rankings-table")
+        if not table:
+            # Fallback if class changed
+            table = soup.select_one("table")
         
-        if not target_table:
-            log.error("Could not find ATP ranking table on Wikipedia.")
+        if not table:
+            log.error("Could not find rankings table.")
             return
 
-        rows = target_table.select("tr")
+        rows = table.select("tbody tr")
         for row in rows:
             if players_scraped >= limit:
                 break
             
             try:
-                cells = row.select("td")
-                if len(cells) < 2: continue
+                # Updated structure based on current ATP site:
+                rank_cell = row.select_one("td.rank")
+                player_cell = row.select_one(".name")
                 
-                # Rank: cell[0]
-                rank_str = cells[0].text.strip().replace(".", "")
-                if not rank_str.isdigit(): continue
-                ranking = int(rank_str)
-                
-                # Name: cell[1]
-                name_cell = cells[1]
-                name_link = name_cell.select_one("a")
-                if not name_link: continue
-                name = name_link.text.strip()
-                
-                # Validation: Skip names that are dates or lists
-                if not name or "List of" in name or any(month in name for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]):
-                    continue
+                if not rank_cell or not player_cell: continue
 
-                # Country
+                # Clean rank
+                rank_text = rank_cell.text.strip().replace("T", "")
+                if not rank_text.isdigit(): continue
+                ranking = int(rank_text)
+
+                # Clean name: official site often has lots of whitespace/newlines
+                name = " ".join(player_cell.text.split()).strip()
+                # Aggressively remove trailing 3-letter country code (e.g. "Rafael Nadal ESP" -> "Rafael Nadal")
+                name = re.sub(r'\s+[A-Z]{3}$', '', name)
+                
+                # Try to get country from the flag SVG
                 country = "Unknown"
-                flag_img = name_cell.select_one("img")
-                if flag_img and flag_img.has_attr("alt"):
-                    country = flag_img["alt"].strip()
+                flag_use = row.select_one("use")
+                if flag_use and flag_use.get("href"):
+                    country_match = flag_use.get("href").split("#flag-")
+                    if len(country_match) > 1:
+                        country = country_match[1].upper()
                 
-                # Fetch real photo from Wikipedia
-                image_url = self._fetch_wiki_image(name)
-
-                # Stats - fixed range to avoid empty range error
-                wins = max(10, 100 - ranking + random.randint(10, 50))
-                losses = random.randint(5, max(6, wins // 2))
-                hr_date = datetime.now() - timedelta(days=random.randint(365, 365*5))
+                log.info(f"Found {name} (Rank {ranking}). Enriching...")
+                wiki_data = self.wiki.enrich_player(name) or {}
 
                 player_data = {
                     "name": name,
                     "ranking": ranking,
-                    "highest_ranking": max(1, ranking - random.randint(0, 5)),
-                    "highest_ranking_date": hr_date.date(),
-                    "country": country,
-                    "wins": wins,
-                    "losses": losses,
+                    "highest_ranking": wiki_data.get('highest_ranking', ranking),
+                    "highest_ranking_date": wiki_data.get('highest_ranking_date'),
+                    "birth_date": wiki_data.get('birth_date'),
+                    "height": wiki_data.get('height'),
+                    "weight": wiki_data.get('weight'),
+                    "playing_style": wiki_data.get('playing_style'),
+                    "country": wiki_data.get('country', country),
+                    "wins": wiki_data.get('wins', 0),
+                    "losses": wiki_data.get('losses', 0),
+                    "titles": wiki_data.get('titles', 0),
+                    "turned_pro": wiki_data.get('turned_pro'),
+                    "prize_money": wiki_data.get('prize_money'),
                     "gender": "M",
-                    "image_url": image_url,
-                    "source": "Wikipedia / ATP"
+                    "image_url": wiki_data.get('image_url'),
+                    "source": "ATP Tour / Wikipedia"
                 }
+
+                # Parse highest ranking if string
+                if isinstance(player_data['highest_ranking'], str):
+                    match = re.search(r"(\d+)", player_data['highest_ranking'])
+                    player_data['highest_ranking'] = int(match.group(1)) if match else ranking
 
                 save_player(player_data)
                 players_scraped += 1
+            except Exception as e:
+                log.error(f"Error parsing ATP player row: {e}")
             except Exception as e:
                 log.error(f"Error parsing ATP row: {e}")
 

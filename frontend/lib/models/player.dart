@@ -11,6 +11,9 @@ class Player {
   final String? playingStyle;
   final int wins;
   final int losses;
+  final int titles;
+  final String? turnedPro;
+  final String? prizeMoney;
   final String? imageUrl;
   final String? gender;
   final String? source;
@@ -29,6 +32,9 @@ class Player {
     this.playingStyle,
     this.wins = 0,
     this.losses = 0,
+    this.titles = 0,
+    this.turnedPro,
+    this.prizeMoney,
     this.imageUrl,
     this.gender,
     this.source,
@@ -64,6 +70,9 @@ class Player {
       playingStyle: json['playing_style'],
       wins: json['wins'] ?? 0,
       losses: json['losses'] ?? 0,
+      titles: json['titles'] ?? 0,
+      turnedPro: json['turned_pro'],
+      prizeMoney: json['prize_money'],
       imageUrl: json['image_url'],
       gender: json['gender'],
       source: json['source'],

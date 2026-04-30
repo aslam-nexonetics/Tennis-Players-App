@@ -27,163 +27,282 @@ class FootballClubDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          // Gradient background
-          Container(
-            height: 400,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFFF5F6D),
-                  Color(0xFFE4405F),
-                  Color(0xFF911E3B),
-                ],
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 80),
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.2),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 3,
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: club.imageUrl != null
-                          ? Image.network(
-                              club.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _initialsWidget(club.name, 48),
-                            )
-                          : _initialsWidget(club.name, 48),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '🏆 ${club.league ?? 'Professional Football'}',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (club.ranking != null)
-                        _buildRankBadge('World #${club.ranking}', Colors.amber),
-                      if (club.domesticRanking != null)
-                        _buildRankBadge('Domestic #${club.domesticRanking}', Colors.blue[400]!),
-                    ],
-                  ),
-                ],
-              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 900) {
+            return _buildWebLayout(context, constraints);
+          }
+          return _buildMobileLayout(context);
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    return Stack(
+      children: [
+        // Gradient background
+        Container(
+          height: 400,
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFF5F6D),
+                Color(0xFFE4405F),
+                Color(0xFF911E3B),
+              ],
             ),
           ),
-
-          // Scrollable content
-          SingleChildScrollView(
+          child: Center(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 380),
-                GlassContainer(
-                  borderRadius: 40,
-                  opacity: 0.2,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
-                        club.name,
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
-                      ),
-                      Text(
-                        '${club.country ?? 'Unknown'} • Founded ${club.foundedYear ?? 'TBD'}',
-                        style: TextStyle(fontSize: 18, color: Colors.grey[700], fontWeight: FontWeight.w500),
-                      ),
-                      const Divider(height: 40, thickness: 1),
-
-                      _buildQuickStatsSection(),
-                      const SizedBox(height: 30),
-
-                      if (club.honors != null && club.honors!.isNotEmpty) ...[
-                        const Text(
-                          'Major Honors',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE4405F)),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildHonorsGrid(),
-                        const SizedBox(height: 30),
-                      ],
-
-                      const Text(
-                        'About the Club',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE4405F)),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        club.description ?? 'No information available.',
-                        style: const TextStyle(fontSize: 15, height: 1.6, color: Color(0xFF2D2D2F)),
-                      ),
-
-                      const SizedBox(height: 30),
-                      const Text(
-                        'Governance & Financials',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE4405F)),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildGovernanceGrid(),
-
-                      const SizedBox(height: 30),
-                      const Text(
-                        'Venue & Attendance',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE4405F)),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildVenueCard(),
-
-                      const SizedBox(height: 30),
-                      if (club.mainRivals != null) ...[
-                        const Text(
-                          'Main Rivals',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE4405F)),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildRivalsChips(),
-                      ],
-
-                      const SizedBox(height: 60),
-                    ],
+                const SizedBox(height: 80),
+                _buildClubLogo(size: 140),
+                const SizedBox(height: 16),
+                Text(
+                  '🏆 ${club.league ?? 'Professional Football'}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (club.ranking != null)
+                      _buildRankBadge('World #${club.ranking}', Colors.amber),
+                    if (club.domesticRanking != null)
+                      _buildRankBadge(
+                          'Domestic #${club.domesticRanking}', Colors.blue[400]!),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
+        ),
+
+        // Scrollable content
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 380),
+              GlassContainer(
+                borderRadius: 40,
+                opacity: 0.2,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    _buildHeaderInfo(),
+                    const Divider(height: 40, thickness: 1),
+                    _buildMainDetails(),
+                    const SizedBox(height: 60),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebLayout(BuildContext context, BoxConstraints constraints) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 40),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Column: Profile Card
+              SizedBox(
+                width: 350,
+                child: GlassContainer(
+                  borderRadius: 30,
+                  opacity: 0.2,
+                  padding: const EdgeInsets.all(0),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 300,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(30)),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFFFF5F6D), Color(0xFFE4405F)],
+                          ),
+                        ),
+                        child: Center(child: _buildClubLogo(size: 160)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeaderInfo(),
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                if (club.ranking != null)
+                                  _buildRankBadge(
+                                      'World #${club.ranking}', Colors.amber),
+                                if (club.domesticRanking != null)
+                                  _buildRankBadge(
+                                      'Domestic #${club.domesticRanking}',
+                                      Colors.blue[400]!),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 40),
+              // Right Column: Details
+              Expanded(
+                child: GlassContainer(
+                  borderRadius: 30,
+                  opacity: 0.15,
+                  padding: const EdgeInsets.all(32),
+                  child: _buildMainDetails(),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildClubLogo({required double size}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withOpacity(0.2),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.5),
+          width: 3,
+        ),
+      ),
+      child: ClipOval(
+        child: club.imageUrl != null
+            ? Image.network(
+                club.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _initialsWidget(club.name, 48),
+              )
+            : _initialsWidget(club.name, 48),
+      ),
+    );
+  }
+
+  Widget _buildHeaderInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          club.name,
+          style: const TextStyle(
+              fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
+        ),
+        Text(
+          '${club.country ?? 'Unknown'} • Founded ${club.foundedYear ?? 'TBD'}',
+          style: TextStyle(
+              fontSize: 18, color: Colors.grey[700], fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMainDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildQuickStatsSection(),
+        const SizedBox(height: 40),
+        if (club.honors != null && club.honors!.isNotEmpty) ...[
+          const Text(
+            'Major Honors',
+            style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE4405F)),
+          ),
+          const SizedBox(height: 16),
+          _buildHonorsGrid(),
+          const SizedBox(height: 40),
+        ],
+        const Text(
+          'About the Club',
+          style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFE4405F)),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          club.description ?? 'No information available.',
+          style: const TextStyle(
+              fontSize: 15, height: 1.6, color: Color(0xFF2D2D2F)),
+        ),
+        const SizedBox(height: 40),
+        const Text(
+          'Governance & Financials',
+          style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFE4405F)),
+        ),
+        const SizedBox(height: 16),
+        _buildGovernanceGrid(),
+        const SizedBox(height: 40),
+        const Text(
+          'Venue & Attendance',
+          style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFE4405F)),
+        ),
+        const SizedBox(height: 16),
+        _buildVenueCard(),
+        const SizedBox(height: 40),
+        if (club.mainRivals != null) ...[
+          const Text(
+            'Main Rivals',
+            style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE4405F)),
+          ),
+          const SizedBox(height: 12),
+          _buildRivalsChips(),
+        ],
+      ],
     );
   }
 

@@ -75,168 +75,313 @@ class PlayerDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          // Splash background
-          if (player.imageUrl != null)
-            Hero(
-              tag: 'player-${player.id}', // Standard search tag
-              child: CachedNetworkImage(
-                imageUrl: player.imageUrl!,
-                height: 400,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            )
-          else
-            Container(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 900) {
+            return _buildWebLayout(context, constraints);
+          }
+          return _buildMobileLayout(context);
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    return Stack(
+      children: [
+        // Splash background
+        if (player.imageUrl != null)
+          Hero(
+            tag: 'player-${player.id}',
+            child: CachedNetworkImage(
+              imageUrl: player.imageUrl!,
               height: 400,
               width: double.infinity,
-              color: Colors.indigo.withOpacity(0.1),
-              child: const Icon(Icons.person, size: 100, color: Colors.blue),
+              fit: BoxFit.cover,
             ),
+          )
+        else
+          Container(
+            height: 400,
+            width: double.infinity,
+            color: Colors.indigo.withOpacity(0.1),
+            child: const Icon(Icons.person, size: 100, color: Colors.blue),
+          ),
 
-          // Content
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 350), // Overlap trigger
-                GlassContainer(
-                  borderRadius: 40,
-                  opacity: 0.2, // Slightly more visible glass
-                  padding: const EdgeInsets.all(24),
+        // Content
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 350), // Overlap trigger
+              GlassContainer(
+                borderRadius: 40,
+                opacity: 0.2,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    _buildHeader(),
+                    const Divider(height: 40, thickness: 1),
+                    _buildRankingSection(),
+                    const SizedBox(height: 30),
+                    _buildStatGrid(context),
+                    const SizedBox(height: 32),
+                    _buildPerformanceSection(),
+                    const SizedBox(height: 30),
+                    _buildSourceFooter(),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebLayout(BuildContext context, BoxConstraints constraints) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 40),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Column: Profile Card
+              SizedBox(
+                width: 350,
+                child: GlassContainer(
+                  borderRadius: 30,
+                  opacity: 0.2,
+                  padding: const EdgeInsets.all(0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(30)),
+                        child: player.imageUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: player.imageUrl!,
+                                height: 350,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                height: 350,
+                                color: Colors.indigo.withOpacity(0.1),
+                                child: const Icon(Icons.person,
+                                    size: 100, color: Colors.blue),
+                              ),
                       ),
-                      const SizedBox(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  player.name,
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -1,
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              player.name,
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${player.country ?? "N/A"} • ${player.age != null ? "${player.age} years" : "Pro Athlete"}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PlayerCompareScreen(
+                                        playerA: player),
                                   ),
                                 ),
-                                Text(
-                                  '${player.country ?? "N/A"} • ${player.age != null ? "${player.age} years" : "Pro Athlete"}',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (player.country != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                player.country!,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                icon: const Icon(Icons.compare_arrows_rounded),
+                                label: const Text('Compare Player'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.indigo,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(12)),
                                 ),
                               ),
                             ),
-                        ],
-                      ),
-                      const Divider(height: 40, thickness: 1),
-
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Ranking Progress',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.indigo,
-                            ),
-                          ),
-                          Icon(
-                            Icons.query_stats_rounded,
-                            color: Colors.indigo,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      RankingGraph(points: _generateRankingTrend()),
-
-                      const SizedBox(height: 30),
-                      _buildStatGrid(context),
-
-                      const SizedBox(height: 32),
-                      const Text(
-                        'Career Performance',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildSimpleStat(
-                              'WINS',
-                              player.wins.toString(),
-                              Colors.green[400]!,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildSimpleStat(
-                              'LOSSES',
-                              player.losses.toString(),
-                              Colors.red[400]!,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      if (player.source != null)
-                        Text(
-                          'Verified by ${player.source}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(width: 40),
+              // Right Column: Details
+              Expanded(
+                child: GlassContainer(
+                  borderRadius: 30,
+                  opacity: 0.15,
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRankingSection(),
+                      const SizedBox(height: 40),
+                      const Text(
+                        'Player Statistics',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatGrid(context),
+                      const SizedBox(height: 40),
+                      _buildPerformanceSection(),
+                      const SizedBox(height: 40),
+                      _buildSourceFooter(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                player.name,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -1,
+                ),
+              ),
+              Text(
+                '${player.country ?? "N/A"} • ${player.age != null ? "${player.age} years" : "Pro Athlete"}',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (player.country != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              player.country!,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
-        ],
+      ],
+    );
+  }
+
+  Widget _buildRankingSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Ranking Progress',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
+            ),
+            Icon(Icons.query_stats_rounded, color: Colors.indigo, size: 20),
+          ],
+        ),
+        const SizedBox(height: 10),
+        RankingGraph(points: _generateRankingTrend()),
+      ],
+    );
+  }
+
+  Widget _buildPerformanceSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Career Performance',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSimpleStat(
+                'WINS',
+                player.wins.toString(),
+                Colors.green[400]!,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildSimpleStat(
+                'LOSSES',
+                player.losses.toString(),
+                Colors.red[400]!,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSourceFooter() {
+    if (player.source == null) return const SizedBox();
+    return Text(
+      'Verified by ${player.source}',
+      style: const TextStyle(
+        fontSize: 12,
+        fontStyle: FontStyle.italic,
+        color: Colors.grey,
       ),
     );
   }
@@ -276,6 +421,30 @@ class PlayerDetailScreen extends StatelessWidget {
               'Height',
               player.height ?? 'N/A',
               Icons.height,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Weight',
+              player.weight ?? 'N/A',
+              Icons.monitor_weight_outlined,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Turned Pro',
+              player.turnedPro ?? 'N/A',
+              Icons.event_available,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Career Titles',
+              player.titles.toString(),
+              Icons.emoji_events_outlined,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Prize Money',
+              player.prizeMoney ?? 'N/A',
+              Icons.payments_outlined,
             ),
           ],
         );

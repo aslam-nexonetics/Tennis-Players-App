@@ -17,6 +17,9 @@ class Player(Base):
     playing_style = Column(String)
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
+    titles = Column(Integer, default=0)
+    turned_pro = Column(String)
+    prize_money = Column(String)
     image_url = Column(String)
     gender = Column(String, index=True) # "M" for ATP, "F" for WTA
     source = Column(String)
