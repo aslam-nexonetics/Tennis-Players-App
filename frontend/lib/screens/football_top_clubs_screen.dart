@@ -123,12 +123,39 @@ class _FootballTopClubsScreenState extends State<FootballTopClubsScreen> {
                             child: GlassContainer(
                               borderRadius: 20,
                               child: ListTile(
-                                leading: Text(
-                                  '#${club.ranking}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFE4405F),
+                                leading: SizedBox(
+                                  width: 75,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 30,
+                                        child: Text(
+                                          '#${club.ranking}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFFE4405F),
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: const Color(0xFFE4405F).withOpacity(0.1),
+                                        ),
+                                        child: ClipOval(
+                                          child: club.imageUrl != null
+                                              ? Image.network(
+                                                  club.imageUrl!,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) => _buildInitials(club.name),
+                                                )
+                                              : _buildInitials(club.name),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 title: Text(
@@ -154,6 +181,25 @@ class _FootballTopClubsScreenState extends State<FootballTopClubsScreen> {
                     ),
         ),
       ],
+    );
+  }
+
+  Widget _buildInitials(String name) {
+    final parts = name.trim().split(' ');
+    final initials = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+        : name.isNotEmpty
+            ? name[0].toUpperCase()
+            : '?';
+    return Center(
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: Color(0xFFE4405F),
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
     );
   }
 }
