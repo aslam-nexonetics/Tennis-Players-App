@@ -13,7 +13,7 @@ class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
     required this.child,
-    this.blur = 15,
+    this.blur = 0, // Disabled blur for stability
     this.opacity = 0.15,
     this.borderRadius = 20,
     this.padding,
@@ -23,7 +23,7 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget container = Container(
+    return Container(
       width: width,
       height: height,
       padding: padding,
@@ -34,21 +34,6 @@ class GlassContainer extends StatelessWidget {
       ),
       child: child,
     );
-
-    if (blur > 0) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: container,
-        ),
-      );
-    } else {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: container,
-      );
-    }
   }
 }
 
@@ -60,32 +45,8 @@ class LiquidBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFE0EAFC), // Light blue
-            Color(0xFFCFDEF3), // Soft indigo
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Subtle fluid blobs
-          Positioned(
-            top: -50,
-            right: -50,
-            child: _Blob(color: Colors.blue.withOpacity(0.1), size: 300),
-          ),
-          Positioned(
-            bottom: 50,
-            left: -100,
-            child: _Blob(color: Colors.indigo.withOpacity(0.05), size: 400),
-          ),
-          SafeArea(child: child),
-        ],
-      ),
+      color: const Color(0xFFE0EAFC),
+      child: SafeArea(child: child),
     );
   }
 }

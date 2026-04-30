@@ -117,6 +117,13 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
+  void _clearAllSearchProviders() {
+    Provider.of<PlayerProvider>(context, listen: false).clearSearch();
+    Provider.of<TtPlayerProvider>(context, listen: false).clearSearch();
+    Provider.of<FootballClubProvider>(context, listen: false).clearSearch();
+    Provider.of<BasketballClubProvider>(context, listen: false).clearSearch();
+  }
+
   Widget _getSearchScreen(SportType type) {
     switch (type) {
       case SportType.tennis:
@@ -169,7 +176,12 @@ class _MainNavigationState extends State<MainNavigation> {
             _SideRail(
               selectedIndex: displayIndex,
               navItems: navItems,
-              onTap: (i) => setState(() => _selectedIndex = i),
+              onTap: (i) {
+                if (_selectedIndex != i) {
+                  _clearAllSearchProviders();
+                  setState(() => _selectedIndex = i);
+                }
+              },
               currentSport: currentSport,
             ),
             const VerticalDivider(width: 1, thickness: 1),
@@ -183,7 +195,12 @@ class _MainNavigationState extends State<MainNavigation> {
                         sportProvider: sportProvider,
                         currentSport: currentSport,
                       ),
-                      Expanded(child: screens[displayIndex]),
+                      Expanded(
+                        child: IndexedStack(
+                          index: displayIndex,
+                          children: screens,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -208,7 +225,12 @@ class _MainNavigationState extends State<MainNavigation> {
               sportProvider: sportProvider,
               currentSport: currentSport,
             ),
-            Expanded(child: screens[displayIndex]),
+            Expanded(
+              child: IndexedStack(
+                index: displayIndex,
+                children: screens,
+              ),
+            ),
           ],
         ),
         bottomNavigationBar: Padding(
@@ -224,7 +246,12 @@ class _MainNavigationState extends State<MainNavigation> {
                   def: navItems[i],
                   accentColor: currentSport.accentColor,
                   isSelected: displayIndex == i,
-                  onTap: () => setState(() => _selectedIndex = i),
+                  onTap: () {
+                    if (_selectedIndex != i) {
+                      _clearAllSearchProviders();
+                      setState(() => _selectedIndex = i);
+                    }
+                  },
                 ),
               ),
             ),
