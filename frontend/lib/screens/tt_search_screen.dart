@@ -5,12 +5,30 @@ import '../widgets/glass_widgets.dart';
 import 'tt_player_detail_screen.dart';
 import 'tt_player_compare_screen.dart';
 
-class TtSearchScreen extends StatelessWidget {
+class TtSearchScreen extends StatefulWidget {
   const TtSearchScreen({super.key});
+
+  @override
+  State<TtSearchScreen> createState() => _TtSearchScreenState();
+}
+
+class _TtSearchScreenState extends State<TtSearchScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TtPlayerProvider>(context);
+
+    // Sync controller with provider if provider was cleared externally
+    if (provider.lastQuery.isEmpty && _controller.text.isNotEmpty) {
+      _controller.clear();
+    }
 
     return Column(
       children: [
@@ -45,6 +63,7 @@ class TtSearchScreen extends StatelessWidget {
             borderRadius: 30,
             opacity: 0.1,
             child: TextField(
+              controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Search table tennis players...',
                 prefixIcon: Icon(Icons.search, color: Color(0xFF0F9D58)),

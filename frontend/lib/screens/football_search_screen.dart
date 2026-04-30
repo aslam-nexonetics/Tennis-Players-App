@@ -4,12 +4,30 @@ import '../providers/football_club_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'football_club_detail_screen.dart';
 
-class FootballSearchScreen extends StatelessWidget {
+class FootballSearchScreen extends StatefulWidget {
   const FootballSearchScreen({super.key});
+
+  @override
+  State<FootballSearchScreen> createState() => _FootballSearchScreenState();
+}
+
+class _FootballSearchScreenState extends State<FootballSearchScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<FootballClubProvider>(context);
+
+    // Sync controller with provider if provider was cleared externally
+    if (provider.lastQuery.isEmpty && _controller.text.isNotEmpty) {
+      _controller.clear();
+    }
 
     return Column(
       children: [
@@ -94,6 +112,7 @@ class FootballSearchScreen extends StatelessWidget {
             borderRadius: 30,
             opacity: 0.1,
             child: TextField(
+              controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Search football clubs...',
                 prefixIcon: Icon(Icons.search, color: Color(0xFFE4405F)),

@@ -4,12 +4,30 @@ import '../providers/basketball_club_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'basketball_club_detail_screen.dart';
 
-class BasketballSearchScreen extends StatelessWidget {
+class BasketballSearchScreen extends StatefulWidget {
   const BasketballSearchScreen({super.key});
+
+  @override
+  State<BasketballSearchScreen> createState() => _BasketballSearchScreenState();
+}
+
+class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<BasketballClubProvider>(context);
+
+    // Sync controller with provider if provider was cleared externally
+    if (provider.lastQuery.isEmpty && _controller.text.isNotEmpty) {
+      _controller.clear();
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -67,6 +85,7 @@ class BasketballSearchScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             TextField(
+              controller: _controller,
               onChanged: (value) => provider.searchClubs(value),
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(

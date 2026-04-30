@@ -6,12 +6,30 @@ import '../widgets/glass_widgets.dart';
 import 'player_detail_screen.dart';
 import 'player_compare_screen.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final playerProvider = Provider.of<PlayerProvider>(context);
+    
+    // Sync controller with provider if provider was cleared externally
+    if (playerProvider.lastQuery.isEmpty && _controller.text.isNotEmpty) {
+      _controller.clear();
+    }
 
     return Column(
       children: [
@@ -38,6 +56,7 @@ class SearchScreen extends StatelessWidget {
             borderRadius: 30,
             opacity: 0.1,
             child: TextField(
+              controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Search players...',
                 prefixIcon: Icon(Icons.search, color: Colors.indigo),
