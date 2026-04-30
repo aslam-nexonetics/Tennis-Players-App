@@ -41,18 +41,32 @@ class ATPScraper(BaseScraper):
             try:
                 # Updated structure based on current ATP site:
                 rank_cell = row.select_one("td.rank")
-                player_cell = row.select_one(".name")
+                player_link = row.select_one(".name a")
                 
-                if not rank_cell or not player_cell: continue
+                if not rank_cell or not player_link: continue
 
                 # Clean rank
                 rank_text = rank_cell.text.strip().replace("T", "")
                 if not rank_text.isdigit(): continue
                 ranking = int(rank_text)
 
-                # Clean name: official site often has lots of whitespace/newlines
-                name = " ".join(player_cell.text.split()).strip()
-                # Aggressively remove trailing 3-letter country code (e.g. "Rafael Nadal ESP" -> "Rafael Nadal")
+                # Get full name from the URL slug (e.g. /en/players/jannik-sinner/s0ag/overview -> jannik-sinner)
+                player_url = player_link.get("href", "")
+                name = ""
+                if "/players/" in player_url:
+                    parts = player_url.split("/")
+                    try:
+                        # The slug is usually the 4th part: ["", "en", "players", "jannik-sinner", ...]
+                        slug = parts[parts.index("players") + 1]
+                        name = " ".join(slug.split("-")).title()
+                    except (ValueError, IndexError):
+                        name = player_link.text.strip()
+                else:
+                    name = player_link.text.strip()
+
+                # Clean name: remove excessive whitespace
+                name = " ".join(name.split()).strip()
+                # Aggressively remove trailing 3-letter country code if present
                 name = re.sub(r'\s+[A-Z]{3}$', '', name)
                 
                 # Try to get country from the flag SVG
