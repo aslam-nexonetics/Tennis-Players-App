@@ -77,6 +77,12 @@ class FootballClubProvider with ChangeNotifier {
     }
   }
 
+  void clearSearch() {
+    _clubs = [];
+    _lastQuery = '';
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();

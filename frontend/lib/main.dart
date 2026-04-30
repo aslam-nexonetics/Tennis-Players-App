@@ -262,7 +262,17 @@ class _SportCategoryBar extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 12, bottom: 8),
             child: GestureDetector(
-              onTap: () => sportProvider.setSport(sport),
+              onTap: () {
+                if (currentSport.type != sport.type) {
+                  // Clear all search results when switching sports
+                  Provider.of<PlayerProvider>(context, listen: false).clearSearch();
+                  Provider.of<TtPlayerProvider>(context, listen: false).clearSearch();
+                  Provider.of<FootballClubProvider>(context, listen: false).clearSearch();
+                  Provider.of<BasketballClubProvider>(context, listen: false).clearSearch();
+                  
+                  sportProvider.setSport(sport);
+                }
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

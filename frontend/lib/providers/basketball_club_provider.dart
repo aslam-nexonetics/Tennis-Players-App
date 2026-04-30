@@ -72,6 +72,12 @@ class BasketballClubProvider with ChangeNotifier {
     });
   }
 
+  void clearSearch() {
+    _searchResults = [];
+    _currentQuery = '';
+    notifyListeners();
+  }
+
   Future<BasketballClub> getClubDetail(int id) async {
     try {
       return await _apiService.getBasketballClubDetail(id);

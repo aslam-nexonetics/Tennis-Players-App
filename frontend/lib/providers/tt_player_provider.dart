@@ -82,6 +82,12 @@ class TtPlayerProvider with ChangeNotifier {
     }
   }
 
+  void clearSearch() {
+    _players = [];
+    _lastQuery = '';
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();
