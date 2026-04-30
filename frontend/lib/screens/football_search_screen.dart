@@ -127,10 +127,12 @@ class FootballSearchScreen extends StatelessWidget {
           ),
         Expanded(
           child: provider.clubs.isEmpty && !provider.isLoading
-              ? const Center(
+              ? Center(
                   child: Opacity(
                     opacity: 0.5,
-                    child: Text('Search for football clubs!'),
+                    child: Text(provider.lastQuery.isEmpty
+                        ? 'Search for football clubs!'
+                        : 'No results found for "${provider.lastQuery}"'),
                   ),
                 )
               : ListView.builder(

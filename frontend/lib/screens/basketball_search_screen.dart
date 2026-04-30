@@ -91,7 +91,9 @@ class BasketballSearchScreen extends StatelessWidget {
                   if (provider.searchResults.isEmpty) {
                     return Center(
                       child: Text(
-                        'Enter a club name to start',
+                        provider.lastQuery.isEmpty
+                            ? 'Enter a club name to start'
+                            : 'No results found for "${provider.lastQuery}"',
                         style: TextStyle(color: Colors.white.withOpacity(0.5)),
                       ),
                     );

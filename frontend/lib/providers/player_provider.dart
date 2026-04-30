@@ -23,6 +23,7 @@ class PlayerProvider with ChangeNotifier {
 
   Timer? _debounce;
   String _lastQuery = '';
+  String get lastQuery => _lastQuery;
 
   void setGender(String? gender) {
     if (_selectedGender != gender) {

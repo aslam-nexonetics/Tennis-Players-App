@@ -22,6 +22,8 @@ class FootballClubProvider with ChangeNotifier {
   String get selectedCategory => _selectedCategory;
 
   Timer? _debounce;
+  String _lastQuery = '';
+  String get lastQuery => _lastQuery;
 
   Future<void> fetchTopClubs() async {
     _isLoading = true;
@@ -47,6 +49,7 @@ class FootballClubProvider with ChangeNotifier {
   }
 
   void onSearchChanged(String query) {
+    _lastQuery = query;
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {

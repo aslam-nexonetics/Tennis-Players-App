@@ -23,6 +23,8 @@ class TtPlayerProvider with ChangeNotifier {
   String? get genderFilter => _genderFilter;
 
   Timer? _debounce;
+  String _lastQuery = '';
+  String get lastQuery => _lastQuery;
 
   void setGenderFilter(String? gender) {
     _genderFilter = gender;
@@ -49,6 +51,7 @@ class TtPlayerProvider with ChangeNotifier {
   }
 
   void onSearchChanged(String query) {
+    _lastQuery = query;
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {

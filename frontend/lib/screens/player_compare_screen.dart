@@ -27,6 +27,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   List<Player> _resultsA = [];
   List<Player> _resultsB = [];
   
+  bool _noResultsA = false;
+  bool _noResultsB = false;
+  
   final TextEditingController _ctrlA = TextEditingController();
   final TextEditingController _ctrlB = TextEditingController();
   
@@ -64,14 +67,28 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   void _onSearchA(String q) {
     if (_debounceA?.isActive ?? false) _debounceA!.cancel();
     _debounceA = Timer(const Duration(milliseconds: 400), () {
-      if (q.trim().isNotEmpty) _doSearch(q.trim(), true);
+      if (q.trim().isNotEmpty) {
+        _doSearch(q.trim(), true);
+      } else {
+        setState(() {
+          _resultsA = [];
+          _noResultsA = false;
+        });
+      }
     });
   }
 
   void _onSearchB(String q) {
     if (_debounceB?.isActive ?? false) _debounceB!.cancel();
     _debounceB = Timer(const Duration(milliseconds: 400), () {
-      if (q.trim().isNotEmpty) _doSearch(q.trim(), false);
+      if (q.trim().isNotEmpty) {
+        _doSearch(q.trim(), false);
+      } else {
+        setState(() {
+          _resultsB = [];
+          _noResultsB = false;
+        });
+      }
     });
   }
 
@@ -84,8 +101,10 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       setState(() {
         if (isA) {
           _resultsA = res.items.where((p) => p.id != _playerB?.id).toList();
+          _noResultsA = _resultsA.isEmpty;
         } else {
           _resultsB = res.items.where((p) => p.id != _playerA?.id).toList();
+          _noResultsB = _resultsB.isEmpty;
         }
       });
     } catch (e) {
@@ -101,6 +120,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     setState(() {
       _playerA = p;
       _resultsA = [];
+      _noResultsA = false;
       _ctrlA.text = p.name;
       _showComparison = false;
       _h2hData = null;
@@ -112,6 +132,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     setState(() {
       _playerB = p;
       _resultsB = [];
+      _noResultsB = false;
       _ctrlB.text = p.name;
       _showComparison = false;
       _h2hData = null;
@@ -216,20 +237,20 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               ),
             ],
           ),
-          if (_resultsA.isNotEmpty || _resultsB.isNotEmpty)
+          if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: _resultsA.isNotEmpty
                       ? _buildResultList(_resultsA, _selectA)
-                      : const SizedBox(),
+                      : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: _resultsB.isNotEmpty
                       ? _buildResultList(_resultsB, _selectB)
-                      : const SizedBox(),
+                      : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
                 ),
                 const SizedBox(width: 110),
               ],
@@ -280,6 +301,21 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
           const SizedBox(width: 8),
         ],
       ),
+    );
+  }
+
+  Widget _buildNoResults() {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
+      child: const Text('No results found', 
+        style: TextStyle(color: Colors.grey, fontSize: 12),
+        textAlign: TextAlign.center),
     );
   }
 

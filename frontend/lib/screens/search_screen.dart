@@ -70,10 +70,12 @@ class SearchScreen extends StatelessWidget {
           ),
         Expanded(
           child: playerProvider.players.isEmpty && !playerProvider.isLoading
-              ? const Center(
+              ? Center(
                   child: Opacity(
                     opacity: 0.5,
-                    child: Text('Start searching for players!'),
+                    child: Text(playerProvider.lastQuery.isEmpty
+                        ? 'Start searching for players!'
+                        : 'No results found for "${playerProvider.lastQuery}"'),
                   ),
                 )
               : ListView.builder(

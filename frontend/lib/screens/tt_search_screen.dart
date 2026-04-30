@@ -78,10 +78,12 @@ class TtSearchScreen extends StatelessWidget {
           ),
         Expanded(
           child: provider.players.isEmpty && !provider.isLoading
-              ? const Center(
+              ? Center(
                   child: Opacity(
                     opacity: 0.5,
-                    child: Text('Search for table tennis players!'),
+                    child: Text(provider.lastQuery.isEmpty
+                        ? 'Search for table tennis players!'
+                        : 'No results found for "${provider.lastQuery}"'),
                   ),
                 )
               : ListView.builder(

@@ -19,6 +19,7 @@ class BasketballClubProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String get error => _error;
   String get selectedCategory => _selectedCategory;
+  String get lastQuery => _currentQuery;
 
   void setCategory(String category) {
     if (_selectedCategory == category) return;
