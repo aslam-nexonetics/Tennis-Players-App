@@ -83,9 +83,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       final res = await ApiService().searchPlayers(q, size: 5);
       setState(() {
         if (isA) {
-          _resultsA = res.items;
+          _resultsA = res.items.where((p) => p.id != _playerB?.id).toList();
         } else {
-          _resultsB = res.items;
+          _resultsB = res.items.where((p) => p.id != _playerA?.id).toList();
         }
       });
     } catch (e) {
@@ -277,7 +277,6 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.indigo),
             ),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
           const SizedBox(width: 8),
         ],
       ),

@@ -87,9 +87,9 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
       final res = await ApiService().searchTtPlayers(q, size: 5);
       setState(() {
         if (isA) {
-          _resultsA = res.items;
+          _resultsA = res.items.where((p) => p.id != _playerB?.id).toList();
         } else {
-          _resultsB = res.items;
+          _resultsB = res.items.where((p) => p.id != _playerA?.id).toList();
         }
       });
     } catch (e) {
@@ -270,7 +270,6 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: _kGreen),
             ),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
           const SizedBox(width: 8),
         ],
       ),
