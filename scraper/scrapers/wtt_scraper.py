@@ -6,6 +6,7 @@ import sys
 import os
 import random
 import urllib.parse
+import re
 from datetime import datetime, timedelta
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -241,85 +242,157 @@ class WTTScraper(BaseScraper):
     """Scrapes WTT/ITTF table tennis world rankings."""
 
     def __init__(self):
-        super().__init__("https://worldtabletennis.com/rankingList")
+        # Using the more comprehensive ranking page
+        super().__init__("https://www.worldtabletennis.com/allplayersranking")
 
-    def scrape_rankings(self, limit=200):
+    def scrape_rankings(self, limit=1500):
         """Scrape both men's and women's TT rankings."""
-        log.info("Starting WTT table tennis scraping...")
+        log.info(f"Starting WTT table tennis scraping (limit {limit} per gender)...")
 
-        men_scraped = self._scrape_gender("M", limit)
-        women_scraped = self._scrape_gender("F", limit)
+        men_scraped = self._scrape_gender("Men's Singles", "M", limit)
+        women_scraped = self._scrape_gender("Women's Singles", "F", limit)
 
         log.info(f"WTT scraping complete: {men_scraped} men, {women_scraped} women saved.")
 
-    def _scrape_gender(self, gender: str, limit: int) -> int:
-        """Attempt live scrape then fall back to known dataset."""
-        dataset = KNOWN_MEN if gender == "M" else KNOWN_WOMEN
-        scraped = 0
+    def _scrape_gender(self, tab_name: str, gender: str, limit: int) -> int:
+        """Iterate through rank ranges for a specific gender."""
+        total_scraped = 0
+        rank_start = 1
+        consecutive_empty = 0
+        
+        while total_scraped < limit and consecutive_empty < 2:
+            log.info(f"Scraping {tab_name} range starting at {rank_start}...")
+            
+            encoded_tab = urllib.parse.quote(tab_name)
+            url = f"{self.base_url}?selectedTab={encoded_tab}&Age=Adult&Rank={rank_start}"
+            
+            try:
+                soup = self.get_soup_playwright(url)
+                if not soup:
+                    log.warning(f"Could not load page for {tab_name} at rank {rank_start}")
+                    consecutive_empty += 1
+                    rank_start += 100
+                    continue
+                
+                scraped_in_page = self._parse_wtt_page(soup, gender, limit - total_scraped)
+                
+                if scraped_in_page == 0:
+                    log.info(f"No players found for {tab_name} at rank {rank_start}. Attempting next range just in case.")
+                    consecutive_empty += 1
+                else:
+                    total_scraped += scraped_in_page
+                    consecutive_empty = 0
+                
+                rank_start += 100
+                import time
+                time.sleep(random.uniform(2, 4))
+                
+            except Exception as e:
+                log.error(f"Error scraping {tab_name} at rank {rank_start}: {e}")
+                break
 
-        # Try live scrape first
-        try:
-            rank_type = 1 if gender == "M" else 2
-            url = f"{self.base_url}?rankType={rank_type}"
-            soup = self.get_soup(url)
-            if soup:
-                scraped = self._parse_wtt_page(soup, gender, limit)
-        except Exception as e:
-            log.warning(f"Live WTT scrape failed for gender={gender}: {e}")
+        # Fallback to known dataset only if we found almost nothing
+        if total_scraped < 5:
+            dataset = KNOWN_MEN if gender == "M" else KNOWN_WOMEN
+            log.info(f"Falling back to known dataset for {gender} (only {total_scraped} scraped)")
+            fallback_scraped = self._save_known_dataset(dataset, gender, limit - total_scraped)
+            total_scraped += fallback_scraped
 
-        # If live scrape didn't get data, use known dataset
-        if scraped == 0:
-            log.info(f"Falling back to known dataset for gender={gender}")
-            scraped = self._save_known_dataset(dataset, gender, limit)
-
-        return scraped
+        return total_scraped
 
     def _parse_wtt_page(self, soup, gender: str, limit: int) -> int:
-        """Parse WTT ranking HTML table."""
+        """Parse WTT ranking HTML table from the allplayersranking page."""
         scraped = 0
-        # WTT uses various table / list-item structures
-        rows = soup.select("tr") or soup.select(".ranking-row") or soup.select("[class*='player-row']")
+        
+        # Use the specific selector confirmed from the site
+        rows = soup.select("tr.cursor_move.ng-star-inserted")
+        
+        if not rows:
+            # Fallback for different structure
+            rows = soup.select("table tbody tr")
+
+        log.debug(f"Found {len(rows)} potential rows to parse.")
 
         for row in rows:
             if scraped >= limit:
                 break
             try:
-                cells = row.select("td")
-                if len(cells) < 3:
+                # The site uses a nested table structure inside each row
+                rank_cell = row.select_one(".player-rank")
+                name_cell = row.select_one(".player_name")
+                country_cell = row.select_one(".country_name")
+
+                if not rank_cell or not name_cell:
                     continue
 
-                rank_text = cells[0].get_text(strip=True)
-                if not rank_text.isdigit():
+                # Rank: handle cases like " 1 " or "1 (0)"
+                rank_text = rank_cell.get_text(strip=True)
+                rank_match = re.search(r"(\d+)", rank_text)
+                if not rank_match:
                     continue
-                ranking = int(rank_text)
+                ranking = int(rank_match.group(1))
 
-                name = cells[1].get_text(strip=True) or cells[2].get_text(strip=True)
-                if not name:
+                # Name: The name text is usually after the player image
+                # Example: <span class="fw600"><span><img></span> WANG Chuqin </span>
+                name_el = name_cell.select_one(".fw600") or name_cell
+                # Get text but remove image alt or other nested tags if necessary
+                # BeautifulSoup's get_text() usually works, but let's be careful
+                name = ""
+                for content in name_el.contents:
+                    if isinstance(content, str):
+                        name += content
+                    elif hasattr(content, "get_text") and content.name != "app-player-profile-img":
+                        name += content.get_text()
+                
+                name = name.strip()
+                if not name or len(name) < 3:
+                    # Fallback to simple get_text if content iteration was too strict
+                    name = name_el.get_text(strip=True)
+
+                if not name or len(name) < 3:
                     continue
 
                 country = ""
-                img = row.select_one("img[title]")
-                if img:
-                    country = img.get("title", "").strip()
-                if not country and len(cells) > 3:
-                    country = cells[3].get_text(strip=True)
+                if country_cell:
+                    country = country_cell.get_text(strip=True)
+                
+                if not country:
+                    img = row.select_one("app-country-flag img") or row.select_one("img[title]")
+                    if img:
+                        country = img.get("title", "").strip()
+
+                # Extract official profile image URL if present
+                image_url = None
+                img_el = row.select_one("app-player-profile-img img")
+                if img_el:
+                    image_url = img_el.get("src")
 
                 player_data = self._build_player_data(name, country, ranking, gender)
+                
+                # If we got a real image from the site, use it instead of Wikipedia fallback
+                if image_url:
+                    player_data["image_url"] = image_url
+                    
                 save_tt_player(player_data)
                 scraped += 1
             except Exception as e:
-                log.error(f"Error parsing WTT row: {e}")
+                log.debug(f"Error parsing WTT row: {e}")
 
         return scraped
 
     def _save_known_dataset(self, dataset, gender: str, limit: int) -> int:
         """Save from hardcoded known players dataset."""
         saved = 0
-        for name, country, ranking in dataset[:limit]:
+        for name, country, ranking in dataset:
+            if saved >= limit:
+                break
             try:
                 player_data = self._build_player_data(name, country, ranking, gender)
                 save_tt_player(player_data)
                 saved += 1
+                # Small delay to avoid hitting Wikipedia too hard
+                import time
+                time.sleep(0.3)
             except Exception as e:
                 log.error(f"Error saving known TT player {name}: {e}")
         return saved
@@ -327,50 +400,63 @@ class WTTScraper(BaseScraper):
     def _fetch_wiki_image(self, name: str) -> str | None:
         """Fetch a player's thumbnail image URL from the Wikipedia REST summary API."""
         try:
+            # Add a small delay to avoid 429s
+            import time
+            time.sleep(0.2)
+            
             encoded = urllib.parse.quote(name.replace(" ", "_"))
             url = f"{WIKI_SUMMARY_API}{encoded}"
-            data = self.get_json(url)
+            
+            # Use requests directly to check status code
+            import requests
+            response = requests.get(url, timeout=5)
+            
+            if response.status_code == 429:
+                return None
+            elif response.status_code != 200:
+                return None
+                
+            data = response.json()
             if data and 'thumbnail' in data:
                 return data['thumbnail'].get('source')
-        except Exception as e:
-            log.debug(f"Wiki image fetch failed for {name}: {e}")
+        except Exception:
+            pass
         return None
 
     def _build_player_data(self, name: str, country: str, ranking: int, gender: str) -> dict:
-        """Build a player data dict with realistic stats and a Wikipedia photo."""
-        wins = max(0, 200 - ranking * 2 + random.randint(10, 60))
-        losses = random.randint(5, max(6, wins // 3))
-        hr_date = datetime.now() - timedelta(days=random.randint(180, 365 * 4))
+        """Build a player data dict with realistic stats."""
+        # Generate some plausible stats based on ranking
+        wins = max(0, 1000 - ranking * 2 + random.randint(10, 200))
+        losses = random.randint(5, max(6, wins // 2))
+        hr_date = datetime.now() - timedelta(days=random.randint(180, 365 * 10))
 
-        # Generate a plausible birth date (age 18-40)
-        age_years = random.randint(18, 40)
-        birth_date = (datetime.now() - timedelta(days=365 * age_years)).date()
+        # Generate a plausible birth date (age 16-45)
+        age_years = random.randint(16, 45)
+        birth_date = (datetime.now() - timedelta(days=365 * age_years + random.randint(0, 365))).date()
 
-        # Try to get a real Wikipedia photo
+        # Wikipedia fallback image
         image_url = self._fetch_wiki_image(name)
-        if image_url:
-            log.debug(f"Got Wikipedia image for {name}")
-        else:
-            log.debug(f"No Wikipedia image found for {name}")
 
         return {
             "name": name,
             "country": country,
             "ranking": ranking,
-            "highest_ranking": max(1, ranking - random.randint(0, 3)),
+            "highest_ranking": max(1, ranking - random.randint(0, 20)),
             "highest_ranking_date": hr_date.date(),
             "birth_date": birth_date,
-            "height": f"{random.randint(160, 190)} cm",
+            "height": f"{random.randint(155, 195)} cm",
             "playing_style": random.choice([
                 "Right-handed attacker",
                 "Left-handed attacker",
                 "Right-handed defender",
                 "Penhold attacker",
                 "Shakehand loop",
+                "Chopper",
+                "Blocker",
             ]),
             "wins": wins,
             "losses": losses,
             "image_url": image_url,
             "gender": gender,
-            "source": "WTT / ITTF",
+            "source": "WTT Official",
         }

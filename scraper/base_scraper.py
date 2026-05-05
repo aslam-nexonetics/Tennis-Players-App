@@ -29,8 +29,15 @@ class BaseScraper:
             self.rate_limiter.wait()
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
-                page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                page.goto(url, wait_until="domcontentloaded")
+                # Use a specific user agent to look like a real browser
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                page = context.new_page()
+                # Wait for networkidle to ensure all data is loaded
+                page.goto(url, wait_until="networkidle", timeout=60000)
+                # Extra wait for Angular/React to finish rendering
+                time.sleep(3)
                 content = page.content()
                 browser.close()
             return BeautifulSoup(content, "html.parser")
