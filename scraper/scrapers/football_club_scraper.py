@@ -1,11 +1,12 @@
 """
 Football Club Scraper
-Expanded to include major global leagues and higher limits.
+Expanded to include all football clubs globally (men and women) using Wikipedia's category system.
 """
 import sys
 import os
 import random
 import urllib.parse
+import re
 from datetime import datetime
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -16,9 +17,10 @@ from scraper.base_scraper import BaseScraper
 from scraper.utils.logger import log
 from scraper.football_persistence import save_football_club
 
+WIKI_API = "https://en.wikipedia.org/w/api.php"
 WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
-# Detailed data for global giants
+# Detailed data for global giants (Keep these for high quality)
 TOP_GLOBAL_CLUBS = [
     {
         "name": "Real Madrid CF", "country": "Spain", "league": "La Liga", "stadium": "Santiago Bernabéu", 
@@ -42,26 +44,11 @@ TOP_GLOBAL_CLUBS = [
         "honors": {"Champions League": 6, "Bundesliga": 33, "DFB-Pokal": 20}
     },
     {
-        "name": "Liverpool F.C.", "country": "England", "league": "Premier League", "stadium": "Anfield", 
-        "capacity": 61276, "manager": "Arne Slot", "nickname": "The Reds", "ranking": 4, 
-        "trophies": 69, "market": "€921M", "pos": 2, "captain": "Virgil van Dijk", "owner": "John W. Henry",
-        "rivals": "Manchester United, Everton", "attendance": 60000,
-        "honors": {"Champions League": 6, "Premier League": 19, "FA Cup": 8}
-    },
-    # Women's Giants
-    {
         "name": "FC Barcelona Femení", "country": "Spain", "league": "Liga F", "stadium": "Estadi Johan Cruyff", 
         "capacity": 6000, "manager": "Pere Romeu", "nickname": "Blaugranes", "ranking": 1, 
         "trophies": 35, "market": "€5M", "pos": 1, "captain": "Alexia Putellas", "owner": "Joan Laporta",
         "rivals": "Real Madrid Femenino", "attendance": 5000, "category": "women",
         "honors": {"Champions League": 3, "Liga F": 9, "Copa de la Reina": 10}
-    },
-    {
-        "name": "Olympique Lyonnais Féminin", "country": "France", "league": "Division 1 Féminine", "stadium": "Gérard Houllier Stadium", 
-        "capacity": 1500, "manager": "Joe Montemurro", "nickname": "Les Fenottes", "ranking": 2, 
-        "trophies": 38, "market": "€4M", "pos": 1, "captain": "Wendie Renard", "owner": "Michele Kang",
-        "rivals": "PSG Féminine", "attendance": 1200, "category": "women",
-        "honors": {"Champions League": 8, "Division 1": 17}
     },
     {
         "name": "Chelsea F.C. Women", "country": "England", "league": "WSL", "stadium": "Kingsmeadow", 
@@ -72,46 +59,13 @@ TOP_GLOBAL_CLUBS = [
     }
 ]
 
-# Additional Categories to scrape
-LEAGUE_CATEGORIES = [
-    # Women's Leagues (Moved to top for faster results)
-    ("Category:FA Women's Super League clubs", "England", "WSL", "women"),
-    ("Category:National Women's Soccer League teams", "USA", "NWSL", "women"),
-    ("Category:Liga F clubs", "Spain", "Liga F", "women"),
-    ("Category:Frauen-Bundesliga clubs", "Germany", "Frauen-Bundesliga", "women"),
-    ("Category:Division 1 Féminine clubs", "France", "Division 1 Féminine", "women"),
-    ("Category:Serie A (women's football) clubs", "Italy", "Serie A Women", "women"),
-    ("Category:A-League Women teams", "Australia", "A-League Women", "women"),
-    ("Category:Damallsvenskan clubs", "Sweden", "Damallsvenskan", "women"),
-
-    # Men's Leagues
-    ("Category:Premier League clubs", "England", "Premier League", "men"),
-    ("Category:La Liga clubs", "Spain", "La Liga", "men"),
-    ("Category:Bundesliga clubs", "Germany", "Bundesliga", "men"),
-    ("Category:Serie A clubs", "Italy", "Serie A", "men"),
-    ("Category:Ligue 1 clubs", "France", "Ligue 1", "men"),
-    ("Category:Major League Soccer teams", "USA", "MLS", "men"),
-    ("Category:Saudi Pro League clubs", "Saudi Arabia", "Saudi Pro League", "men"),
-    ("Category:Eredivisie clubs", "Netherlands", "Eredivisie", "men"),
-    ("Category:Primeira Liga clubs", "Portugal", "Primeira Liga", "men"),
-    ("Category:Brasileirão Série A clubs", "Brazil", "Brasileirão", "men"),
-    ("Category:Argentine Primera División clubs", "Argentina", "Primera División", "men"),
-    ("Category:Liga MX clubs", "Mexico", "Liga MX", "men"),
-    ("Category:Süper Lig clubs", "Turkey", "Süper Lig", "men"),
-    ("Category:Scottish Premiership clubs", "Scotland", "Scottish Premiership", "men"),
-    ("Category:J1 League clubs", "Japan", "J1 League", "men"),
-    ("Category:Championship clubs", "England", "Championship", "men"),
-    ("Category:Segunda División clubs", "Spain", "Segunda División", "men"),
-    ("Category:2. Bundesliga clubs", "Germany", "2. Bundesliga", "men"),
-    ("Category:Serie B clubs", "Italy", "Serie B", "men"),
-]
-
 class FootballClubScraper(BaseScraper):
     def __init__(self):
         super().__init__("https://en.wikipedia.org/wiki/List_of_football_clubs")
+        self.processed_clubs = set()
 
-    def scrape_clubs(self, limit=500):
-        log.info(f"Starting football club scraping (Target: {limit}+)...")
+    def scrape_clubs(self, limit=5000):
+        log.info(f"Starting massive football club scraping (Target: {limit}+)...")
         scraped = 0
 
         # 1. Save top global giants
@@ -127,57 +81,120 @@ class FootballClubScraper(BaseScraper):
                     honors=club['honors'], category=category
                 )
                 save_football_club(data)
+                self.processed_clubs.add(club['name'])
                 scraped += 1
             except Exception as e:
                 log.error(f"Error saving giant {club['name']}: {e}")
 
-        # 2. Scrape multiple league categories
-        for cat_name, country, league, category in LEAGUE_CATEGORIES:
-            log.info(f"Scraping clubs from {cat_name} ({category})...")
-            cat_scraped = self.scrape_category_clubs(cat_name, country, league, category, limit=100)
-            scraped += cat_scraped
-            # Removed break to get as many as possible
-            # if scraped >= limit: break
+        # 2. Discover Men's Clubs by Country
+        scraped += self.scrape_by_master_category("Category:Association football clubs by country", "men", limit_per_country=200)
 
-        log.info(f"Football club scraping complete: {scraped} clubs saved.")
+        # 3. Discover Women's Clubs by Country
+        scraped += self.scrape_by_master_category("Category:Women's association football clubs by country", "women", limit_per_country=200)
 
-    def scrape_category_clubs(self, category_name, country, league, category, limit=100):
+        log.info(f"Football club scraping complete: {scraped} clubs processed.")
+
+    def scrape_by_master_category(self, master_cat, category, limit_per_country):
+        log.info(f"Discovering {category} clubs from {master_cat}...")
+        subcats = self._get_category_members(master_cat, ns=14)
+        total_scraped = 0
+        
+        for subcat in subcats:
+            title = subcat['title']
+            country = self._extract_country(title)
+            if not country: continue
+            
+            log.info(f"Scraping {category} clubs in {country}...")
+            # We use a recursion depth of 2 to catch clubs in sub-categories (like by city or league)
+            cat_scraped = self.scrape_category_clubs_recursive(title, country, category, depth=2, limit=limit_per_country)
+            total_scraped += cat_scraped
+            
+        return total_scraped
+
+    def scrape_category_clubs_recursive(self, category_name, country, category, depth=2, limit=200):
+        if depth < 0: return 0
+        
         saved = 0
         try:
-            encoded_cat = urllib.parse.quote(category_name)
-            url = f"https://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle={encoded_cat}&cmlimit={limit}&format=json"
-            data = self.get_json(url)
+            members = self._get_category_members(category_name)
             
-            if data and 'query' in data:
-                members = data['query'].get('categorymembers', [])
-                for member in members:
+            clubs_to_process = []
+            for member in members:
+                if member['ns'] == 0: # Page
                     name = member['title']
-                    if name.startswith("Category:") or "List of" in name: continue
-                    
-                    # Avoid duplicates with manually added giants
-                    if any(t['name'] in name for t in TOP_GLOBAL_CLUBS): continue
-
+                    if name.startswith("List of") or "football in" in name.lower(): continue
+                    if name in self.processed_clubs: continue
+                    clubs_to_process.append(name)
+                elif member['ns'] == 14 and depth > 0: # Sub-category
+                    subcat_title = member['title']
+                    # Avoid noise categories
+                    if any(x in subcat_title.lower() for x in ["defunct", "seasons", "logos", "players", "coaches", "stubs", "referees"]): continue
+                    saved += self.scrape_category_clubs_recursive(subcat_title, country, category, depth=depth-1, limit=limit)
+                
+                if saved >= limit: break
+            
+            # Batch process clubs for efficiency
+            for i in range(0, len(clubs_to_process), 10): # Process in batches of 10
+                batch = clubs_to_process[i:i+10]
+                for name in batch:
                     try:
                         club_data = self._build_club_data(
-                            name=name, country=country, league=league, category=category,
-                            ranking=10 + random.randint(1, 1000),
-                            trophies=random.randint(0, 40),
-                            market=f"€{random.randint(50, 500)}M",
+                            name=name, country=country, league=f"{country} Leagues", category=category,
+                            ranking=100 + random.randint(1, 5000),
+                            trophies=random.randint(0, 10),
+                            market=f"€{random.randint(1, 50)}M",
                             pos=random.randint(1, 20),
-                            attendance=random.randint(10000, 40000)
+                            attendance=random.randint(1000, 20000)
                         )
                         save_football_club(club_data)
+                        self.processed_clubs.add(name)
                         saved += 1
+                        if saved >= limit: break
                     except Exception as e:
-                        log.debug(f"Failed to expand club {name}: {e}")
+                        log.debug(f"Failed to save club {name}: {e}")
+                if saved >= limit: break
+                
         except Exception as e:
             log.warning(f"Category scrape failed for {category_name}: {e}")
         return saved
 
+    def _get_category_members(self, category_name, ns=None):
+        members = []
+        try:
+            encoded_cat = urllib.parse.quote(category_name)
+            url = f"{WIKI_API}?action=query&list=categorymembers&cmtitle={encoded_cat}&cmlimit=500&format=json"
+            data = self.get_json(url)
+            if data and 'query' in data:
+                all_members = data['query'].get('categorymembers', [])
+                if ns is not None:
+                    members = [m for m in all_members if m['ns'] == ns]
+                else:
+                    members = all_members
+        except Exception as e:
+            log.error(f"Error fetching category members for {category_name}: {e}")
+        return members
+
+    def _extract_country(self, title):
+        title = title.replace("Category:", "")
+        
+        # Pattern 1: Football/Soccer clubs in [Country]
+        match = re.search(r"(?:Football|Soccer) clubs in (.*)", title)
+        if match: return match.group(1)
+        
+        # Pattern 2: Women's football/soccer clubs in [Country]
+        match = re.search(r"Women's (?:football|soccer) clubs in (.*)", title)
+        if match: return match.group(1)
+        
+        # Pattern 3: [Country] football clubs
+        if "football clubs" in title.lower():
+             return title.replace(" football clubs", "").replace(" Football clubs", "")
+        
+        return None
+
     def _build_club_data(self, name, country, league, category="men", stadium=None, capacity=None, 
-                         manager="TBD", nickname=None, ranking=None, trophies=0, 
-                         market=None, pos=None, captain="TBD", owner="TBD", 
-                         rivals="None", attendance=0, honors=None):
+                          manager="TBD", nickname=None, ranking=None, trophies=0, 
+                          market=None, pos=None, captain="TBD", owner="TBD", 
+                          rivals="None", attendance=0, honors=None):
         summary_data = self._fetch_wiki_summary(name)
         description = summary_data.get('extract', "No description available.")
         image_url = summary_data.get('thumbnail', {}).get('source')
@@ -187,19 +204,19 @@ class FootballClubScraper(BaseScraper):
             "country": country,
             "league": league,
             "category": category,
-            "founded_year": random.randint(1880, 1920),
+            "founded_year": random.randint(1880, 1950),
             "stadium": stadium or f"{name} Stadium",
-            "capacity": capacity or random.randint(20000, 60000),
+            "capacity": capacity or random.randint(5000, 50000),
             "manager": manager,
             "nickname": nickname or name.split(" ")[0],
             "image_url": image_url,
             "website": f"https://en.wikipedia.org/wiki/{name.replace(' ', '_')}",
             "description": description,
             "ranking": ranking,
-            "domestic_ranking": random.randint(1, 10),
+            "domestic_ranking": random.randint(1, 20),
             "total_trophies": trophies,
-            "market_value": market or f"€{random.randint(100, 800)}M",
-            "league_position": pos or random.randint(1, 10),
+            "market_value": market or f"€{random.randint(1, 100)}M",
+            "league_position": pos or random.randint(1, 20),
             "captain": captain,
             "owner": owner,
             "main_rivals": rivals,
@@ -217,4 +234,5 @@ class FootballClubScraper(BaseScraper):
 
 if __name__ == "__main__":
     scraper = FootballClubScraper()
+    scraper.scrape_clubs(limit=10000)
     scraper.scrape_clubs(limit=5000)

@@ -13,10 +13,26 @@ class FootballSearchScreen extends StatefulWidget {
 
 class _FootballSearchScreenState extends State<FootballSearchScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final provider = Provider.of<FootballClubProvider>(context, listen: false);
+      provider.fetchMoreClubs();
+    }
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -155,13 +171,24 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
                   ),
                 )
               : ListView.builder(
+                  controller: _scrollController,
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
                     bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
-                  itemCount: provider.clubs.length,
+                  itemCount: provider.clubs.length + (provider.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == provider.clubs.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFE4405F),
+                          ),
+                        ),
+                      );
+                    }
                     final club = provider.clubs[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),

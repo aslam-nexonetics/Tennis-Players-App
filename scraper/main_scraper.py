@@ -32,12 +32,12 @@ def run_tt_scraper():
 def run_football_scraper():
     log.info("Starting Football Club Scraper...")
     fb = FootballClubScraper()
-    fb.scrape_clubs(limit=200)
+    fb.scrape_clubs(limit=10000)
 
 def run_basketball_scraper():
     log.info("Starting Basketball Club Scraper...")
     bb = BasketballClubScraper()
-    bb.scrape_clubs(limit=200)
+    bb.scrape_clubs(limit=10000)
 
 def main():
     parser = argparse.ArgumentParser(description="Multi-Sport Web Scraper")

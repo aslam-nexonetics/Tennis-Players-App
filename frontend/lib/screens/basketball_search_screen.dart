@@ -13,10 +13,26 @@ class BasketballSearchScreen extends StatefulWidget {
 
 class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final provider = Provider.of<BasketballClubProvider>(context, listen: false);
+      provider.fetchMoreClubs();
+    }
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -104,7 +120,7 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
             Expanded(
               child: Consumer<BasketballClubProvider>(
                 builder: (context, provider, child) {
-                  if (provider.isLoading) {
+                  if (provider.isLoading && provider.searchResults.isEmpty) {
                     return const Center(child: CircularProgressIndicator(color: Colors.orange));
                   }
                   if (provider.searchResults.isEmpty) {
@@ -118,8 +134,17 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
                     );
                   }
                   return ListView.builder(
-                    itemCount: provider.searchResults.length,
+                    controller: _scrollController,
+                    itemCount: provider.searchResults.length + (provider.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (index == provider.searchResults.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: CircularProgressIndicator(color: Colors.orange),
+                          ),
+                        );
+                      }
                       final club = provider.searchResults[index];
                       return Card(
                         color: Colors.white.withOpacity(0.1),

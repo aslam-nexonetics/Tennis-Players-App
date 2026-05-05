@@ -21,15 +21,23 @@ class BasketballClubProvider with ChangeNotifier {
   String get selectedCategory => _selectedCategory;
   String get lastQuery => _currentQuery;
 
+  int _currentPage = 1;
+  int _pageSize = 20;
+  bool _hasMore = true;
+  int _totalClubs = 0;
+
+  int get currentPage => _currentPage;
+  bool get hasMore => _hasMore;
+  int get totalClubs => _totalClubs;
+
   void setCategory(String category) {
     if (_selectedCategory == category) return;
     _selectedCategory = category;
+    _searchResults = [];
+    _currentPage = 1;
+    _hasMore = true;
     notifyListeners();
-    // Refresh data when category changes
     fetchTopClubs();
-    if (_currentQuery.isNotEmpty) {
-      searchClubs(_currentQuery);
-    }
   }
 
   Future<void> fetchTopClubs() async {
@@ -38,7 +46,7 @@ class BasketballClubProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _topClubs = await _apiService.getBasketballTopClubs(category: _selectedCategory);
+      _topClubs = await _apiService.getBasketballTopClubs(category: _selectedCategory, limit: 50);
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -53,16 +61,27 @@ class BasketballClubProvider with ChangeNotifier {
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       if (query.isEmpty) {
         _searchResults = [];
+        _currentPage = 1;
+        _hasMore = true;
         notifyListeners();
         return;
       }
 
       _isLoading = true;
+      _currentPage = 1;
+      _hasMore = true;
       notifyListeners();
 
       try {
-        final response = await _apiService.searchBasketballClubs(query, category: _selectedCategory);
+        final response = await _apiService.searchBasketballClubs(
+          query, 
+          category: _selectedCategory,
+          page: _currentPage,
+          size: _pageSize,
+        );
         _searchResults = response.items;
+        _totalClubs = response.total;
+        _hasMore = _searchResults.length < _totalClubs;
       } catch (e) {
         _error = e.toString();
       } finally {
@@ -72,9 +91,41 @@ class BasketballClubProvider with ChangeNotifier {
     });
   }
 
+  Future<void> fetchMoreClubs() async {
+    if (_isLoading || !_hasMore || _currentQuery.isEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final nextPage = _currentPage + 1;
+      final response = await _apiService.searchBasketballClubs(
+        _currentQuery,
+        category: _selectedCategory,
+        page: nextPage,
+        size: _pageSize,
+      );
+      
+      if (response.items.isNotEmpty) {
+        _searchResults.addAll(response.items);
+        _currentPage = nextPage;
+        _hasMore = _searchResults.length < _totalClubs;
+      } else {
+        _hasMore = false;
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void clearSearch() {
     _searchResults = [];
     _currentQuery = '';
+    _currentPage = 1;
+    _hasMore = true;
     notifyListeners();
   }
 

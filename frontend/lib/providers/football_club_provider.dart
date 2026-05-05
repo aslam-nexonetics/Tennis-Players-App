@@ -25,6 +25,15 @@ class FootballClubProvider with ChangeNotifier {
   String _lastQuery = '';
   String get lastQuery => _lastQuery;
 
+  int _currentPage = 1;
+  int _pageSize = 20;
+  bool _hasMore = true;
+  int _totalClubs = 0;
+
+  int get currentPage => _currentPage;
+  bool get hasMore => _hasMore;
+  int get totalClubs => _totalClubs;
+
   Future<void> fetchTopClubs() async {
     _isLoading = true;
     _error = null;
@@ -43,7 +52,9 @@ class FootballClubProvider with ChangeNotifier {
   void setCategory(String category) {
     if (_selectedCategory == category) return;
     _selectedCategory = category;
-    _clubs = []; // Clear current search results when switching category
+    _clubs = [];
+    _currentPage = 1;
+    _hasMore = true;
     notifyListeners();
     fetchTopClubs();
   }
@@ -56,6 +67,8 @@ class FootballClubProvider with ChangeNotifier {
         searchClubs(query);
       } else {
         _clubs = [];
+        _currentPage = 1;
+        _hasMore = true;
         notifyListeners();
       }
     });
@@ -64,11 +77,50 @@ class FootballClubProvider with ChangeNotifier {
   Future<void> searchClubs(String query) async {
     _isLoading = true;
     _error = null;
+    _currentPage = 1;
+    _hasMore = true;
     notifyListeners();
   
     try {
-      final response = await _apiService.searchFootballClubs(query, category: _selectedCategory);
+      final response = await _apiService.searchFootballClubs(
+        query, 
+        category: _selectedCategory,
+        page: _currentPage,
+        size: _pageSize,
+      );
       _clubs = response.items;
+      _totalClubs = response.total;
+      _hasMore = _clubs.length < _totalClubs;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchMoreClubs() async {
+    if (_isLoading || !_hasMore || _lastQuery.isEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final nextPage = _currentPage + 1;
+      final response = await _apiService.searchFootballClubs(
+        _lastQuery,
+        category: _selectedCategory,
+        page: nextPage,
+        size: _pageSize,
+      );
+      
+      if (response.items.isNotEmpty) {
+        _clubs.addAll(response.items);
+        _currentPage = nextPage;
+        _hasMore = _clubs.length < _totalClubs;
+      } else {
+        _hasMore = false;
+      }
     } catch (e) {
       _error = e.toString();
     } finally {
