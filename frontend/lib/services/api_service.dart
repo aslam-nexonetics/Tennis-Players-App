@@ -92,6 +92,21 @@ class ApiService {
 
   // ── Table Tennis ─────────────────────────────────────────────────────────
 
+  Future<TtPlayerListResponse> getTtPlayers({
+    int page = 1,
+    int size = 20,
+    String? gender,
+  }) async {
+    var url = '$baseUrl/tt-players/?page=$page&size=$size';
+    if (gender != null) url += '&gender=$gender';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return TtPlayerListResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load TT players');
+    }
+  }
+
   Future<TtPlayerListResponse> searchTtPlayers(
     String query, {
     int page = 1,

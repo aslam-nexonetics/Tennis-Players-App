@@ -13,13 +13,30 @@ class TtTopPlayersScreen extends StatefulWidget {
 }
 
 class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     Future.microtask(() {
       if (!mounted) return;
       Provider.of<TtPlayerProvider>(context, listen: false).fetchTopPlayers();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      Provider.of<TtPlayerProvider>(context, listen: false)
+          .fetchTopPlayers(loadMore: true);
+    }
   }
 
   @override
@@ -47,7 +64,7 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
         ),
         const SizedBox(height: 5),
         const Text(
-          'Top 50 Table Tennis Pros',
+          'World Pro Table Tennis Rankings',
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 12),
@@ -75,9 +92,20 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                   ),
                 )
               : ListView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: provider.topPlayers.length,
+                  itemCount: provider.topPlayers.length +
+                      (provider.topPlayersHasMore ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == provider.topPlayers.length) {
+                      return Opacity(
+                        opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      );
+                    }
                     final player = provider.topPlayers[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),

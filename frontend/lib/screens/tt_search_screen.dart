@@ -14,11 +14,28 @@ class TtSearchScreen extends StatefulWidget {
 
 class _TtSearchScreenState extends State<TtSearchScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        _controller.text.isNotEmpty) {
+      Provider.of<TtPlayerProvider>(context, listen: false)
+          .searchPlayers(_controller.text, loadMore: true);
+    }
   }
 
   @override
@@ -106,13 +123,24 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                   ),
                 )
               : ListView.builder(
+                  controller: _scrollController,
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
                     bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
-                  itemCount: provider.players.length,
+                  itemCount: provider.players.length +
+                      (provider.searchHasMore ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == provider.players.length) {
+                      return Opacity(
+                        opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      );
+                    }
                     final player = provider.players[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),

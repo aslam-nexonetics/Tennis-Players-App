@@ -15,6 +15,8 @@ class TtPlayerService:
         query = db.query(TableTennisPlayer)
         if gender:
             query = query.filter(TableTennisPlayer.gender == gender)
+        # Only include players with a ranking
+        query = query.filter(TableTennisPlayer.ranking != None).order_by(TableTennisPlayer.ranking.asc())
         total = query.with_entities(func.count(TableTennisPlayer.id)).scalar()
         items = query.offset(skip).limit(limit).all()
         return items, total

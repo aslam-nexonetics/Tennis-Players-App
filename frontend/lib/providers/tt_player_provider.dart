@@ -26,26 +26,69 @@ class TtPlayerProvider with ChangeNotifier {
   String _lastQuery = '';
   String get lastQuery => _lastQuery;
 
+  bool _isFetchingMore = false;
+  bool get isFetchingMore => _isFetchingMore;
+
+  int _topPlayersPage = 1;
+  bool _topPlayersHasMore = true;
+  int _searchPage = 1;
+  bool _searchHasMore = true;
+
+  bool get topPlayersHasMore => _topPlayersHasMore;
+  bool get searchHasMore => _searchHasMore;
+
   void setGenderFilter(String? gender) {
-    _genderFilter = gender;
-    notifyListeners();
-    fetchTopPlayers();
+    if (_genderFilter != gender) {
+      _genderFilter = gender;
+      _topPlayersPage = 1;
+      _topPlayersHasMore = true;
+      _topPlayers = [];
+      fetchTopPlayers();
+      if (_lastQuery.isNotEmpty) {
+        _searchPage = 1;
+        _searchHasMore = true;
+        _players = [];
+        searchPlayers(_lastQuery);
+      }
+      notifyListeners();
+    }
   }
 
-  Future<void> fetchTopPlayers() async {
-    _isLoading = true;
+  Future<void> fetchTopPlayers({bool loadMore = false}) async {
+    if (_isLoading || _isFetchingMore || (loadMore && !_topPlayersHasMore)) return;
+
+    if (loadMore) {
+      _isFetchingMore = true;
+    } else {
+      _isLoading = true;
+    }
     _error = null;
+    if (!loadMore) {
+      _topPlayersPage = 1;
+      _topPlayersHasMore = true;
+    }
     notifyListeners();
 
     try {
-      _topPlayers = await _apiService.getTtTopPlayers(
-        limit: 50,
+      final response = await _apiService.getTtPlayers(
+        page: _topPlayersPage,
         gender: _genderFilter,
       );
+      
+      if (loadMore) {
+        _topPlayers.addAll(response.items);
+      } else {
+        _topPlayers = response.items;
+      }
+      
+      _topPlayersHasMore = response.items.length >= 20;
+      if (_topPlayersHasMore) _topPlayersPage++;
+      
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _isFetchingMore = false;
       notifyListeners();
     }
   }
@@ -55,6 +98,9 @@ class TtPlayerProvider with ChangeNotifier {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {
+        _searchPage = 1;
+        _searchHasMore = true;
+        _players = [];
         searchPlayers(query);
       } else {
         _players = [];
@@ -63,21 +109,42 @@ class TtPlayerProvider with ChangeNotifier {
     });
   }
 
-  Future<void> searchPlayers(String query) async {
-    _isLoading = true;
+  Future<void> searchPlayers(String query, {bool loadMore = false}) async {
+    if (_isLoading || _isFetchingMore || (loadMore && !_searchHasMore)) return;
+
+    if (loadMore) {
+      _isFetchingMore = true;
+    } else {
+      _isLoading = true;
+    }
     _error = null;
+    if (!loadMore) {
+      _searchPage = 1;
+      _searchHasMore = true;
+    }
     notifyListeners();
 
     try {
       final response = await _apiService.searchTtPlayers(
         query,
+        page: _searchPage,
         gender: _genderFilter,
       );
-      _players = response.items;
+      
+      if (loadMore) {
+        _players.addAll(response.items);
+      } else {
+        _players = response.items;
+      }
+      
+      _searchHasMore = response.items.length >= 20;
+      if (_searchHasMore) _searchPage++;
+      
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _isFetchingMore = false;
       notifyListeners();
     }
   }
