@@ -195,6 +195,22 @@ class ApiService {
 
   // ── Basketball ───────────────────────────────────────────────────────────
 
+  Future<BasketballClubListResponse> getBasketballClubs({
+    int page = 1,
+    int size = 20,
+    String? category,
+  }) async {
+    final categoryParam = category != null ? '&category=$category' : '';
+    final response = await http.get(
+      Uri.parse('$baseUrl/basketball-clubs?page=$page&size=$size$categoryParam'),
+    );
+    if (response.statusCode == 200) {
+      return BasketballClubListResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load basketball clubs');
+    }
+  }
+
   Future<BasketballClubListResponse> searchBasketballClubs(
     String query, {
     int page = 1,

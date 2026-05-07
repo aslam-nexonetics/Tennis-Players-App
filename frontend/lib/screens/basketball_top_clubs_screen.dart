@@ -12,12 +12,28 @@ class BasketballTopClubsScreen extends StatefulWidget {
 }
 
 class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BasketballClubProvider>().fetchTopClubs();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<BasketballClubProvider>().fetchTopClubs(loadMore: true);
+    }
   }
 
   @override
@@ -91,9 +107,20 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
                 return RefreshIndicator(
                   onRefresh: () => provider.fetchTopClubs(),
                   child: ListView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.all(16),
-                    itemCount: provider.topClubs.length,
+                    itemCount: provider.topClubs.length +
+                        (provider.topClubsHasMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (index == provider.topClubs.length) {
+                        return Opacity(
+                          opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 32),
+                            child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+                          ),
+                        );
+                      }
                       final club = provider.topClubs[index];
                       return Card(
                         color: Colors.white.withOpacity(0.1),

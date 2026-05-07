@@ -23,9 +23,11 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      final provider = Provider.of<BasketballClubProvider>(context, listen: false);
-      provider.fetchMoreClubs();
+            _scrollController.position.maxScrollExtent - 200 &&
+        _controller.text.isNotEmpty) {
+      context
+          .read<BasketballClubProvider>()
+          .searchClubsCall(_controller.text, loadMore: true);
     }
   }
 
@@ -121,7 +123,8 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
               child: Consumer<BasketballClubProvider>(
                 builder: (context, provider, child) {
                   if (provider.isLoading && provider.searchResults.isEmpty) {
-                    return const Center(child: CircularProgressIndicator(color: Colors.orange));
+                    return const Center(
+                        child: CircularProgressIndicator(color: Colors.orange));
                   }
                   if (provider.searchResults.isEmpty) {
                     return Center(
@@ -135,13 +138,18 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
                   }
                   return ListView.builder(
                     controller: _scrollController,
-                    itemCount: provider.searchResults.length + (provider.hasMore ? 1 : 0),
+                    itemCount: provider.searchResults.length +
+                        (provider.searchHasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == provider.searchResults.length) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: CircularProgressIndicator(color: Colors.orange),
+                        return Opacity(
+                          opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                          child: const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: CircularProgressIndicator(
+                                  color: Colors.orange),
+                            ),
                           ),
                         );
                       }
