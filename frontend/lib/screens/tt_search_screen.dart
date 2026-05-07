@@ -91,7 +91,7 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
             ),
           ),
         ),
-        if (provider.isLoading)
+        if (provider.isSearching)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: LinearProgressIndicator(

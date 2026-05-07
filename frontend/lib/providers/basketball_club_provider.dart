@@ -9,6 +9,7 @@ class BasketballClubProvider with ChangeNotifier {
   List<BasketballClub> _topClubs = [];
   List<BasketballClub> _searchResults = [];
   bool _isLoading = false;
+  bool _isSearching = false;
   bool _isFetchingMore = false;
   String _error = '';
   String _selectedCategory = 'men'; // 'men' or 'women'
@@ -18,6 +19,7 @@ class BasketballClubProvider with ChangeNotifier {
   List<BasketballClub> get topClubs => _topClubs;
   List<BasketballClub> get searchResults => _searchResults;
   bool get isLoading => _isLoading;
+  bool get isSearching => _isSearching;
   bool get isFetchingMore => _isFetchingMore;
   String get error => _error;
   String get selectedCategory => _selectedCategory;
@@ -107,12 +109,12 @@ class BasketballClubProvider with ChangeNotifier {
   }
 
   Future<void> searchClubsCall(String query, {bool loadMore = false}) async {
-    if (_isLoading || _isFetchingMore || (loadMore && !_searchHasMore)) return;
+    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore)) return;
 
     if (loadMore) {
       _isFetchingMore = true;
     } else {
-      _isLoading = true;
+      _isSearching = true;
     }
     _error = '';
     if (!loadMore) {
@@ -142,6 +144,7 @@ class BasketballClubProvider with ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _isSearching = false;
       _isFetchingMore = false;
       notifyListeners();
     }

@@ -15,6 +15,9 @@ class TtPlayerProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isSearching = false;
+  bool get isSearching => _isSearching;
+
   String? _error;
   String? get error => _error;
 
@@ -110,12 +113,12 @@ class TtPlayerProvider with ChangeNotifier {
   }
 
   Future<void> searchPlayers(String query, {bool loadMore = false}) async {
-    if (_isLoading || _isFetchingMore || (loadMore && !_searchHasMore)) return;
+    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore)) return;
 
     if (loadMore) {
       _isFetchingMore = true;
     } else {
-      _isLoading = true;
+      _isSearching = true;
     }
     _error = null;
     if (!loadMore) {
@@ -144,6 +147,7 @@ class TtPlayerProvider with ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _isSearching = false;
       _isFetchingMore = false;
       notifyListeners();
     }

@@ -84,7 +84,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
         ),
-        if (playerProvider.isLoading)
+        if (playerProvider.isSearching)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: LinearProgressIndicator(

@@ -122,7 +122,7 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
             Expanded(
               child: Consumer<BasketballClubProvider>(
                 builder: (context, provider, child) {
-                  if (provider.isLoading && provider.searchResults.isEmpty) {
+                  if (provider.isSearching && provider.searchResults.isEmpty) {
                     return const Center(
                         child: CircularProgressIndicator(color: Colors.orange));
                   }

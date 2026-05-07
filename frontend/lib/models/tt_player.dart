@@ -14,7 +14,7 @@ class TableTennisPlayer {
   final String? imageUrl;
   final String? source;
   final String? gender;
-  final DateTime lastUpdated;
+  final DateTime? lastUpdated;
 
   TableTennisPlayer({
     required this.id,
@@ -32,7 +32,7 @@ class TableTennisPlayer {
     this.imageUrl,
     this.source,
     this.gender,
-    required this.lastUpdated,
+    this.lastUpdated,
   });
 
   int? get age {
@@ -67,7 +67,9 @@ class TableTennisPlayer {
       imageUrl: json['image_url'],
       source: json['source'],
       gender: json['gender'],
-      lastUpdated: DateTime.parse(json['last_updated']),
+      lastUpdated: json['last_updated'] != null
+          ? DateTime.parse(json['last_updated'])
+          : null,
     );
   }
 }

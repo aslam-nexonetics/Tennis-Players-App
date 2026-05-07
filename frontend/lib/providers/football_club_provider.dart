@@ -15,6 +15,12 @@ class FootballClubProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isSearching = false;
+  bool get isSearching => _isSearching;
+
+  bool _isFetchingMore = false;
+  bool get isFetchingMore => _isFetchingMore;
+
   String? _error;
   String? get error => _error;
   
@@ -75,7 +81,8 @@ class FootballClubProvider with ChangeNotifier {
   }
 
   Future<void> searchClubs(String query) async {
-    _isLoading = true;
+    if (_isSearching) return;
+    _isSearching = true;
     _error = null;
     _currentPage = 1;
     _hasMore = true;

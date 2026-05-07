@@ -15,6 +15,9 @@ class PlayerProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isSearching = false;
+  bool get isSearching => _isSearching;
+
   bool _isFetchingMore = false;
   bool get isFetchingMore => _isFetchingMore;
 
@@ -109,12 +112,12 @@ class PlayerProvider with ChangeNotifier {
   }
 
   Future<void> searchPlayers(String query, {bool loadMore = false}) async {
-    if (_isLoading || _isFetchingMore || (loadMore && !_searchHasMore)) return;
+    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore)) return;
 
     if (loadMore) {
       _isFetchingMore = true;
     } else {
-      _isLoading = true;
+      _isSearching = true;
     }
     _error = null;
     if (!loadMore) {
@@ -143,6 +146,7 @@ class PlayerProvider with ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _isSearching = false;
       _isFetchingMore = false;
       notifyListeners();
     }
