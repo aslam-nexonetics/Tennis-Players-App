@@ -13,7 +13,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration
+from fastapi.middleware.gzip import GZipMiddleware
+
+# Middleware configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # In production, restrict this to the frontend domain
@@ -21,6 +23,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Include routes
 app.include_router(players.router, prefix="/players", tags=["Players"])

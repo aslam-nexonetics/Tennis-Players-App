@@ -17,7 +17,7 @@ class BasketballPlayerService:
 
     @staticmethod
     def search_players(db: Session, query: str, skip: int = 0, limit: int = 20):
-        search_filter = func.lower(BasketballPlayer.name).contains(func.lower(query))
+        search_filter = BasketballPlayer.name.ilike(f"%{query}%")
         total = db.query(func.count(BasketballPlayer.id)).filter(search_filter).scalar()
         items = db.query(BasketballPlayer).filter(search_filter).offset(skip).limit(limit).all()
         return items, total
@@ -42,7 +42,7 @@ class BasketballPlayerService:
             db.add(db_player)
         
         db.commit()
-        db.refresh(db_player)
+        # db.refresh(db_player)
         return db_player
 
     @staticmethod

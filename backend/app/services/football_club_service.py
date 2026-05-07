@@ -20,7 +20,7 @@ class FootballClubService:
 
     @staticmethod
     def search_clubs(db: Session, query: str, skip: int = 0, limit: int = 20, category: Optional[str] = None):
-        search_filter = func.lower(FootballClub.name).contains(func.lower(query))
+        search_filter = FootballClub.name.ilike(f"%{query}%")
         q = db.query(FootballClub).filter(search_filter)
         if category:
             q = q.filter(FootballClub.category == category)
@@ -49,5 +49,5 @@ class FootballClubService:
             db.add(db_club)
         
         db.commit()
-        db.refresh(db_club)
+        # db.refresh(db_club)
         return db_club

@@ -15,13 +15,15 @@ class PlayerService:
         if gender:
             query = query.filter(Player.gender == gender)
         
-        total = query.count()
+        total = query.with_entities(func.count(Player.id)).scalar()
         items = query.order_by(Player.ranking.asc()).offset(skip).limit(limit).all()
         return items, total
 
     @staticmethod
     def search_players(db: Session, query: str, skip: int = 0, limit: int = 20, gender: Optional[str] = None):
-        search_filter = func.lower(Player.name).contains(func.lower(query))
+        # Use ilike for case-insensitive search which is better supported by indexes in some DBs
+        # and generally more efficient than lower() calls on columns
+        search_filter = Player.name.ilike(f"%{query}%")
         q = db.query(Player).filter(search_filter)
         if gender:
             q = q.filter(Player.gender == gender)
@@ -47,7 +49,7 @@ class PlayerService:
             db.add(db_player)
         
         db.commit()
-        db.refresh(db_player)
+        # db.refresh(db_player) # Refresh is slow as it triggers a SELECT. Skip if not needed.
         return db_player
 
     @staticmethod

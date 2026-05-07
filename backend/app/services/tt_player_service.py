@@ -16,13 +16,13 @@ class TtPlayerService:
         if gender:
             query = query.filter(TableTennisPlayer.gender == gender)
             
-        total = query.count()
+        total = query.with_entities(func.count(TableTennisPlayer.id)).scalar()
         items = query.order_by(TableTennisPlayer.ranking.asc()).offset(skip).limit(limit).all()
         return items, total
 
     @staticmethod
     def search_players(db: Session, query: str, skip: int = 0, limit: int = 20, gender: Optional[str] = None):
-        search_filter = func.lower(TableTennisPlayer.name).contains(func.lower(query))
+        search_filter = TableTennisPlayer.name.ilike(f"%{query}%")
         q = db.query(TableTennisPlayer).filter(search_filter)
         if gender:
             q = q.filter(TableTennisPlayer.gender == gender)
@@ -50,5 +50,5 @@ class TtPlayerService:
             db.add(db_player)
 
         db.commit()
-        db.refresh(db_player)
+        # db.refresh(db_player)
         return db_player
