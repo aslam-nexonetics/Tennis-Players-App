@@ -77,7 +77,7 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _selectedIndex = 0; // 0: Search, 1: Rankings
+  int _selectedIndex = 0; // 0: Rankings, 1: Search
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +85,8 @@ class _MainNavigationState extends State<MainNavigation> {
     final currentSport = sportProvider.currentSport;
 
     final List<Widget> screens = [
-      _getSearchScreen(currentSport.type),
       _getRankingsScreen(currentSport.type),
+      _getSearchScreen(currentSport.type),
       if (currentSport.type == SportType.tennis || 
           currentSport.type == SportType.tableTennis ||
           currentSport.type == SportType.football ||
@@ -95,8 +95,8 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
 
     final List<_NavDef> navItems = [
-      const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
       const _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
+      const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
       if (currentSport.type == SportType.tennis || 
           currentSport.type == SportType.tableTennis ||
           currentSport.type == SportType.football ||
