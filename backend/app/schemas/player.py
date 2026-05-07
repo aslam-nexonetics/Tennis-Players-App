@@ -29,7 +29,7 @@ class PlayerUpdate(PlayerBase):
 
 class Player(PlayerBase):
     id: int
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
 
     class Config:
         from_attributes = True

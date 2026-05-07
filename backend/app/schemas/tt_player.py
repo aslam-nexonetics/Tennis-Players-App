@@ -30,7 +30,7 @@ class TtPlayerUpdate(TtPlayerBase):
 
 class TtPlayer(TtPlayerBase):
     id: int
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
 
     class Config:
         from_attributes = True
