@@ -15,11 +15,28 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        _controller.text.isNotEmpty) {
+      Provider.of<PlayerProvider>(context, listen: false)
+          .searchPlayers(_controller.text, loadMore: true);
+    }
   }
 
   @override
@@ -98,13 +115,24 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 )
               : ListView.builder(
+                  controller: _scrollController,
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
                     bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
-                  itemCount: playerProvider.players.length,
+                  itemCount: playerProvider.players.length +
+                      (playerProvider.searchHasMore ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == playerProvider.players.length) {
+                      return Opacity(
+                        opacity: playerProvider.isFetchingMore ? 1.0 : 0.0,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      );
+                    }
                     final player = playerProvider.players[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),

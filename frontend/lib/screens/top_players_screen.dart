@@ -14,13 +14,30 @@ class TopPlayersScreen extends StatefulWidget {
 }
 
 class _TopPlayersScreenState extends State<TopPlayersScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     Future.microtask(
       () =>
           Provider.of<PlayerProvider>(context, listen: false).fetchTopPlayers(),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      Provider.of<PlayerProvider>(context, listen: false)
+          .fetchTopPlayers(loadMore: true);
+    }
   }
 
   @override
@@ -53,9 +70,20 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
               : playerProvider.error != null
                   ? Center(child: Text('Error: ${playerProvider.error}'))
                   : ListView.builder(
+                      controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: playerProvider.topPlayers.length,
+                      itemCount: playerProvider.topPlayers.length +
+                          (playerProvider.topPlayersHasMore ? 1 : 0),
                       itemBuilder: (context, index) {
+                        if (index == playerProvider.topPlayers.length) {
+                          return Opacity(
+                            opacity: playerProvider.isFetchingMore ? 1.0 : 0.0,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 32),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                          );
+                        }
                         final player = playerProvider.topPlayers[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),

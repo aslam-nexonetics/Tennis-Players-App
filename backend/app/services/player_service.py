@@ -14,6 +14,8 @@ class PlayerService:
         query = db.query(Player)
         if gender:
             query = query.filter(Player.gender == gender)
+        # Only include players with a ranking
+        query = query.filter(Player.ranking != None).order_by(Player.ranking.asc())
         total = query.with_entities(func.count(Player.id)).scalar()
         items = query.offset(skip).limit(limit).all()
         return items, total
