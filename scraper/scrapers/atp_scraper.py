@@ -101,7 +101,7 @@ class ATPScraper(BaseScraper):
                     # 2. Fallback to Wikipedia
                     full_profile_url = f"https://www.atptour.com{player_url_path}" if player_url_path.startswith("/") else player_url_path
                     
-                    # To keep it fast, we only scrape ATP profile for the top 1000 
+                    # To keep pictures and full profiles for a good range, we enrich top 1000 
                     # OR for the specifically requested players: Svyatoslav Gulin and Denis Klok
                     priority_players = ["Gulin", "Klok", "Svyatoslav", "Denis"]
                     if ranking <= 1000 or any(p.lower() in name.lower() for p in priority_players):
