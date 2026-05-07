@@ -54,7 +54,9 @@ class WTAScraper(BaseScraper):
                             pass
 
                     log.info(f"Found WTA {name} (Rank {ranking}). Enriching...")
-                    wiki_data = self.wiki.enrich_player(name) or {}
+                    wiki_data = {}
+                    if ranking <= 1000:
+                        wiki_data = self.wiki.enrich_player(name) or {}
 
                     player_data = {
                         "name": name,

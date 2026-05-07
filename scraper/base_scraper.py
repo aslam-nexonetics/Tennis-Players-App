@@ -34,10 +34,10 @@ class BaseScraper:
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 )
                 page = context.new_page()
-                # Wait for networkidle to ensure all data is loaded
-                page.goto(url, wait_until="networkidle", timeout=60000)
-                # Extra wait for Angular/React to finish rendering
-                time.sleep(3)
+                # Wait for domcontentloaded instead of networkidle to avoid timeouts on heavy sites
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                # Extra wait for dynamic content to render
+                time.sleep(5)
                 content = page.content()
                 browser.close()
             return BeautifulSoup(content, "html.parser")

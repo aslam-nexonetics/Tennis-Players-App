@@ -20,9 +20,9 @@ from utils.logger import log
 def run_tennis_scraper():
     log.info("Starting Tennis Scraper...")
     atp = ATPScraper()
-    atp.scrape_rankings(limit=1500)
+    atp.scrape_rankings(limit=5000)
     wta = WTAScraper()
-    wta.scrape_rankings(limit=1500)
+    wta.scrape_rankings(limit=5000)
 
 def run_tt_scraper():
     log.info("Starting Table Tennis Scraper...")
