@@ -8,6 +8,27 @@ from sqlalchemy import func
 
 router = APIRouter()
 
+@router.get("", response_model=BasketballClubList)
+def get_clubs(
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    category: str = Query(None),
+    db: Session = Depends(get_db)
+):
+    query = db.query(BasketballClubModel).filter(BasketballClubModel.ranking != None).order_by(BasketballClubModel.ranking.asc())
+    if category:
+        query = query.filter(BasketballClubModel.category == category)
+    
+    total = query.count()
+    items = query.offset((page - 1) * size).limit(size).all()
+    
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": size
+    }
+
 @router.get("/search", response_model=BasketballClubList)
 def search_clubs(
     q: str = "",
