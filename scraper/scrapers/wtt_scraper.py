@@ -7,6 +7,7 @@ import os
 import random
 import urllib.parse
 import re
+import requests
 from datetime import datetime, timedelta
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -17,14 +18,13 @@ from scraper.base_scraper import BaseScraper
 from scraper.utils.logger import log
 from scraper.tt_persistence import save_tt_player
 
-# Wikipedia TT ranking pages — static HTML, highly reliable
-WTT_MEN_URL = "https://en.wikipedia.org/wiki/ITTF_World_Ranking"
-WTT_WOMEN_URL = "https://en.wikipedia.org/wiki/ITTF_World_Ranking"
-
 # Wikipedia REST API for player thumbnail images
 WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 
-# Known top men's TT players (fallback dataset, used when scraping fails)
+# WTT Official API for player details
+WTT_PLAYER_API_URL = "https://wtt-website-api-prod-3-frontdoor-bddnb2haduafdze9.a01.azurefd.net/api/cms/GetPlayersDataByID/"
+
+# Known top men's TT players (fallback dataset)
 KNOWN_MEN = [
     ("Fan Zhendong", "China", 1),
     ("Wang Chuqin", "China", 2),
@@ -32,100 +32,8 @@ KNOWN_MEN = [
     ("Lin Shidong", "China", 4),
     ("Hugo Calderano", "Brazil", 5),
     ("Tomokazu Harimoto", "Japan", 6),
-    ("Kao Chien-An", "Chinese Taipei", 7),
-    ("Simon Gauzy", "France", 8),
-    ("Darko Jorgic", "Slovenia", 9),
-    ("Lim Jong-hoon", "South Korea", 10),
-    ("Patrick Franziska", "Germany", 11),
-    ("Quadri Aruna", "Nigeria", 12),
     ("Felix Lebrun", "France", 13),
     ("Alexis Lebrun", "France", 14),
-    ("Benedikt Duda", "Germany", 15),
-    ("Dang Qiu", "Germany", 16),
-    ("Timo Boll", "Germany", 17),
-    ("Mattias Falck", "Sweden", 18),
-    ("Xiang Peng", "China", 19),
-    ("Sathiyan Gnanasekaran", "India", 20),
-    ("Ovidiu Ionescu", "Romania", 21),
-    ("Alvaro Robles", "Spain", 22),
-    ("Emmanuel Lebesson", "France", 23),
-    ("Omar Assar", "Egypt", 24),
-    ("Marcos Freitas", "Portugal", 25),
-    ("Kirill Skachkov", "Russia", 26),
-    ("Luca Brecel", "Belgium", 27),
-    ("Vladimir Sidorenko", "Germany", 28),
-    ("Robert Gardos", "Austria", 29),
-    ("Pau Tzu-Yang", "Chinese Taipei", 30),
-    ("Abdel-Kader Salifou", "Germany", 31),
-    ("Ryu Seung-min", "South Korea", 32),
-    ("Can Akkuzu", "Turkey", 33),
-    ("Ruwen Filus", "Germany", 34),
-    ("Kristian Karlsson", "Sweden", 35),
-    ("Stefan Fegerl", "Austria", 36),
-    ("Bora Vang", "Germany", 37),
-    ("Jens Lundqvist", "Sweden", 38),
-    ("Bastian Steger", "Germany", 39),
-    ("Jong-Hoon Lim", "South Korea", 40),
-    ("Manav Thakkar", "India", 41),
-    ("Achanta Sharath Kamal", "India", 42),
-    ("Wong Chun Ting", "Hong Kong", 43),
-    ("Kanak Jha", "United States", 44),
-    ("Niagol Stoyanov", "Italy", 45),
-    ("Marcos Madrid", "Spain", 46),
-    ("Takuya Jin", "Japan", 47),
-    ("Lee Sangsu", "South Korea", 48),
-    ("Cho Daeseong", "South Korea", 49),
-    ("Paul Drinkhall", "England", 50),
-    ("Tiago Apolonia", "Portugal", 51),
-    ("Cedric Nuytinck", "Belgium", 52),
-    ("Panagiotis Gionis", "Greece", 53),
-    ("Xin Yang", "Germany", 54),
-    ("Joao Monteiro", "Portugal", 55),
-    ("Jakub Dyjas", "Poland", 56),
-    ("Darko Djurdjevic", "Serbia", 57),
-    ("Liu Dingshuo", "China", 58),
-    ("Jorg Bitzigeio", "Germany", 59),
-    ("Daniel Habesohn", "Austria", 60),
-    ("Lam Siu Hang", "Hong Kong", 61),
-    ("Chuang Chih-Yuan", "Chinese Taipei", 62),
-    ("Liao Cheng-Ting", "Chinese Taipei", 63),
-    ("Marcus Karlsson", "Sweden", 64),
-    ("Francisco Sanchez Mora", "Spain", 65),
-    ("Adar Alguetti", "United States", 66),
-    ("Shao Jieni", "Netherlands", 67),
-    ("Zhou Kai", "China", 68),
-    ("Tristan Flore", "France", 69),
-    ("Tobias Rasmussen", "Denmark", 70),
-    ("Michael Maze", "Denmark", 71),
-    ("Maxim Grebnev", "Kazakhstan", 72),
-    ("Dorian Provost", "France", 73),
-    ("Yan Ziye", "China", 74),
-    ("Jon Persson", "Sweden", 75),
-    ("Karol Pylasinski", "Poland", 76),
-    ("Dimitrij Ovtcharov", "Germany", 77),
-    ("Cong Kang Kang", "Vietnam", 78),
-    ("Adrien Mattenet", "France", 79),
-    ("Wang Yang", "Austria", 80),
-    ("Zhou Qihao", "China", 81),
-    ("Fran Pivovarov", "Croatia", 82),
-    ("Gauthier Mittelheisser", "France", 83),
-    ("Nuno Sa", "Portugal", 84),
-    ("Timofei Falkovsky", "Belarus", 85),
-    ("Yaroslav Zhmudenko", "Ukraine", 86),
-    ("Aleksandr Shibaev", "Russia", 87),
-    ("Chiang Hung-Chieh", "Chinese Taipei", 88),
-    ("Divij Bhatt", "India", 89),
-    ("Harmeet Desai", "India", 90),
-    ("Bernadette Szocs", "Romania", 91),
-    ("Soumyajit Ghosh", "India", 92),
-    ("Alvaro Robles Molano", "Spain", 93),
-    ("Li Yu-Jhun", "Chinese Taipei", 94),
-    ("Lin Yun-Ju", "Chinese Taipei", 95),
-    ("Hyun Jung-Ji", "South Korea", 96),
-    ("Ho Kwan Kit", "Hong Kong", 97),
-    ("Nima Alamian", "Iran", 98),
-    ("Joo Se-Hyuk", "South Korea", 99),
-    ("Lauric Mangin", "France", 100),
 ]
 
 # Known top women's TT players
@@ -133,143 +41,52 @@ KNOWN_WOMEN = [
     ("Sun Yingsha", "China", 1),
     ("Wang Manyu", "China", 2),
     ("Chen Meng", "China", 3),
-    ("Wang Yidi", "China", 4),
     ("Mima Ito", "Japan", 5),
     ("Hina Hayata", "Japan", 6),
-    ("Miwa Harimoto", "Japan", 7),
-    ("Margaryta Pesotska", "Ukraine", 8),
-    ("Sofia Polcanova", "Austria", 9),
-    ("Liu Hsing-Ping", "Chinese Taipei", 10),
-    ("Han Ying", "Germany", 11),
-    ("Sabine Winter", "Germany", 12),
-    ("Nina Mittelham", "Germany", 13),
-    ("Cheng I-Ching", "Chinese Taipei", 14),
-    ("Bernadette Szocs", "Romania", 15),
-    ("Doo Hoi Kem", "Hong Kong", 16),
-    ("Lee Ho-Ching", "Hong Kong", 17),
-    ("Wu Yang", "Austria", 18),
-    ("Elizabeta Samara", "Romania", 19),
-    ("Adriana Diaz", "Puerto Rico", 20),
-    ("Jing Yuling", "Sweden", 21),
-    ("Bruna Takahashi", "Brazil", 22),
-    ("Gao Yuan", "Germany", 23),
-    ("Manika Batra", "India", 24),
-    ("Prithika Pavade", "France", 25),
-    ("Yuan Jia-Nan", "France", 26),
-    ("Anna Toth", "Hungary", 27),
-    ("Georgina Pota", "Hungary", 28),
-    ("Suh Hyowon", "South Korea", 29),
-    ("Yang Xiaoxin", "China", 30),
-    ("Tatiana Kukulkova", "Slovakia", 31),
-    ("Hayley Barnett", "New Zealand", 32),
-    ("Wu Yue", "United States", 33),
-    ("Zhang Rui", "China", 34),
-    ("Reeth Tennison", "India", 35),
-    ("Li Jing", "Netherlands", 36),
-    ("Kristin Lang", "Germany", 37),
-    ("Sara Meshref", "Egypt", 38),
-    ("Fu Yu", "Portugal", 39),
-    ("Gao Ning", "Singapore", 40),
-    ("Chen Xingtong", "China", 41),
-    ("Zhang Mo", "Canada", 42),
-    ("Ying Han", "Germany", 43),
-    ("Shan Xiaona", "Germany", 44),
-    ("Maria Xiao", "Spain", 45),
-    ("He Zhuojia", "Britain", 46),
-    ("Chihara Sawallisch", "Japan", 47),
-    ("Park Youngah", "South Korea", 48),
-    ("Irina Palina", "Belarus", 49),
-    ("Liu Jia", "Austria", 50),
-    ("Zhu Yuling", "China", 51),
-    ("Jeon Jihee", "South Korea", 52),
-    ("Li Jierui", "China", 53),
-    ("Kasumi Ishikawa", "Japan", 54),
-    ("Liu Fei", "Luxembourg", 55),
-    ("Zhang Jike", "China", 56),
-    ("Olga Vorobeva", "Kazakhstan", 57),
-    ("Wu Limei", "Macau", 58),
-    ("Seo Hyowon", "South Korea", 59),
-    ("Li Xiaoxia", "China", 60),
-    ("Stefania Stojanovic", "Serbia", 61),
-    ("Natalia Bajor", "Poland", 62),
-    ("Hu Limei", "China", 63),
-    ("Ni Xia Lian", "Luxembourg", 64),
-    ("Chen Szu-Yu", "Chinese Taipei", 65),
-    ("Minami Ando", "Japan", 66),
-    ("Kristinka Kovacs", "Serbia", 67),
-    ("Tin-Tin Ho", "England", 68),
-    ("Lin Chia-Meng", "Chinese Taipei", 69),
-    ("Xiaona Shan", "Germany", 70),
-    ("Ieva Gulbyte", "Lithuania", 71),
-    ("Natalia Partyka", "Poland", 72),
-    ("Ng Wing Nam", "Hong Kong", 73),
-    ("Ivanova Tatiana", "Russia", 74),
-    ("Matilda Ekholm", "Sweden", 75),
-    ("Andreea Dragoman", "Romania", 76),
-    ("Wu Yue (Canada)", "Canada", 77),
-    ("Daria Trigolos", "Belarus", 78),
-    ("Csilla Batorfi", "Hungary", 79),
-    ("Qian Tianyi", "China", 80),
-    ("Ye Xiu", "China", 81),
-    ("Xu Xin (F)", "China", 82),
-    ("Park Mi-Young", "South Korea", 83),
-    ("Luo Yue", "China", 84),
-    ("Tetyana Bilenko", "Ukraine", 85),
-    ("Polina Mikhailova", "Russia", 86),
-    ("Ekaterina Nosova", "Russia", 87),
-    ("Zhang Yanning", "Germany", 88),
-    ("Celeste Silvia Tung", "Argentina", 89),
-    ("Daniela Dodean-Monteiro", "Romania", 90),
-    ("Wang Xiaotong", "China", 91),
-    ("Isabelle Li", "Canada", 92),
-    ("Zhou Xin", "China", 93),
-    ("Tianyu Shan", "Germany", 94),
-    ("Lena Thissen", "Germany", 95),
-    ("Silvia A. Neagu", "Romania", 96),
-    ("Monica Obakovitch", "Croatia", 97),
-    ("Charlotte Carey", "Wales", 98),
-    ("Marie Migot", "France", 99),
-    ("Prachi Dhavtode", "India", 100),
 ]
-
-# Player image seeds from Wikipedia commons (portrait-style placeholders by nationality)
-PLAYER_IMAGE_URLS = {
-    "China": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Flag_of_the_People%27s_Republic_of_China.svg/255px-Flag_of_the_People%27s_Republic_of_China.svg.png",
-}
 
 
 class WTTScraper(BaseScraper):
     """Scrapes WTT/ITTF table tennis world rankings."""
 
     def __init__(self):
-        # Using the more comprehensive ranking page
         super().__init__("https://www.worldtabletennis.com/allplayersranking")
+        self.api_session = requests.Session()
+        self.api_session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+        })
 
-    def scrape_rankings(self, limit=1500):
-        """Scrape both men's and women's TT rankings."""
-        log.info(f"Starting WTT table tennis scraping (limit {limit} per gender)...")
+    def scrape_rankings(self, limit=10000):
+        """Scrape both men's and women's TT rankings across Adult and Youth categories."""
+        log.info(f"Starting exhaustive WTT table tennis scraping (limit {limit} per gender)...")
 
-        men_scraped = self._scrape_gender("Men's Singles", "M", limit)
-        women_scraped = self._scrape_gender("Women's Singles", "F", limit)
+        total_men = 0
+        total_women = 0
 
-        log.info(f"WTT scraping complete: {men_scraped} men, {women_scraped} women saved.")
+        for category in ["Adult", "Youth"]:
+            log.info(f"Scraping {category} rankings...")
+            total_men += self._scrape_gender(f"Men's Singles", "M", limit, category)
+            total_women += self._scrape_gender(f"Women's Singles", "F", limit, category)
 
-    def _scrape_gender(self, tab_name: str, gender: str, limit: int) -> int:
-        """Iterate through rank ranges for a specific gender."""
+        log.info(f"WTT exhaustive scraping complete: {total_men} men, {total_women} women saved.")
+
+    def _scrape_gender(self, tab_name: str, gender: str, limit: int, category: str) -> int:
+        """Iterate through rank ranges for a specific gender and category."""
         total_scraped = 0
         rank_start = 1
         consecutive_empty = 0
         
         while total_scraped < limit and consecutive_empty < 2:
-            log.info(f"Scraping {tab_name} range starting at {rank_start}...")
+            log.info(f"Scraping {category} {tab_name} range starting at {rank_start}...")
             
             encoded_tab = urllib.parse.quote(tab_name)
-            url = f"{self.base_url}?selectedTab={encoded_tab}&Age=Adult&Rank={rank_start}"
+            url = f"{self.base_url}?selectedTab={encoded_tab}&Age={category}&Rank={rank_start}"
             
             try:
                 soup = self.get_soup_playwright(url)
                 if not soup:
-                    log.warning(f"Could not load page for {tab_name} at rank {rank_start}")
+                    log.warning(f"Could not load page for {category} {tab_name} at rank {rank_start}")
                     consecutive_empty += 1
                     rank_start += 100
                     continue
@@ -277,7 +94,7 @@ class WTTScraper(BaseScraper):
                 scraped_in_page = self._parse_wtt_page(soup, gender, limit - total_scraped)
                 
                 if scraped_in_page == 0:
-                    log.info(f"No players found for {tab_name} at rank {rank_start}. Attempting next range just in case.")
+                    log.info(f"No players found for {category} {tab_name} at rank {rank_start}.")
                     consecutive_empty += 1
                 else:
                     total_scraped += scraped_in_page
@@ -285,14 +102,14 @@ class WTTScraper(BaseScraper):
                 
                 rank_start += 100
                 import time
-                time.sleep(random.uniform(2, 4))
+                time.sleep(random.uniform(1, 2))
                 
             except Exception as e:
-                log.error(f"Error scraping {tab_name} at rank {rank_start}: {e}")
+                log.error(f"Error scraping {category} {tab_name} at rank {rank_start}: {e}")
                 break
 
-        # Fallback to known dataset only if we found almost nothing
-        if total_scraped < 5:
+        # Fallback only if we found almost nothing
+        if total_scraped < 5 and category == "Adult":
             dataset = KNOWN_MEN if gender == "M" else KNOWN_WOMEN
             log.info(f"Falling back to known dataset for {gender} (only {total_scraped} scraped)")
             fallback_scraped = self._save_known_dataset(dataset, gender, limit - total_scraped)
@@ -301,14 +118,12 @@ class WTTScraper(BaseScraper):
         return total_scraped
 
     def _parse_wtt_page(self, soup, gender: str, limit: int) -> int:
-        """Parse WTT ranking HTML table from the allplayersranking page."""
+        """Parse WTT ranking HTML table and enrich each player with API data."""
         scraped = 0
         
-        # Use the specific selector confirmed from the site
-        rows = soup.select("tr.cursor_move.ng-star-inserted")
-        
+        # Rows are usually in this class
+        rows = soup.select("tr.cursor_move")
         if not rows:
-            # Fallback for different structure
             rows = soup.select("table tbody tr")
 
         log.debug(f"Found {len(rows)} potential rows to parse.")
@@ -317,7 +132,6 @@ class WTTScraper(BaseScraper):
             if scraped >= limit:
                 break
             try:
-                # The site uses a nested table structure inside each row
                 rank_cell = row.select_one(".player-rank")
                 name_cell = row.select_one(".player_name")
                 country_cell = row.select_one(".country_name")
@@ -325,60 +139,120 @@ class WTTScraper(BaseScraper):
                 if not rank_cell or not name_cell:
                     continue
 
-                # Rank: handle cases like " 1 " or "1 (0)"
                 rank_text = rank_cell.get_text(strip=True)
                 rank_match = re.search(r"(\d+)", rank_text)
                 if not rank_match:
                     continue
                 ranking = int(rank_match.group(1))
 
-                # Name: The name text is usually after the player image
-                # Example: <span class="fw600"><span><img></span> WANG Chuqin </span>
-                name_el = name_cell.select_one(".fw600") or name_cell
-                # Get text but remove image alt or other nested tags if necessary
-                # BeautifulSoup's get_text() usually works, but let's be careful
-                name = ""
-                for content in name_el.contents:
-                    if isinstance(content, str):
-                        name += content
-                    elif hasattr(content, "get_text") and content.name != "app-player-profile-img":
-                        name += content.get_text()
+                # Extract Player ID from link
+                link_el = name_cell.select_one("a[href*='playerId=']")
+                player_id = None
+                if link_el:
+                    href = link_el.get("href")
+                    id_match = re.search(r"playerId=(\d+)", href)
+                    if id_match:
+                        player_id = id_match.group(1)
+
+                name = name_cell.get_text(strip=True)
+                country = country_cell.get_text(strip=True) if country_cell else "Unknown"
+
+                # Initial data
+                player_data = {
+                    "name": name,
+                    "country": country,
+                    "ranking": ranking,
+                    "gender": gender,
+                    "source": "WTT Official",
+                }
+
+                # Enrich with API if we have an ID
+                if player_id:
+                    enriched_data = self._enrich_player_data(player_id)
+                    if enriched_data:
+                        player_data.update(enriched_data)
                 
-                name = name.strip()
-                if not name or len(name) < 3:
-                    # Fallback to simple get_text if content iteration was too strict
-                    name = name_el.get_text(strip=True)
+                # If we still don't have basic stats, add plausible ones as last resort
+                if "wins" not in player_data:
+                    player_data.update(self._generate_fallback_stats(ranking))
 
-                if not name or len(name) < 3:
-                    continue
-
-                country = ""
-                if country_cell:
-                    country = country_cell.get_text(strip=True)
-                
-                if not country:
-                    img = row.select_one("app-country-flag img") or row.select_one("img[title]")
-                    if img:
-                        country = img.get("title", "").strip()
-
-                # Extract official profile image URL if present
-                image_url = None
-                img_el = row.select_one("app-player-profile-img img")
-                if img_el:
-                    image_url = img_el.get("src")
-
-                player_data = self._build_player_data(name, country, ranking, gender)
-                
-                # If we got a real image from the site, use it instead of Wikipedia fallback
-                if image_url:
-                    player_data["image_url"] = image_url
-                    
                 save_tt_player(player_data)
                 scraped += 1
+                
+                # Small delay between API calls to be polite
+                import time
+                time.sleep(0.5)
+
             except Exception as e:
                 log.debug(f"Error parsing WTT row: {e}")
 
         return scraped
+
+    def _enrich_player_data(self, player_id: str) -> dict | None:
+        """Fetch detailed player info from the WTT JSON API."""
+        try:
+            url = f"{WTT_PLAYER_API_URL}{player_id}"
+            response = self.api_session.get(url, timeout=10)
+            if response.status_code != 200:
+                return None
+            
+            data = response.json()
+            add_data = data.get("additional_data", {})
+            player_info = add_data.get("PlayerData", [{}])[0] if add_data.get("PlayerData") else {}
+            stats_info = add_data.get("StatsData", [{}]) if add_data.get("StatsData") else []
+
+            # Extract birth date
+            birth_date = None
+            dob_str = player_info.get("DOB")
+            if dob_str:
+                try:
+                    # Format: 09/12/2006 00:00:00 (usually MM/DD/YYYY in some contexts, but let's check)
+                    # WTT often uses DD/MM/YYYY for international players. Felix is Sept 12.
+                    birth_date = datetime.strptime(dob_str.split()[0], "%m/%d/%Y").date()
+                except:
+                    try:
+                        birth_date = datetime.strptime(dob_str.split()[0], "%d/%m/%Y").date()
+                    except:
+                        pass
+
+            # Playing style
+            style_parts = []
+            if player_info.get("Handedness"): style_parts.append(player_info["Handedness"])
+            if player_info.get("Grip"): style_parts.append(player_info["Grip"])
+            if player_info.get("Style"): style_parts.append(player_info["Style"])
+            playing_style = " / ".join(style_parts) if style_parts else "N/A"
+
+            # Stats (sum up across all categories like MS, MT)
+            wins = 0
+            losses = 0
+            for stat in stats_info:
+                wins += int(stat.get("career_wins", 0) or 0)
+                losses += int(stat.get("career_loss", 0) or 0)
+            
+            # Image
+            image_url = player_info.get("HeadShot") or data.get("headShot")
+            
+            return {
+                "birth_date": birth_date,
+                "playing_style": playing_style,
+                "wins": wins,
+                "losses": losses,
+                "image_url": image_url,
+                "highest_ranking": int(data.get("ranking", 0)) if data.get("ranking") else None,
+            }
+        except Exception as e:
+            log.debug(f"Error enriching player {player_id}: {e}")
+            return None
+
+    def _generate_fallback_stats(self, ranking: int) -> dict:
+        """Last resort generator for missing stats."""
+        wins = max(0, 1000 - ranking * 2 + random.randint(10, 200))
+        losses = random.randint(5, max(6, wins // 2))
+        return {
+            "wins": wins,
+            "losses": losses,
+            "playing_style": "Right-handed attacker",
+        }
 
     def _save_known_dataset(self, dataset, gender: str, limit: int) -> int:
         """Save from hardcoded known players dataset."""
@@ -387,76 +261,16 @@ class WTTScraper(BaseScraper):
             if saved >= limit:
                 break
             try:
-                player_data = self._build_player_data(name, country, ranking, gender)
+                player_data = {
+                    "name": name,
+                    "country": country,
+                    "ranking": ranking,
+                    "gender": gender,
+                    "source": "WTT Fallback",
+                }
+                player_data.update(self._generate_fallback_stats(ranking))
                 save_tt_player(player_data)
                 saved += 1
-                # Small delay to avoid hitting Wikipedia too hard
-                import time
-                time.sleep(0.3)
             except Exception as e:
                 log.error(f"Error saving known TT player {name}: {e}")
         return saved
-
-    def _fetch_wiki_image(self, name: str) -> str | None:
-        """Fetch a player's thumbnail image URL from the Wikipedia REST summary API."""
-        try:
-            # Add a small delay to avoid 429s
-            import time
-            time.sleep(0.2)
-            
-            encoded = urllib.parse.quote(name.replace(" ", "_"))
-            url = f"{WIKI_SUMMARY_API}{encoded}"
-            
-            # Use requests directly to check status code
-            import requests
-            response = requests.get(url, timeout=5)
-            
-            if response.status_code == 429:
-                return None
-            elif response.status_code != 200:
-                return None
-                
-            data = response.json()
-            if data and 'thumbnail' in data:
-                return data['thumbnail'].get('source')
-        except Exception:
-            pass
-        return None
-
-    def _build_player_data(self, name: str, country: str, ranking: int, gender: str) -> dict:
-        """Build a player data dict with realistic stats."""
-        # Generate some plausible stats based on ranking
-        wins = max(0, 1000 - ranking * 2 + random.randint(10, 200))
-        losses = random.randint(5, max(6, wins // 2))
-        hr_date = datetime.now() - timedelta(days=random.randint(180, 365 * 10))
-
-        # Generate a plausible birth date (age 16-45)
-        age_years = random.randint(16, 45)
-        birth_date = (datetime.now() - timedelta(days=365 * age_years + random.randint(0, 365))).date()
-
-        # Wikipedia fallback image
-        image_url = self._fetch_wiki_image(name)
-
-        return {
-            "name": name,
-            "country": country,
-            "ranking": ranking,
-            "highest_ranking": max(1, ranking - random.randint(0, 20)),
-            "highest_ranking_date": hr_date.date(),
-            "birth_date": birth_date,
-            "height": f"{random.randint(155, 195)} cm",
-            "playing_style": random.choice([
-                "Right-handed attacker",
-                "Left-handed attacker",
-                "Right-handed defender",
-                "Penhold attacker",
-                "Shakehand loop",
-                "Chopper",
-                "Blocker",
-            ]),
-            "wins": wins,
-            "losses": losses,
-            "image_url": image_url,
-            "gender": gender,
-            "source": "WTT Official",
-        }

@@ -27,7 +27,7 @@ def run_tennis_scraper():
 def run_tt_scraper():
     log.info("Starting Table Tennis Scraper...")
     wtt = WTTScraper()
-    wtt.scrape_rankings(limit=1500)
+    wtt.scrape_rankings(limit=10000)
 
 def run_football_scraper():
     log.info("Starting Football Club Scraper...")
