@@ -6,36 +6,36 @@ sys.path.append(project_root)
 sys.path.append(os.path.join(project_root, 'backend'))
 
 from app.db.session import SessionLocal, engine, Base
-from app.models.football_club import FootballClub
+from app.models.football_national_team import FootballNationalTeam
 from sqlalchemy.orm import Session
 from scraper.utils.logger import log
 
 # Create tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
-def save_football_club(club_data: dict):
+def save_football_national_team(team_data: dict):
     db = SessionLocal()
     try:
-        existing = db.query(FootballClub).filter(
-            FootballClub.name == club_data['name'],
-            FootballClub.category == club_data.get('category', 'men')
+        existing = db.query(FootballNationalTeam).filter(
+            FootballNationalTeam.name == team_data['name'],
+            FootballNationalTeam.category == team_data.get('category', 'men')
         ).first()
         
         if existing:
             # Update existing record
-            for key, value in club_data.items():
+            for key, value in team_data.items():
                 if value is not None:
                     setattr(existing, key, value)
-            log.debug(f"Updated Football club: {club_data['name']}")
+            log.debug(f"Updated National Team: {team_data['name']}")
         else:
             # Create new record
-            new_club = FootballClub(**club_data)
-            db.add(new_club)
-            log.info(f"Added new Football club: {club_data['name']}")
+            new_team = FootballNationalTeam(**team_data)
+            db.add(new_team)
+            log.info(f"Added new National Team: {team_data['name']}")
         
         db.commit()
     except Exception as e:
         db.rollback()
-        log.error(f"Failed to save football club {club_data.get('name')}: {e}")
+        log.error(f"Failed to save national team {team_data.get('name')}: {e}")
     finally:
         db.close()

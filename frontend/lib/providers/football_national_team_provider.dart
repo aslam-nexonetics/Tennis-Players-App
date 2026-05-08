@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../models/football_club.dart';
+import '../models/football_national_team.dart';
 import '../services/api_service.dart';
 
-class FootballClubProvider with ChangeNotifier {
+class FootballNationalTeamProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  List<FootballClub> _clubs = [];
-  List<FootballClub> get clubs => _clubs;
+  List<FootballNationalTeam> _teams = [];
+  List<FootballNationalTeam> get teams => _teams;
 
-  List<FootballClub> _topClubs = [];
-  List<FootballClub> get topClubs => _topClubs;
+  List<FootballNationalTeam> _topTeams = [];
+  List<FootballNationalTeam> get topTeams => _topTeams;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   bool _isSearching = false;
   bool get isSearching => _isSearching;
-
-  bool _isFetchingMore = false;
-  bool get isFetchingMore => _isFetchingMore;
 
   String? _error;
   String? get error => _error;
@@ -34,19 +31,19 @@ class FootballClubProvider with ChangeNotifier {
   int _currentPage = 1;
   int _pageSize = 20;
   bool _hasMore = true;
-  int _totalClubs = 0;
+  int _totalTeams = 0;
 
   int get currentPage => _currentPage;
   bool get hasMore => _hasMore;
-  int get totalClubs => _totalClubs;
+  int get totalTeams => _totalTeams;
 
-  Future<void> fetchTopClubs() async {
+  Future<void> fetchTopTeams() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
   
     try {
-      _topClubs = await _apiService.getFootballTopClubs(limit: 50, category: _selectedCategory);
+      _topTeams = await _apiService.getFootballTopTeams(limit: 50, category: _selectedCategory);
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -58,11 +55,11 @@ class FootballClubProvider with ChangeNotifier {
   void setCategory(String category) {
     if (_selectedCategory == category) return;
     _selectedCategory = category;
-    _clubs = [];
+    _teams = [];
     _currentPage = 1;
     _hasMore = true;
     notifyListeners();
-    fetchTopClubs();
+    fetchTopTeams();
   }
 
   void onSearchChanged(String query) {
@@ -70,9 +67,9 @@ class FootballClubProvider with ChangeNotifier {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {
-        searchClubs(query);
+        searchTeams(query);
       } else {
-        _clubs = [];
+        _teams = [];
         _currentPage = 1;
         _hasMore = true;
         notifyListeners();
@@ -80,7 +77,7 @@ class FootballClubProvider with ChangeNotifier {
     });
   }
 
-  Future<void> searchClubs(String query) async {
+  Future<void> searchTeams(String query) async {
     if (_isSearching) return;
     _isSearching = true;
     _error = null;
@@ -89,24 +86,25 @@ class FootballClubProvider with ChangeNotifier {
     notifyListeners();
   
     try {
-      final response = await _apiService.searchFootballClubs(
+      final response = await _apiService.searchFootballTeams(
         query, 
         category: _selectedCategory,
         page: _currentPage,
         size: _pageSize,
       );
-      _clubs = response.items;
-      _totalClubs = response.total;
-      _hasMore = _clubs.length < _totalClubs;
+      _teams = response.items;
+      _totalTeams = response.total;
+      _hasMore = _teams.length < _totalTeams;
     } catch (e) {
       _error = e.toString();
     } finally {
+      _isSearching = false;
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> fetchMoreClubs() async {
+  Future<void> fetchMoreTeams() async {
     if (_isLoading || !_hasMore || _lastQuery.isEmpty) return;
 
     _isLoading = true;
@@ -114,7 +112,7 @@ class FootballClubProvider with ChangeNotifier {
 
     try {
       final nextPage = _currentPage + 1;
-      final response = await _apiService.searchFootballClubs(
+      final response = await _apiService.searchFootballTeams(
         _lastQuery,
         category: _selectedCategory,
         page: nextPage,
@@ -122,9 +120,9 @@ class FootballClubProvider with ChangeNotifier {
       );
       
       if (response.items.isNotEmpty) {
-        _clubs.addAll(response.items);
+        _teams.addAll(response.items);
         _currentPage = nextPage;
-        _hasMore = _clubs.length < _totalClubs;
+        _hasMore = _teams.length < _totalTeams;
       } else {
         _hasMore = false;
       }
@@ -137,7 +135,7 @@ class FootballClubProvider with ChangeNotifier {
   }
 
   void clearSearch() {
-    _clubs = [];
+    _teams = [];
     _lastQuery = '';
     notifyListeners();
   }

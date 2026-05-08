@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/football_club.dart';
+import '../models/football_national_team.dart';
 import '../widgets/glass_widgets.dart';
 
-class FootballClubDetailScreen extends StatelessWidget {
-  final FootballClub club;
+class FootballTeamDetailScreen extends StatelessWidget {
+  final FootballNationalTeam team;
 
-  const FootballClubDetailScreen({super.key, required this.club});
+  const FootballTeamDetailScreen({super.key, required this.team});
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +61,10 @@ class FootballClubDetailScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 80),
-                _buildClubLogo(size: 140),
+                _buildTeamLogo(size: 140),
                 const SizedBox(height: 16),
                 Text(
-                  '🏆 ${club.league ?? 'Professional Football'}',
+                  '🌍 ${team.confederation ?? 'FIFA Member'}',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,
@@ -74,11 +74,8 @@ class FootballClubDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (club.ranking != null)
-                      _buildRankBadge('World #${club.ranking}', Colors.amber),
-                    if (club.domesticRanking != null)
-                      _buildRankBadge(
-                          'Domestic #${club.domesticRanking}', Colors.blue[400]!),
+                    if (team.ranking != null)
+                      _buildRankBadge('FIFA Rank #${team.ranking}', Colors.amber),
                   ],
                 ),
               ],
@@ -153,7 +150,7 @@ class FootballClubDetailScreen extends StatelessWidget {
                             colors: [Color(0xFFFF5F6D), Color(0xFFE4405F)],
                           ),
                         ),
-                        child: Center(child: _buildClubLogo(size: 160)),
+                        child: Center(child: _buildTeamLogo(size: 160)),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(24.0),
@@ -164,13 +161,9 @@ class FootballClubDetailScreen extends StatelessWidget {
                             const SizedBox(height: 24),
                             Row(
                               children: [
-                                if (club.ranking != null)
+                                if (team.ranking != null)
                                   _buildRankBadge(
-                                      'World #${club.ranking}', Colors.amber),
-                                if (club.domesticRanking != null)
-                                  _buildRankBadge(
-                                      'Domestic #${club.domesticRanking}',
-                                      Colors.blue[400]!),
+                                      'FIFA Rank #${team.ranking}', Colors.amber),
                               ],
                             ),
                           ],
@@ -197,7 +190,7 @@ class FootballClubDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildClubLogo({required double size}) {
+  Widget _buildTeamLogo({required double size}) {
     return Container(
       width: size,
       height: size,
@@ -210,13 +203,13 @@ class FootballClubDetailScreen extends StatelessWidget {
         ),
       ),
       child: ClipOval(
-        child: club.imageUrl != null
+        child: team.imageUrl != null
             ? Image.network(
-                club.imageUrl!,
+                team.imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _initialsWidget(club.name, 48),
+                errorBuilder: (_, __, ___) => _initialsWidget(team.name, 48),
               )
-            : _initialsWidget(club.name, 48),
+            : _initialsWidget(team.name, 48),
       ),
     );
   }
@@ -226,12 +219,12 @@ class FootballClubDetailScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          club.name,
+          team.name,
           style: const TextStyle(
               fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
         ),
         Text(
-          '${club.country ?? 'Unknown'} • Founded ${club.foundedYear ?? 'TBD'}',
+          'National Team • Founded ${team.foundedYear ?? 'TBD'}',
           style: TextStyle(
               fontSize: 18, color: Colors.grey[700], fontWeight: FontWeight.w500),
         ),
@@ -245,7 +238,7 @@ class FootballClubDetailScreen extends StatelessWidget {
       children: [
         _buildQuickStatsSection(),
         const SizedBox(height: 40),
-        if (club.honors != null && club.honors!.isNotEmpty) ...[
+        if (team.honors != null && team.honors!.isNotEmpty) ...[
           const Text(
             'Major Honors',
             style: TextStyle(
@@ -258,7 +251,7 @@ class FootballClubDetailScreen extends StatelessWidget {
           const SizedBox(height: 40),
         ],
         const Text(
-          'About the Club',
+          'About the Team',
           style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -266,23 +259,23 @@ class FootballClubDetailScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          club.description ?? 'No information available.',
+          team.description ?? 'No information available.',
           style: const TextStyle(
               fontSize: 15, height: 1.6, color: Color(0xFF2D2D2F)),
         ),
         const SizedBox(height: 40),
         const Text(
-          'Governance & Financials',
+          'Leadership',
           style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Color(0xFFE4405F)),
         ),
         const SizedBox(height: 16),
-        _buildGovernanceGrid(),
+        _buildLeadershipGrid(),
         const SizedBox(height: 40),
         const Text(
-          'Venue & Attendance',
+          'Home Ground',
           style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -291,7 +284,7 @@ class FootballClubDetailScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _buildVenueCard(),
         const SizedBox(height: 40),
-        if (club.mainRivals != null) ...[
+        if (team.mainRivals != null) ...[
           const Text(
             'Main Rivals',
             style: TextStyle(
@@ -319,11 +312,11 @@ class FootballClubDetailScreen extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _buildStatBadge('TOTAL TROPHIES', '${club.totalTrophies}', Icons.military_tech_rounded, Colors.amber[800]!),
+          child: _buildStatBadge('TOTAL TROPHIES', '${team.totalTrophies}', Icons.military_tech_rounded, Colors.amber[800]!),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatBadge('MARKET VALUE', club.marketValue ?? 'TBD', Icons.account_balance_wallet_rounded, Colors.green[700]!),
+          child: _buildStatBadge('WC TITLES', '${team.worldCupTitles}', Icons.emoji_events_rounded, Colors.orange[700]!),
         ),
       ],
     );
@@ -350,7 +343,7 @@ class FootballClubDetailScreen extends StatelessWidget {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: club.honors!.entries.map((e) => _buildHonorCard(e.key, e.value)).toList(),
+      children: team.honors!.entries.map((e) => _buildHonorCard(e.key, e.value)).toList(),
     );
   }
 
@@ -382,14 +375,13 @@ class FootballClubDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGovernanceGrid() {
+  Widget _buildLeadershipGrid() {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
-        _buildInfoCard('Captain', club.captain ?? 'TBD', Icons.person_pin, 0.45),
-        _buildInfoCard('Manager', club.manager ?? 'TBD', Icons.sports_rounded, 0.45),
-        _buildInfoCard('Owner/Chairman', club.owner ?? 'TBD', Icons.business_rounded, 1.0),
+        _buildInfoCard('Captain', team.captain ?? 'TBD', Icons.person_pin, 0.45),
+        _buildInfoCard('Manager', team.manager ?? 'TBD', Icons.sports_rounded, 0.45),
       ],
     );
   }
@@ -399,41 +391,27 @@ class FootballClubDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       borderRadius: 20,
       opacity: 0.1,
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Icon(Icons.stadium, size: 40, color: Color(0xFFE4405F)),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(club.stadium ?? 'Unknown Stadium', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text('Capacity: ${_formatNum(club.capacity)}', style: TextStyle(color: Colors.grey[700])),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (club.averageAttendance != null) ...[
-            const Divider(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const Icon(Icons.stadium, size: 40, color: Color(0xFFE4405F)),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Average Attendance', style: TextStyle(fontWeight: FontWeight.w500)),
-                Text(_formatNum(club.averageAttendance), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFE4405F))),
+                Text(team.stadium ?? 'National Stadium', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('Primary Venue', style: TextStyle(color: Colors.grey[700])),
               ],
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 
   Widget _buildRivalsChips() {
-    final rivals = club.mainRivals!.split(',');
+    final rivals = team.mainRivals!.split(',');
     return Wrap(
       spacing: 8,
       children: rivals.map((r) => Chip(
@@ -466,11 +444,6 @@ class FootballClubDetailScreen extends StatelessWidget {
         );
       }
     );
-  }
-
-  String _formatNum(int? num) {
-    if (num == null) return 'Unknown';
-    return num.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
   }
 
   Widget _initialsWidget(String name, double fontSize) {

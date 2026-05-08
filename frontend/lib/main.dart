@@ -3,20 +3,20 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/tt_player_provider.dart';
-import 'providers/football_club_provider.dart';
+import 'providers/football_national_team_provider.dart';
 import 'providers/basketball_club_provider.dart';
 import 'providers/sport_provider.dart';
 import 'screens/search_screen.dart';
 import 'screens/top_players_screen.dart';
 import 'screens/tt_search_screen.dart';
 import 'screens/tt_top_players_screen.dart';
-import 'screens/football_search_screen.dart';
-import 'screens/football_top_clubs_screen.dart';
+import 'screens/football_team_search_screen.dart';
+import 'screens/football_top_teams_screen.dart';
 import 'screens/basketball_search_screen.dart';
 import 'screens/basketball_top_clubs_screen.dart';
 import 'screens/player_compare_screen.dart';
 import 'screens/tt_player_compare_screen.dart';
-import 'screens/football_club_compare_screen.dart';
+import 'screens/football_team_compare_screen.dart';
 import 'screens/basketball_club_compare_screen.dart';
 import 'widgets/glass_widgets.dart';
 
@@ -26,7 +26,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
         ChangeNotifierProvider(create: (_) => TtPlayerProvider()),
-        ChangeNotifierProvider(create: (_) => FootballClubProvider()),
+        ChangeNotifierProvider(create: (_) => FootballNationalTeamProvider()),
         ChangeNotifierProvider(create: (_) => BasketballClubProvider()),
         ChangeNotifierProvider(create: (_) => SportProvider()),
       ],
@@ -120,7 +120,7 @@ class _MainNavigationState extends State<MainNavigation> {
   void _clearAllSearchProviders() {
     Provider.of<PlayerProvider>(context, listen: false).clearSearch();
     Provider.of<TtPlayerProvider>(context, listen: false).clearSearch();
-    Provider.of<FootballClubProvider>(context, listen: false).clearSearch();
+    Provider.of<FootballNationalTeamProvider>(context, listen: false).clearSearch();
     Provider.of<BasketballClubProvider>(context, listen: false).clearSearch();
   }
 
@@ -131,7 +131,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case SportType.tableTennis:
         return const TtSearchScreen();
       case SportType.football:
-        return const FootballSearchScreen();
+        return const FootballTeamSearchScreen();
       case SportType.basketball:
         return const BasketballSearchScreen();
     }
@@ -144,7 +144,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case SportType.tableTennis:
         return const TtTopPlayersScreen();
       case SportType.football:
-        return const FootballTopClubsScreen();
+        return const FootballTopTeamsScreen();
       case SportType.basketball:
         return const BasketballTopClubsScreen();
     }
@@ -157,7 +157,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case SportType.tableTennis:
         return const TtPlayerCompareScreen();
       case SportType.football:
-        return const FootballClubCompareScreen();
+        return const FootballTeamCompareScreen();
       case SportType.basketball:
         return const BasketballClubCompareScreen();
       default:
@@ -306,7 +306,7 @@ class _SportCategoryBar extends StatelessWidget {
                   // Clear all search results when switching sports
                   Provider.of<PlayerProvider>(context, listen: false).clearSearch();
                   Provider.of<TtPlayerProvider>(context, listen: false).clearSearch();
-                  Provider.of<FootballClubProvider>(context, listen: false).clearSearch();
+                  Provider.of<FootballNationalTeamProvider>(context, listen: false).clearSearch();
                   Provider.of<BasketballClubProvider>(context, listen: false).clearSearch();
                   
                   sportProvider.setSport(sport);
@@ -547,5 +547,3 @@ class _BottomNavItem extends StatelessWidget {
     );
   }
 }
-
-

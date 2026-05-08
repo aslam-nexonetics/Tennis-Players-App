@@ -1,28 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../models/football_club.dart';
+import '../models/football_national_team.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
 
-class FootballClubCompareScreen extends StatefulWidget {
-  final FootballClub? clubA;
-  const FootballClubCompareScreen({super.key, this.clubA});
+class FootballTeamCompareScreen extends StatefulWidget {
+  final FootballNationalTeam? teamA;
+  const FootballTeamCompareScreen({super.key, this.teamA});
 
   @override
-  State<FootballClubCompareScreen> createState() => _FootballClubCompareScreenState();
+  State<FootballTeamCompareScreen> createState() => _FootballTeamCompareScreenState();
 }
 
-class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
+class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
     with TickerProviderStateMixin {
-  FootballClub? _clubA;
-  FootballClub? _clubB;
+  FootballNationalTeam? _teamA;
+  FootballNationalTeam? _teamB;
   
   bool _searchingA = false;
   bool _searchingB = false;
   
-  List<FootballClub> _resultsA = [];
-  List<FootballClub> _resultsB = [];
+  List<FootballNationalTeam> _resultsA = [];
+  List<FootballNationalTeam> _resultsB = [];
   
   bool _noResultsA = false;
   bool _noResultsB = false;
@@ -41,9 +41,9 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
   @override
   void initState() {
     super.initState();
-    _clubA = widget.clubA;
-    if (_clubA != null) {
-      _ctrlA.text = _clubA!.name;
+    _teamA = widget.teamA;
+    if (_teamA != null) {
+      _ctrlA.text = _teamA!.name;
     }
     
     _fadeCtrl = AnimationController(
@@ -98,13 +98,13 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
       }
     });
     try {
-      final res = await ApiService().searchFootballClubs(q, size: 5);
+      final res = await ApiService().searchFootballTeams(q, size: 5);
       setState(() {
         if (isA) {
-          _resultsA = res.items.where((c) => c.id != _clubB?.id).toList();
+          _resultsA = res.items.where((c) => c.id != _teamB?.id).toList();
           _noResultsA = _resultsA.isEmpty;
         } else {
-          _resultsB = res.items.where((c) => c.id != _clubA?.id).toList();
+          _resultsB = res.items.where((c) => c.id != _teamA?.id).toList();
           _noResultsB = _resultsB.isEmpty;
         }
       });
@@ -121,9 +121,9 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
     }
   }
 
-  void _selectA(FootballClub c) {
+  void _selectA(FootballNationalTeam c) {
     setState(() {
-      _clubA = c;
+      _teamA = c;
       _resultsA = [];
       _noResultsA = false;
       _ctrlA.text = c.name;
@@ -132,9 +132,9 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
     FocusScope.of(context).unfocus();
   }
 
-  void _selectB(FootballClub c) {
+  void _selectB(FootballNationalTeam c) {
     setState(() {
-      _clubB = c;
+      _teamB = c;
       _resultsB = [];
       _noResultsB = false;
       _ctrlB.text = c.name;
@@ -144,7 +144,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
   }
 
   void _compare() {
-    if (_clubA != null && _clubB != null) {
+    if (_teamA != null && _teamB != null) {
       setState(() {
         _showComparison = true;
       });
@@ -166,7 +166,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
                   children: [
                     const SizedBox(height: 30),
                     const Text(
-                      'Club Comparison',
+                      'National Team Comparison',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -176,7 +176,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'Analyze football giants side-by-side',
+                      'Analyze national teams side-by-side',
                       style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                     const SizedBox(height: 20),
@@ -205,7 +205,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
         children: [
           Row(
             children: [
-              Expanded(child: _buildSearchBox(_ctrlA, _onSearchA, _clubA, true)),
+              Expanded(child: _buildSearchBox(_ctrlA, _onSearchA, _teamA, true)),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Text('VS',
@@ -214,10 +214,10 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
               ),
-              Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _clubB, false)),
+              Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _teamB, false)),
               const SizedBox(width: 12),
               ElevatedButton(
-                onPressed: (_clubA != null && _clubB != null) ? _compare : null,
+                onPressed: (_teamA != null && _teamB != null) ? _compare : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFE4405F),
                   foregroundColor: Colors.white,
@@ -253,7 +253,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
   }
 
   Widget _buildSearchBox(TextEditingController ctrl, Function(String) onChanged,
-      FootballClub? selected, bool isA) {
+      FootballNationalTeam? selected, bool isA) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.05),
@@ -277,7 +277,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
               onChanged: onChanged,
               style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 14),
               decoration: InputDecoration(
-                hintText: isA ? 'Search Club 1' : 'Search Club 2',
+                hintText: isA ? 'Search Team 1' : 'Search Team 2',
                 hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -311,7 +311,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
     );
   }
 
-  Widget _buildResultList(List<FootballClub> results, Function(FootballClub) onSelect) {
+  Widget _buildResultList(List<FootballNationalTeam> results, Function(FootballNationalTeam) onSelect) {
     return Container(
       margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
@@ -326,7 +326,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
                   leading: _Avatar(imageUrl: c.imageUrl, name: c.name, size: 24, accent: const Color(0xFFE4405F)),
                   title: Text(c.name,
                       style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 12)),
-                  subtitle: Text(c.league ?? 'Unknown',
+                  subtitle: Text(c.confederation ?? 'Unknown',
                       style: const TextStyle(color: Colors.grey, fontSize: 10)),
                   onTap: () => onSelect(c),
                 ))
@@ -359,20 +359,20 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildClubHeader(_clubA!, true),
+          _buildTeamHeader(_teamA!, true),
           Column(
             children: [
               Text('VS',
                   style: TextStyle(color: Colors.grey.withOpacity(0.2), fontSize: 24, fontWeight: FontWeight.bold)),
             ],
           ),
-          _buildClubHeader(_clubB!, false),
+          _buildTeamHeader(_teamB!, false),
         ],
       ),
     );
   }
 
-  Widget _buildClubHeader(FootballClub c, bool isLeft) {
+  Widget _buildTeamHeader(FootballNationalTeam c, bool isLeft) {
     return Expanded(
       child: Column(
         crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
@@ -387,9 +387,7 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
               style: const TextStyle(
                   color: Color(0xFF1D1D1F), fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: isLeft ? TextAlign.left : TextAlign.right),
-          Text(c.country ?? "N/A", style: const TextStyle(color: Colors.grey)),
-          Text(c.league ?? "N/A",
-              style: const TextStyle(color: Color(0xFFE4405F), fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(c.confederation ?? "N/A", style: const TextStyle(color: Colors.grey)),
         ],
       ),
     );
@@ -405,13 +403,10 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
           const Text('CORE STATISTICS', 
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12, letterSpacing: 1.2)),
           const SizedBox(height: 20),
-          _buildStatRow('World Rank', '#${_clubA!.ranking}', '#${_clubB!.ranking}', isLowerBetter: true),
-          _buildStatRow('Total Trophies', '${_clubA!.totalTrophies}', '${_clubB!.totalTrophies}'),
-          _buildStatRow('Market Value', _clubA!.marketValue ?? 'TBD', _clubB!.marketValue ?? 'TBD', isNumeric: false),
-          _buildStatRow('League Pos', '${_clubA!.leaguePosition}', '${_clubB!.leaguePosition}', isLowerBetter: true),
-          _buildStatRow('Stadium Capacity', _formatNum(_clubA!.capacity), _formatNum(_clubB!.capacity)),
-          _buildStatRow('Avg Attendance', _formatNum(_clubA!.averageAttendance), _formatNum(_clubB!.averageAttendance)),
-          _buildStatRow('Founded', '${_clubA!.foundedYear}', '${_clubB!.foundedYear}', isNumeric: false),
+          _buildStatRow('FIFA Rank', '#${_teamA!.ranking}', '#${_teamB!.ranking}', isLowerBetter: true),
+          _buildStatRow('Total Trophies', '${_teamA!.totalTrophies}', '${_teamB!.totalTrophies}'),
+          _buildStatRow('WC Titles', '${_teamA!.worldCupTitles}', '${_teamB!.worldCupTitles}'),
+          _buildStatRow('Founded', '${_teamA!.foundedYear}', '${_teamB!.foundedYear}', isNumeric: false),
         ],
       ),
     );
@@ -506,9 +501,9 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
   Widget _buildExtraInfo() {
     return Row(
       children: [
-        Expanded(child: _buildInfoCard('Manager', _clubA!.manager, _clubB!.manager, Icons.sports_rounded)),
+        Expanded(child: _buildInfoCard('Manager', _teamA!.manager, _teamB!.manager, Icons.sports_rounded)),
         const SizedBox(width: 16),
-        Expanded(child: _buildInfoCard('Captain', _clubA!.captain, _clubB!.captain, Icons.person_pin)),
+        Expanded(child: _buildInfoCard('Captain', _teamA!.captain, _teamB!.captain, Icons.person_pin)),
       ],
     );
   }
@@ -541,17 +536,12 @@ class _FootballClubCompareScreenState extends State<FootballClubCompareScreen>
         children: [
           Icon(Icons.compare_arrows, color: Colors.grey.withOpacity(0.3), size: 100),
           const SizedBox(height: 20),
-          Text('Select two clubs and press COMPARE\nto see the side-by-side analysis',
+          Text('Select two teams and press COMPARE\nto see the side-by-side analysis',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],
       ),
     );
-  }
-
-  String _formatNum(int? num) {
-    if (num == null) return '0';
-    return num.toString();
   }
 }
 

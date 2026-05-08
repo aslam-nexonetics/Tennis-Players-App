@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import '../models/player.dart';
 import '../models/tt_player.dart';
-import '../models/football_club.dart';
+import '../models/football_national_team.dart';
 import '../models/basketball_club.dart';
 
 class ApiService {
@@ -149,7 +149,7 @@ class ApiService {
 
   // ── Football ─────────────────────────────────────────────────────────────
 
-  Future<FootballClubListResponse> searchFootballClubs(
+  Future<FootballNationalTeamListResponse> searchFootballTeams(
     String query, {
     int page = 1,
     int size = 20,
@@ -158,38 +158,38 @@ class ApiService {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
       Uri.parse(
-        '$baseUrl/football-clubs/search?q=$query&page=$page&size=$size$categoryParam',
+        '$baseUrl/football-national-teams/search?q=$query&page=$page&size=$size$categoryParam',
       ),
     );
     if (response.statusCode == 200) {
-      return FootballClubListResponse.fromJson(json.decode(response.body));
+      return FootballNationalTeamListResponse.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to search football clubs');
+      throw Exception('Failed to search football teams');
     }
   }
 
-  Future<FootballClub> getFootballClubDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/football-clubs/$id'));
+  Future<FootballNationalTeam> getFootballTeamDetail(int id) async {
+    final response = await http.get(Uri.parse('$baseUrl/football-national-teams/$id'));
     if (response.statusCode == 200) {
-      return FootballClub.fromJson(json.decode(response.body));
+      return FootballNationalTeam.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to load football club details');
+      throw Exception('Failed to load football team details');
     }
   }
 
-  Future<List<FootballClub>> getFootballTopClubs({
+  Future<List<FootballNationalTeam>> getFootballTopTeams({
     int limit = 50,
     String? category,
   }) async {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/football-clubs/top?limit=$limit$categoryParam'),
+      Uri.parse('$baseUrl/football-national-teams/top?limit=$limit$categoryParam'),
     );
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
-      return data.map((i) => FootballClub.fromJson(i)).toList();
+      return data.map((i) => FootballNationalTeam.fromJson(i)).toList();
     } else {
-      throw Exception('Failed to load top football clubs');
+      throw Exception('Failed to load top football teams');
     }
   }
 

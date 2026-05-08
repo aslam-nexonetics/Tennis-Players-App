@@ -13,7 +13,7 @@ sys.path.append(os.path.join(project_root, 'backend'))
 from scrapers.atp_scraper import ATPScraper
 from scrapers.wta_scraper import WTAScraper
 from scrapers.wtt_scraper import WTTScraper
-from scrapers.football_club_scraper import FootballClubScraper
+from scrapers.football_national_team_scraper import FootballNationalTeamScraper
 from scrapers.basketball_club_scraper import BasketballClubScraper
 from utils.logger import log
 
@@ -30,9 +30,9 @@ def run_tt_scraper():
     wtt.scrape_rankings(limit=10000)
 
 def run_football_scraper():
-    log.info("Starting Football Club Scraper...")
-    fb = FootballClubScraper()
-    fb.scrape_clubs(limit=10000)
+    log.info("Starting Football National Team Scraper...")
+    fb = FootballNationalTeamScraper()
+    fb.scrape_all()
 
 def run_basketball_scraper():
     log.info("Starting Basketball Club Scraper...")

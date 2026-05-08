@@ -1,82 +1,67 @@
-class FootballClub {
+class FootballNationalTeam {
   final int id;
   final String name;
   final String? country;
-  final String? league;
+  final String? confederation;
   final int? foundedYear;
   final String? stadium;
-  final int? capacity;
   final String? manager;
   final String? nickname;
   final String? imageUrl;
   final String? website;
   final String? description;
   final int? ranking;
-  final int? domesticRanking;
   final String category;
   
   // Enhanced Statistics
   final int totalTrophies;
-  final String? marketValue;
-  final int? leaguePosition;
+  final int worldCupTitles;
   final String? captain;
-  final String? owner;
   final String? mainRivals;
-  final int? averageAttendance;
   
   // Detailed Honors
   final Map<String, int>? honors;
 
-  FootballClub({
+  FootballNationalTeam({
     required this.id,
     required this.name,
     this.country,
-    this.league,
+    this.confederation,
     this.foundedYear,
     this.stadium,
-    this.capacity,
     this.manager,
     this.nickname,
     this.imageUrl,
     this.website,
     this.description,
     this.ranking,
-    this.domesticRanking,
     required this.category,
     this.totalTrophies = 0,
-    this.marketValue,
-    this.leaguePosition,
+    this.worldCupTitles = 0,
     this.captain,
-    this.owner,
     this.mainRivals,
-    this.averageAttendance,
     this.honors,
   });
 
-  factory FootballClub.fromJson(Map<String, dynamic> json) {
-    return FootballClub(
+  factory FootballNationalTeam.fromJson(Map<String, dynamic> json) {
+    return FootballNationalTeam(
       id: json['id'],
       name: json['name'],
       country: json['country'],
-      league: json['league'],
+      confederation: json['confederation'],
       foundedYear: json['founded_year'],
       stadium: json['stadium'],
-      capacity: json['capacity'],
       manager: json['manager'],
       nickname: json['nickname'],
       imageUrl: json['image_url'],
       website: json['website'],
       description: json['description'],
       ranking: json['ranking'],
-      domesticRanking: json['domestic_ranking'],
       category: json['category'] ?? 'men',
       totalTrophies: json['total_trophies'] ?? 0,
-      marketValue: json['market_value'],
-      leaguePosition: json['league_position'],
+      worldCupTitles: json['world_cup_titles'] ?? 0,
       captain: json['captain'],
-      owner: json['owner'],
       mainRivals: json['main_rivals'],
-      averageAttendance: json['average_attendance'],
       honors: json['honors_json'] != null 
           ? Map<String, int>.from(json['honors_json']) 
           : null,
@@ -84,23 +69,23 @@ class FootballClub {
   }
 }
 
-class FootballClubListResponse {
-  final List<FootballClub> items;
+class FootballNationalTeamListResponse {
+  final List<FootballNationalTeam> items;
   final int total;
   final int page;
   final int size;
 
-  FootballClubListResponse({
+  FootballNationalTeamListResponse({
     required this.items,
     required this.total,
     required this.page,
     required this.size,
   });
 
-  factory FootballClubListResponse.fromJson(Map<String, dynamic> json) {
-    return FootballClubListResponse(
+  factory FootballNationalTeamListResponse.fromJson(Map<String, dynamic> json) {
+    return FootballNationalTeamListResponse(
       items: (json['items'] as List)
-          .map((i) => FootballClub.fromJson(i))
+          .map((i) => FootballNationalTeam.fromJson(i))
           .toList(),
       total: json['total'],
       page: json['page'],

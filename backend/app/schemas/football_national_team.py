@@ -2,13 +2,12 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List, Dict
 
-class FootballClubBase(BaseModel):
+class FootballNationalTeamBase(BaseModel):
     name: str
     country: Optional[str] = None
-    league: Optional[str] = None
+    confederation: Optional[str] = None
     founded_year: Optional[int] = None
     stadium: Optional[str] = None
-    capacity: Optional[int] = None
     manager: Optional[str] = None
     nickname: Optional[str] = None
     image_url: Optional[str] = None
@@ -19,32 +18,28 @@ class FootballClubBase(BaseModel):
     
     # Enhanced Statistics
     total_trophies: Optional[int] = 0
-    market_value: Optional[str] = None
-    league_position: Optional[int] = None
-    domestic_ranking: Optional[int] = None
+    world_cup_titles: Optional[int] = 0
     captain: Optional[str] = None
-    owner: Optional[str] = None
     main_rivals: Optional[str] = None
-    average_attendance: Optional[int] = None
     
     # Detailed Honors
     honors_json: Optional[Dict[str, int]] = None
 
-class FootballClubCreate(FootballClubBase):
+class FootballNationalTeamCreate(FootballNationalTeamBase):
     pass
 
-class FootballClubUpdate(FootballClubBase):
+class FootballNationalTeamUpdate(FootballNationalTeamBase):
     name: Optional[str] = None
 
-class FootballClub(FootballClubBase):
+class FootballNationalTeam(FootballNationalTeamBase):
     id: int
     last_updated: datetime
 
     class Config:
         from_attributes = True
 
-class FootballClubList(BaseModel):
-    items: List[FootballClub]
+class FootballNationalTeamList(BaseModel):
+    items: List[FootballNationalTeam]
     total: int
     page: int
     size: int

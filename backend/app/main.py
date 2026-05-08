@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import players, tt_players, football_clubs, basketball_clubs
+from app.api.endpoints import players, tt_players, football_national_teams, basketball_clubs
 from app.db.session import engine, Base
 import uvicorn
 
@@ -8,8 +8,8 @@ import uvicorn
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Tennis Player Search API",
-    description="Backend API for searching and viewing tennis player data.",
+    title="Sports Data API",
+    description="Backend API for searching and viewing sports data.",
     version="1.0.0"
 )
 
@@ -28,7 +28,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 # Include routes
 app.include_router(players.router, prefix="/players", tags=["Players"])
 app.include_router(tt_players.router, prefix="/tt-players", tags=["Table Tennis"])
-app.include_router(football_clubs.router, prefix="/football-clubs", tags=["Football Clubs"])
+app.include_router(football_national_teams.router, prefix="/football-national-teams", tags=["Football National Teams"])
 app.include_router(basketball_clubs.router, prefix="/basketball-clubs", tags=["Basketball Clubs"])
 
 @app.post("/trigger", tags=["Admin"])
@@ -54,14 +54,14 @@ def trigger_tt_scraper():
     except Exception as e:
         return {"error": str(e)}
 
-@app.post("/trigger-football-clubs", tags=["Admin"])
-def trigger_football_club_scraper():
+@app.post("/trigger-football-teams", tags=["Admin"])
+def trigger_football_team_scraper():
     import subprocess
     import os
     try:
         scraper_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "scraper", "main_scraper.py"))
         subprocess.Popen(["python3", scraper_path, "--football-only"])
-        return {"message": "Football Club Scraper triggered in background"}
+        return {"message": "Football National Team Scraper triggered in background"}
     except Exception as e:
         return {"error": str(e)}
 

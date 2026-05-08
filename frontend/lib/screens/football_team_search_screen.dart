@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/football_club_provider.dart';
+import '../providers/football_national_team_provider.dart';
 import '../widgets/glass_widgets.dart';
-import 'football_club_detail_screen.dart';
+import 'football_team_detail_screen.dart';
 
-class FootballSearchScreen extends StatefulWidget {
-  const FootballSearchScreen({super.key});
+class FootballTeamSearchScreen extends StatefulWidget {
+  const FootballTeamSearchScreen({super.key});
 
   @override
-  State<FootballSearchScreen> createState() => _FootballSearchScreenState();
+  State<FootballTeamSearchScreen> createState() => _FootballTeamSearchScreenState();
 }
 
-class _FootballSearchScreenState extends State<FootballSearchScreen> {
+class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -24,8 +24,8 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final provider = Provider.of<FootballClubProvider>(context, listen: false);
-      provider.fetchMoreClubs();
+      final provider = Provider.of<FootballNationalTeamProvider>(context, listen: false);
+      provider.fetchMoreTeams();
     }
   }
 
@@ -38,7 +38,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<FootballClubProvider>(context);
+    final provider = Provider.of<FootballNationalTeamProvider>(context);
 
     // Sync controller with provider if provider was cleared externally
     if (provider.lastQuery.isEmpty && _controller.text.isNotEmpty) {
@@ -54,7 +54,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
             const Icon(Icons.sports_soccer, color: Color(0xFFE4405F), size: 26),
             const SizedBox(width: 8),
             const Text(
-              'Football Clubs',
+              'National Teams',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -66,7 +66,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
         ),
         const SizedBox(height: 5),
         const Text(
-          'Explore football clubs globally',
+          'Explore football national teams',
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 20),
@@ -130,7 +130,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
             child: TextField(
               controller: _controller,
               decoration: const InputDecoration(
-                hintText: 'Search football clubs...',
+                hintText: 'Search national teams...',
                 prefixIcon: Icon(Icons.search, color: Color(0xFFE4405F)),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 15),
@@ -139,7 +139,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
             ),
           ),
         ),
-        if (provider.isLoading)
+        if (provider.isSearching)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: LinearProgressIndicator(
@@ -161,12 +161,12 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
             ),
           ),
         Expanded(
-          child: provider.clubs.isEmpty && !provider.isLoading
+          child: provider.teams.isEmpty && !provider.isSearching
               ? Center(
                   child: Opacity(
                     opacity: 0.5,
                     child: Text(provider.lastQuery.isEmpty
-                        ? 'Search for football clubs!'
+                        ? 'Search for national teams!'
                         : 'No results found for "${provider.lastQuery}"'),
                   ),
                 )
@@ -177,9 +177,9 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
                     right: 16,
                     bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
-                  itemCount: provider.clubs.length + (provider.hasMore ? 1 : 0),
+                  itemCount: provider.teams.length + (provider.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == provider.clubs.length) {
+                    if (index == provider.teams.length) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
@@ -189,7 +189,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
                         ),
                       );
                     }
-                    final club = provider.clubs[index];
+                    final team = provider.teams[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: GlassContainer(
@@ -209,35 +209,35 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
                               ),
                             ),
                             child: ClipOval(
-                              child: club.imageUrl != null
+                              child: team.imageUrl != null
                                   ? Image.network(
-                                      club.imageUrl!,
+                                      team.imageUrl!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => _initialsWidget(club.name, 18),
+                                      errorBuilder: (_, __, ___) => _initialsWidget(team.name, 18),
                                     )
-                                  : _initialsWidget(club.name, 18),
+                                  : _initialsWidget(team.name, 18),
                             ),
                           ),
                           title: Text(
-                            club.name,
+                            team.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${club.country ?? 'Unknown'} • ${club.league ?? 'No League'}',
+                            '${team.confederation ?? 'Unknown'}',
                           ),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'World Rank',
+                                'FIFA Rank',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey[600],
                                 ),
                               ),
                               Text(
-                                '#${club.ranking ?? 'N/A'}',
+                                '#${team.ranking ?? 'N/A'}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFE4405F),
@@ -250,7 +250,7 @@ class _FootballSearchScreenState extends State<FootballSearchScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    FootballClubDetailScreen(club: club),
+                                    FootballTeamDetailScreen(team: team),
                               ),
                             );
                           },
