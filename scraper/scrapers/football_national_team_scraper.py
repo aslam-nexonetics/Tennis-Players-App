@@ -3,6 +3,7 @@ import os
 import random
 import urllib.parse
 import re
+import requests
 from datetime import datetime
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -15,74 +16,105 @@ from scraper.football_persistence import save_football_national_team
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
 WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
+FIFA_API_BASE = "https://api.fifa.com/api/v3/fifarankings/rankings/rankingsbyschedule"
 
 class FootballNationalTeamScraper(BaseScraper):
     def __init__(self):
-        super().__init__("https://en.wikipedia.org/wiki/FIFA_Men%27s_World_Ranking")
+        super().__init__("https://inside.fifa.com/fifa-world-ranking/men")
         self.processed_teams = set()
 
     def scrape_all(self):
-        log.info("Starting Football National Team scraping...")
+        log.info("Starting Comprehensive Football National Team scraping...")
         scraped = 0
         
         # 1. Scrape Men's Rankings
-        scraped += self.scrape_rankings("https://en.wikipedia.org/wiki/FIFA_Men%27s_World_Ranking", "men")
+        scraped += self.scrape_fifa_rankings("men")
         
         # 2. Scrape Women's Rankings
-        scraped += self.scrape_rankings("https://en.wikipedia.org/wiki/FIFA_Women%27s_World_Ranking", "women")
+        scraped += self.scrape_fifa_rankings("women")
         
         log.info(f"Football National Team scraping complete: {scraped} teams processed.")
 
-    def scrape_rankings(self, url, category):
-        log.info(f"Scraping {category} rankings from {url}...")
-        soup = self.get_soup_playwright(url)
-        if not soup:
-            log.error(f"Failed to load {url}")
-            return 0
-
-        # Find the ranking table. Usually the first wikitable in the main content.
-        table = soup.select_one("table.wikitable")
-        if not table:
-            log.error(f"Could not find ranking table for {category}")
-            return 0
-
-        rows = table.select("tr")
-        saved = 0
+    def get_latest_schedule_id(self, category):
+        url = f"https://inside.fifa.com/fifa-world-ranking/{category}"
+        log.info(f"Detecting latest schedule ID from {url}...")
         
-        for row in rows:
-            cells = row.select("td")
-            if not cells or len(cells) < 4:
-                continue
+        # Using requests directly for faster regex search in page source
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                pattern = r"FRS_Male_Football_[0-9]+" if category == "men" else r"FRS_Female_Football_[0-9]+"
+                match = re.search(pattern, response.text)
+                if match:
+                    log.info(f"Found schedule ID: {match.group(0)}")
+                    return match.group(0)
+        except Exception as e:
+            log.error(f"Error detecting schedule ID: {e}")
             
+        # Fallbacks (current as of May 2026)
+        return "FRS_Male_Football_20260119" if category == "men" else "FRS_Female_Football_20251207"
+
+    def scrape_fifa_rankings(self, category):
+        schedule_id = self.get_latest_schedule_id(category)
+        api_url = f"{FIFA_API_BASE}?rankingScheduleId={schedule_id}&language=en"
+        
+        log.info(f"Fetching {category} rankings from FIFA API: {api_url}")
+        
+        # FIFA API often requires specific headers to avoid being blocked
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Origin": "https://www.fifa.com",
+            "Referer": "https://www.fifa.com/"
+        }
+        
+        try:
+            self.rate_limiter.wait()
+            response = requests.get(api_url, headers=headers, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            log.error(f"Error fetching FIFA API for {category}: {e}")
+            return 0
+        
+        results = data.get('Results', [])
+        if not results:
+            log.error(f"No results found in FIFA API response for {category}")
+            return 0
+
+        saved = 0
+        for entry in results:
             try:
-                # Based on browser agent findings: Rank (0), Team (2), Points (3)
-                rank_text = cells[0].text.strip()
-                # Handle cases like "1 =" or "10 (down 2)"
-                rank_match = re.search(r"(\d+)", rank_text)
-                if not rank_match: continue
-                ranking = int(rank_match.group(1))
+                # Extract basic info from API
+                team_name_list = entry.get('TeamName', [])
+                if not team_name_list: continue
                 
-                team_cell = cells[2]
-                team_name = team_cell.text.strip()
-                # Sometimes there are extra spaces or characters
-                team_name = re.sub(r'\[.*\]', '', team_name).strip()
+                name = team_name_list[0].get('Description')
+                ranking = entry.get('Rank')
+                confederation = entry.get('ConfederationName', 'Unknown')
                 
-                if not team_name or team_name in ["Team", "Nation"]: continue
+                # Some teams might have Rank null if they are inactive but in list
+                if ranking is None:
+                    ranking = 999 # Placeholder for unranked
                 
-                log.info(f"Found {category} team: {team_name} (Rank {ranking})")
+                log.info(f"Processing {category} team: {name} (Rank {ranking})")
                 
-                # Fetch more details from Wikipedia
-                team_data = self._build_team_data(team_name, category, ranking)
+                # Enrich with Wikipedia data
+                team_data = self._build_team_data(name, category, ranking, confederation)
                 save_football_national_team(team_data)
                 saved += 1
                 
+                # Avoid overwhelming Wikipedia API
+                if saved % 20 == 0:
+                    import time
+                    time.sleep(0.5)
+                    
             except Exception as e:
-                log.error(f"Error parsing row for {category}: {e}")
+                log.error(f"Error processing team entry: {e}")
                 
         return saved
 
-    def _build_team_data(self, name, category, ranking):
-        # Try to get more info from the national team page
+    def _build_team_data(self, name, category, ranking, confederation):
+        # Wikipedia lookup name
         wiki_name = f"{name} national football team"
         if category == "women":
             wiki_name = f"{name} women's national football team"
@@ -92,25 +124,18 @@ class FootballNationalTeamScraper(BaseScraper):
             # Fallback to just country name
             summary_data = self._fetch_wiki_summary(name)
             
-        description = summary_data.get('extract', "No description available.")
+        description = summary_data.get('extract', f"The {name} national {category}'s football team.")
         image_url = summary_data.get('thumbnail', {}).get('source')
         
-        # Determine confederation based on common knowledge or regex in description
-        confederation = "Unknown"
+        # Determine more info from description if possible
         desc_lower = description.lower()
-        if "uefa" in desc_lower: confederation = "UEFA"
-        elif "conmebol" in desc_lower: confederation = "CONMEBOL"
-        elif "concacaf" in desc_lower: confederation = "CONCACAF"
-        elif "caf" in desc_lower or "africa" in desc_lower: confederation = "CAF"
-        elif "afc" in desc_lower or "asia" in desc_lower: confederation = "AFC"
-        elif "ofc" in desc_lower or "oceania" in desc_lower: confederation = "OFC"
-
+        
         return {
             "name": name,
             "country": name,
             "confederation": confederation,
             "category": category,
-            "founded_year": random.randint(1900, 1930), # Default, usually updated by wiki if found
+            "founded_year": random.randint(1900, 1930), # Default
             "stadium": f"National Stadium of {name}",
             "nickname": f"The {name} Team",
             "image_url": image_url,
@@ -118,7 +143,7 @@ class FootballNationalTeamScraper(BaseScraper):
             "description": description,
             "ranking": ranking,
             "total_trophies": random.randint(0, 5),
-            "world_cup_titles": 1 if "world cup winner" in desc_lower else 0,
+            "world_cup_titles": 1 if "world cup winner" in desc_lower or "world cup champion" in desc_lower else 0,
             "manager": "TBD",
             "captain": "TBD",
             "main_rivals": "Neighboring Countries",
@@ -129,7 +154,11 @@ class FootballNationalTeamScraper(BaseScraper):
         try:
             encoded = urllib.parse.quote(name.replace(" ", "_"))
             url = f"{WIKI_SUMMARY_API}{encoded}"
-            return self.get_json(url) or {}
+            # Use requests directly for faster API calls
+            resp = requests.get(url, timeout=5)
+            if resp.status_code == 200:
+                return resp.json()
+            return {}
         except Exception:
             return {}
 

@@ -24,25 +24,26 @@ WIKI_SUMMARY_API = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 # WTT Official API for player details
 WTT_PLAYER_API_URL = "https://wtt-website-api-prod-3-frontdoor-bddnb2haduafdze9.a01.azurefd.net/api/cms/GetPlayersDataByID/"
 
-# Known top men's TT players (fallback dataset)
+# Known top men's TT players (fallback dataset with birth dates)
 KNOWN_MEN = [
-    ("Fan Zhendong", "China", 1),
-    ("Wang Chuqin", "China", 2),
-    ("Truls Moregard", "Sweden", 3),
-    ("Lin Shidong", "China", 4),
-    ("Hugo Calderano", "Brazil", 5),
-    ("Tomokazu Harimoto", "Japan", 6),
-    ("Felix Lebrun", "France", 13),
-    ("Alexis Lebrun", "France", 14),
+    ("Wang Chuqin", "China", 1, "2000-05-11"),
+    ("Fan Zhendong", "China", 2, "1997-01-22"),
+    ("Ma Long", "China", 3, "1988-10-20"),
+    ("Hugo Calderano", "Brazil", 4, "1996-06-22"),
+    ("Felix Lebrun", "France", 5, "2006-09-12"),
+    ("Lin Shidong", "China", 6, "2005-04-18"),
+    ("Tomokazu Harimoto", "Japan", 7, "2003-06-27"),
+    ("Truls Moregard", "Sweden", 10, "2002-02-16"),
 ]
 
 # Known top women's TT players
 KNOWN_WOMEN = [
-    ("Sun Yingsha", "China", 1),
-    ("Wang Manyu", "China", 2),
-    ("Chen Meng", "China", 3),
-    ("Mima Ito", "Japan", 5),
-    ("Hina Hayata", "Japan", 6),
+    ("Sun Yingsha", "China", 1, "2000-11-04"),
+    ("Wang Manyu", "China", 2, "1999-02-09"),
+    ("Chen Meng", "China", 3, "1994-01-15"),
+    ("Wang Yidi", "China", 4, "1997-02-14"),
+    ("Hina Hayata", "Japan", 5, "2000-07-07"),
+    ("Mima Ito", "Japan", 10, "2000-10-21"),
 ]
 
 
@@ -134,10 +135,15 @@ class WTTScraper(BaseScraper):
             try:
                 rank_cell = row.select_one(".player-rank")
                 name_cell = row.select_one(".player_name")
-                country_cell = row.select_one(".country_name")
-
-                if not rank_cell or not name_cell:
+                # Handle nested span for name
+                if name_cell and name_cell.select_one("span.link_on_hover"):
+                    name_text = name_cell.select_one("span.link_on_hover").get_text(strip=True)
+                elif name_cell:
+                    name_text = name_cell.get_text(strip=True)
+                else:
                     continue
+
+                country_cell = row.select_one(".country_name")
 
                 rank_text = rank_cell.get_text(strip=True)
                 rank_match = re.search(r"(\d+)", rank_text)
@@ -257,10 +263,13 @@ class WTTScraper(BaseScraper):
     def _save_known_dataset(self, dataset, gender: str, limit: int) -> int:
         """Save from hardcoded known players dataset."""
         saved = 0
-        for name, country, ranking in dataset:
+        for item in dataset:
             if saved >= limit:
                 break
             try:
+                name, country, ranking = item[0], item[1], item[2]
+                birth_date_str = item[3] if len(item) > 3 else None
+                
                 player_data = {
                     "name": name,
                     "country": country,
@@ -268,9 +277,13 @@ class WTTScraper(BaseScraper):
                     "gender": gender,
                     "source": "WTT Fallback",
                 }
+                
+                if birth_date_str:
+                    player_data["birth_date"] = datetime.strptime(birth_date_str, "%Y-%m-%d").date()
+                
                 player_data.update(self._generate_fallback_stats(ranking))
                 save_tt_player(player_data)
                 saved += 1
             except Exception as e:
-                log.error(f"Error saving known TT player {name}: {e}")
+                log.error(f"Error saving known TT player {item[0]}: {e}")
         return saved
