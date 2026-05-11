@@ -104,6 +104,9 @@ class FootballNationalTeamProvider with ChangeNotifier {
     _hasMore = true;
     notifyListeners();
     fetchTopTeams();
+    if (_lastQuery.isNotEmpty) {
+      searchTeams(_lastQuery);
+    }
   }
 
   void onSearchChanged(String query) {
