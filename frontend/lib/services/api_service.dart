@@ -177,17 +177,17 @@ class ApiService {
     }
   }
 
-  Future<List<FootballNationalTeam>> getFootballTopTeams({
-    int limit = 50,
+  Future<FootballNationalTeamListResponse> getFootballTopTeams({
+    int page = 1,
+    int size = 20,
     String? category,
   }) async {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/football-national-teams/top?limit=$limit$categoryParam'),
+      Uri.parse('$baseUrl/football-national-teams/?page=$page&size=$size$categoryParam'),
     );
     if (response.statusCode == 200) {
-      final List data = json.decode(response.body);
-      return data.map((i) => FootballNationalTeam.fromJson(i)).toList();
+      return FootballNationalTeamListResponse.fromJson(json.decode(response.body));
     } else {
       throw Exception('Failed to load top football teams');
     }

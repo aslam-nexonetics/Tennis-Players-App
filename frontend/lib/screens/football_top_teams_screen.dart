@@ -12,12 +12,29 @@ class FootballTopTeamsScreen extends StatefulWidget {
 }
 
 class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<FootballNationalTeamProvider>(context, listen: false).fetchTopTeams();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      Provider.of<FootballNationalTeamProvider>(context, listen: false)
+          .fetchMoreTopTeams();
+    }
   }
 
   @override
@@ -110,13 +127,22 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                       color: const Color(0xFFE4405F),
                       onRefresh: provider.fetchTopTeams,
                       child: ListView.builder(
+                        controller: _scrollController,
                         padding: EdgeInsets.only(
                           left: 16,
                           right: 16,
                           bottom: MediaQuery.of(context).padding.bottom + 100,
                         ),
-                        itemCount: provider.topTeams.length,
+                        itemCount: provider.topTeams.length + (provider.hasMoreTopTeams ? 1 : 0),
                         itemBuilder: (context, index) {
+                          if (index == provider.topTeams.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 32.0),
+                              child: Center(
+                                child: CircularProgressIndicator(color: Color(0xFFE4405F)),
+                              ),
+                            );
+                          }
                           final team = provider.topTeams[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),

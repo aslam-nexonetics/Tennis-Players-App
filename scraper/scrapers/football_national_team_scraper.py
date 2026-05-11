@@ -127,28 +127,127 @@ class FootballNationalTeamScraper(BaseScraper):
         description = summary_data.get('extract', f"The {name} national {category}'s football team.")
         image_url = summary_data.get('thumbnail', {}).get('source')
         
-        # Determine more info from description if possible
-        desc_lower = description.lower()
+        # Scrape real honors
+        wc_titles, cc_titles, cc_name = self._scrape_honors(name, category, confederation)
         
         return {
             "name": name,
             "country": name,
             "confederation": confederation,
             "category": category,
-            "founded_year": random.randint(1900, 1930), # Default
+            "founded_year": 1900, # Placeholder, could be scraped too
             "stadium": f"National Stadium of {name}",
             "nickname": f"The {name} Team",
             "image_url": image_url,
             "website": f"https://en.wikipedia.org/wiki/{wiki_name.replace(' ', '_')}",
             "description": description,
             "ranking": ranking,
-            "total_trophies": random.randint(0, 5),
-            "world_cup_titles": 1 if "world cup winner" in desc_lower or "world cup champion" in desc_lower else 0,
+            "total_trophies": wc_titles + cc_titles,
+            "world_cup_titles": wc_titles,
             "manager": "TBD",
             "captain": "TBD",
             "main_rivals": "Neighboring Countries",
-            "honors_json": {"World Cup": 0, "Continental Cup": 0}
+            "honors_json": {"World Cup": wc_titles, cc_name: cc_titles}
         }
+
+    def _scrape_honors(self, team_name, category, confederation):
+        # Handle common name differences between FIFA and Wikipedia
+        NAME_MAPPINGS = {
+            "USA": "United States",
+            "IR Iran": "Iran",
+            "Korea Republic": "South Korea",
+            "Korea DPR": "North Korea",
+            "Côte d'Ivoire": "Ivory Coast",
+            "Cabo Verde": "Cape Verde",
+            "Czechia": "Czech Republic",
+            "St. Kitts and Nevis": "Saint Kitts and Nevis",
+            "St. Vincent and the Grenadines": "Saint Vincent and the Grenadines",
+            "St. Lucia": "Saint Lucia",
+        }
+        common_name = NAME_MAPPINGS.get(team_name, team_name)
+        
+        wiki_names = [
+            f"{common_name} national football team",
+            f"{common_name} national soccer team",
+        ]
+        if category == "women":
+            wiki_names = [
+                f"{common_name} women's national football team",
+                f"{common_name} women's national soccer team",
+            ]
+        
+        world_cup_titles = 0
+        continental_titles = 0
+        
+        # Map confederation to its primary tournament
+        CC_MAPPING = {
+            "UEFA": "European Championship",
+            "CONMEBOL": "Copa América",
+            "CAF": "Africa Cup of Nations",
+            "AFC": "AFC Asian Cup",
+            "CONCACAF": "CONCACAF Gold Cup",
+            "OFC": "OFC Nations Cup"
+        }
+        # Map confederation to its primary tournament regex
+        CC_HEADERS = {
+            "UEFA": r"European Championship",
+            "CONMEBOL": r"Copa América",
+            "CAF": r"Africa Cup of Nations",
+            "AFC": r"Asian Cup",
+            "CONCACAF": r"CONCACAF (Championship|Gold Cup)",
+            "OFC": r"Nations Cup"
+        }
+        cc_pattern = CC_HEADERS.get(confederation, "Continental Cup")
+        cc_name = CC_MAPPING.get(confederation, "Continental Cup")
+
+        for wiki_name in wiki_names:
+            encoded = urllib.parse.quote(wiki_name.replace(" ", "_"))
+            url = f"https://en.wikipedia.org/wiki/{encoded}"
+            
+            soup = self.get_soup(url)
+            if not soup: continue
+            
+            infobox = soup.select_one(".infobox")
+            if not infobox: continue
+            
+            current_comp = None
+            for row in infobox.select("tr"):
+                header = row.select_one(".infobox-header")
+                if header:
+                    header_text = header.text.strip()
+                    if "World Cup" in header_text:
+                        current_comp = "WC"
+                    elif re.search(cc_pattern, header_text, re.IGNORECASE):
+                        current_comp = "CC"
+                    else:
+                        current_comp = None
+                    continue
+                
+                if current_comp:
+                    label = row.select_one(".infobox-label")
+                    data = row.select_one(".infobox-data")
+                    if label and "Best result" in label.text and data:
+                        text = data.get_text(separator=" ").strip()
+                        if "Winners" in text or "Champions" in text:
+                            # Try to find "X times" pattern first
+                            times_match = re.search(r"(\d+)\s+times", text.lower())
+                            if times_match:
+                                count = int(times_match.group(1))
+                            else:
+                                years = re.findall(r"\d{4}", text)
+                                count = len(years) if years else (1 if "once" in text.lower() else 1)
+                            
+                            if current_comp == "WC":
+                                world_cup_titles = count
+                            else:
+                                continental_titles = count
+                        current_comp = None 
+            
+            # If we found an infobox, we're likely on the right page
+            if infobox:
+                break
+                
+        return world_cup_titles, continental_titles, cc_name
 
     def _fetch_wiki_summary(self, name):
         try:

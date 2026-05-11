@@ -29,21 +29,65 @@ class FootballNationalTeamProvider with ChangeNotifier {
   String get lastQuery => _lastQuery;
 
   int _currentPage = 1;
+  int _topTeamsPage = 1;
   int _pageSize = 20;
   bool _hasMore = true;
+  bool _hasMoreTopTeams = true;
   int _totalTeams = 0;
+  int _totalTopTeams = 0;
 
   int get currentPage => _currentPage;
+  int get topTeamsPage => _topTeamsPage;
   bool get hasMore => _hasMore;
+  bool get hasMoreTopTeams => _hasMoreTopTeams;
   int get totalTeams => _totalTeams;
+  int get totalTopTeams => _totalTopTeams;
 
   Future<void> fetchTopTeams() async {
     _isLoading = true;
     _error = null;
+    _topTeamsPage = 1;
+    _hasMoreTopTeams = true;
     notifyListeners();
   
     try {
-      _topTeams = await _apiService.getFootballTopTeams(limit: 50, category: _selectedCategory);
+      final response = await _apiService.getFootballTopTeams(
+        page: _topTeamsPage, 
+        size: _pageSize, 
+        category: _selectedCategory
+      );
+      _topTeams = response.items;
+      _totalTopTeams = response.total;
+      _hasMoreTopTeams = _topTeams.length < _totalTopTeams;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchMoreTopTeams() async {
+    if (_isLoading || !_hasMoreTopTeams) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final nextPage = _topTeamsPage + 1;
+      final response = await _apiService.getFootballTopTeams(
+        page: nextPage,
+        size: _pageSize,
+        category: _selectedCategory,
+      );
+      
+      if (response.items.isNotEmpty) {
+        _topTeams.addAll(response.items);
+        _topTeamsPage = nextPage;
+        _hasMoreTopTeams = _topTeams.length < _totalTopTeams;
+      } else {
+        _hasMoreTopTeams = false;
+      }
     } catch (e) {
       _error = e.toString();
     } finally {
