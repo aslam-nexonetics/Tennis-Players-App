@@ -436,18 +436,6 @@ class PlayerDetailScreen extends StatelessWidget {
               player.turnedPro ?? 'N/A',
               Icons.event_available,
             ),
-            _buildStatCard(
-              cardWidth,
-              'Career Titles',
-              player.titles.toString(),
-              Icons.emoji_events_outlined,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Prize Money',
-              player.prizeMoney ?? 'N/A',
-              Icons.payments_outlined,
-            ),
           ],
         );
       },

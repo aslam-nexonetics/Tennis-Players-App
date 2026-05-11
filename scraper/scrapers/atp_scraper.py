@@ -184,7 +184,6 @@ class ATPScraper(BaseScraper):
             height_span = soup.select_one(".pd_left li:nth-child(3) span:nth-child(2)")
             turned_pro_span = soup.select_one(".pd_left li:nth-child(4) span:nth-child(2)")
             plays_span = soup.select_one(".pd_right li:nth-child(3) span:nth-child(2)")
-            prize_money_span = soup.select_one(".atp_player-profile-header-stats-row:nth-child(2) .prize_money")
 
             if age_span:
                 text = age_span.text.strip()
@@ -199,7 +198,6 @@ class ATPScraper(BaseScraper):
             if turned_pro_span and turned_pro_span.text.strip(): 
                 player_data["turned_pro"] = turned_pro_span.text.strip()
             if plays_span: player_data["playing_style"] = plays_span.text.strip()
-            if prize_money_span: player_data["prize_money"] = prize_money_span.text.strip()
         except Exception as e:
             log.error(f"Error enriching from ATP: {e}")
 

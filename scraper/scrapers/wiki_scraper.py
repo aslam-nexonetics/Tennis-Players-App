@@ -51,9 +51,7 @@ class WikiScraper(BaseScraper):
             "Citizenship": "country",
             "Country": "country",
             "Turned pro": "turned_pro",
-            "Prize money": "prize_money",
             "Singles record": "record",
-            "Career titles": "titles",
         }
 
         for row in infobox.select("tr"):
@@ -91,11 +89,6 @@ class WikiScraper(BaseScraper):
                             if match:
                                 enriched_data['wins'] = int(match.group(1))
                                 enriched_data['losses'] = int(match.group(2))
-                        elif field == 'titles':
-                            # Match e.g. "5" or "5 career titles"
-                            match = re.search(r"(\d+)", raw_val)
-                            if match:
-                                enriched_data['titles'] = int(match.group(1))
                         else:
                             # Avoid overwriting if already have a better value
                             if field not in enriched_data or not enriched_data[field]:
