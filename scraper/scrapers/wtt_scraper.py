@@ -58,19 +58,20 @@ class WTTScraper(BaseScraper):
             "Accept": "application/json",
         })
 
-    def scrape_rankings(self, limit=10000):
-        """Scrape both men's and women's TT rankings across Adult and Youth categories."""
-        log.info(f"Starting exhaustive WTT table tennis scraping (limit {limit} per gender)...")
+    def scrape_rankings(self, limit=1000):
+        """Scrape both men's and women's TT rankings across Senior and Youth categories."""
+        log.info(f"Starting WTT table tennis scraping (limit {limit} per gender)...")
 
         total_men = 0
         total_women = 0
 
-        for category in ["Adult", "Youth"]:
+        # Primary categories
+        for category in ["SENIOR", "YOUTH"]:
             log.info(f"Scraping {category} rankings...")
-            total_men += self._scrape_gender(f"Men's Singles", "M", limit, category)
-            total_women += self._scrape_gender(f"Women's Singles", "F", limit, category)
+            total_men += self._scrape_gender("MEN'S SINGLES", "M", limit, category)
+            total_women += self._scrape_gender("WOMEN'S SINGLES", "F", limit, category)
 
-        log.info(f"WTT exhaustive scraping complete: {total_men} men, {total_women} women saved.")
+        log.info(f"WTT scraping complete: {total_men} men, {total_women} women saved.")
 
     def _scrape_gender(self, tab_name: str, gender: str, limit: int, category: str) -> int:
         """Iterate through rank ranges for a specific gender and category."""
@@ -110,7 +111,7 @@ class WTTScraper(BaseScraper):
                 break
 
         # Fallback only if we found almost nothing
-        if total_scraped < 5 and category == "Adult":
+        if total_scraped < 5 and category == "SENIOR":
             dataset = KNOWN_MEN if gender == "M" else KNOWN_WOMEN
             log.info(f"Falling back to known dataset for {gender} (only {total_scraped} scraped)")
             fallback_scraped = self._save_known_dataset(dataset, gender, limit - total_scraped)

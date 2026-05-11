@@ -24,8 +24,8 @@ class PlayerProvider with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  String? _selectedGender; // null for both, "M" for ATP, "F" for WTA
-  String? get selectedGender => _selectedGender;
+  String _selectedGender = 'M'; // "M" for ATP, "F" for WTA
+  String get selectedGender => _selectedGender;
 
   Timer? _debounce;
   String _lastQuery = '';
@@ -39,7 +39,7 @@ class PlayerProvider with ChangeNotifier {
   bool get topPlayersHasMore => _topPlayersHasMore;
   bool get searchHasMore => _searchHasMore;
 
-  void setGender(String? gender) {
+  void setGender(String gender) {
     if (_selectedGender != gender) {
       _selectedGender = gender;
       _topPlayersPage = 1;

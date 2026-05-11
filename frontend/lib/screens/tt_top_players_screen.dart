@@ -68,9 +68,8 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 12),
-        // Gender filter
         _GenderFilterBar(provider: provider),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Expanded(
           child: provider.isLoading
               ? Center(
@@ -240,22 +239,20 @@ class _GenderFilterBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _chip(null, 'All'),
-        const SizedBox(width: 8),
         _chip('M', '♂ Men'),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         _chip('F', '♀ Women'),
       ],
     );
   }
 
-  Widget _chip(String? value, String label) {
+  Widget _chip(String value, String label) {
     final selected = provider.genderFilter == value;
     return GestureDetector(
       onTap: () => provider.setGenderFilter(value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
           color: selected
               ? const Color(0xFF0F9D58).withOpacity(0.15)
@@ -272,10 +269,11 @@ class _GenderFilterBar extends StatelessWidget {
           style: TextStyle(
             color: selected ? const Color(0xFF0F9D58) : Colors.grey[600],
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 13,
+            fontSize: 14,
           ),
         ),
       ),
     );
   }
 }
+

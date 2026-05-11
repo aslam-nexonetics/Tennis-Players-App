@@ -252,16 +252,14 @@ class _GenderFilterChips extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _chip(context, null, 'All'),
-        const SizedBox(width: 8),
         _chip(context, 'M', 'ATP (Men)'),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         _chip(context, 'F', 'WTA (Women)'),
       ],
     );
   }
 
-  Widget _chip(BuildContext context, String? value, String label) {
+  Widget _chip(BuildContext context, String value, String label) {
     final selected = provider.selectedGender == value;
     return GestureDetector(
       onTap: () => provider.setGender(value),

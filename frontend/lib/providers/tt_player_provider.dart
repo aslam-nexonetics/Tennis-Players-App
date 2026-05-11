@@ -22,8 +22,8 @@ class TtPlayerProvider with ChangeNotifier {
   String? get error => _error;
 
   // Gender filter: null = all, 'M' = men, 'F' = women
-  String? _genderFilter;
-  String? get genderFilter => _genderFilter;
+  String _genderFilter = 'M';
+  String get genderFilter => _genderFilter;
 
   Timer? _debounce;
   String _lastQuery = '';
@@ -40,7 +40,7 @@ class TtPlayerProvider with ChangeNotifier {
   bool get topPlayersHasMore => _topPlayersHasMore;
   bool get searchHasMore => _searchHasMore;
 
-  void setGenderFilter(String? gender) {
+  void setGenderFilter(String gender) {
     if (_genderFilter != gender) {
       _genderFilter = gender;
       _topPlayersPage = 1;

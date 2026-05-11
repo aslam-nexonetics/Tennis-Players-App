@@ -215,22 +215,20 @@ class _GenderFilterChips extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _chip(context, null, 'All'),
-        const SizedBox(width: 8),
         _chip(context, 'M', 'ATP (Men)'),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         _chip(context, 'F', 'WTA (Women)'),
       ],
     );
   }
 
-  Widget _chip(BuildContext context, String? value, String label) {
+  Widget _chip(BuildContext context, String value, String label) {
     final selected = provider.selectedGender == value;
     return GestureDetector(
       onTap: () => provider.setGender(value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
           color: selected
               ? Colors.indigo.withOpacity(0.15)
@@ -245,10 +243,11 @@ class _GenderFilterChips extends StatelessWidget {
           style: TextStyle(
             color: selected ? Colors.indigo : Colors.grey[600],
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 13,
+            fontSize: 14,
           ),
         ),
       ),
     );
   }
 }
+
