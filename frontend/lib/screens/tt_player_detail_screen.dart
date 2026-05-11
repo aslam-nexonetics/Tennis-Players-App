@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/tt_player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
@@ -12,20 +11,16 @@ class TtPlayerDetailScreen extends StatelessWidget {
 
   List<RankingPoint> _generateRankingTrend() {
     final current = player.ranking ?? 100;
-    final highest = player.highestRanking ?? current - 5;
-    final highestDate =
-        player.highestRankingDate ??
-        DateTime.now().subtract(const Duration(days: 365 * 2));
-
+    
+    // Generate simulated points to show a trend based on current rank
     return [
       RankingPoint(
-        ranking: highest + 5,
-        date: highestDate.subtract(const Duration(days: 180)),
+        ranking: current + 10,
+        date: DateTime.now().subtract(const Duration(days: 180)),
       ),
-      RankingPoint(ranking: highest, date: highestDate),
       RankingPoint(
-        ranking: (highest + current) ~/ 2,
-        date: highestDate.add(const Duration(days: 180)),
+        ranking: current + 5,
+        date: DateTime.now().subtract(const Duration(days: 90)),
       ),
       RankingPoint(
         ranking: current + 2,
@@ -454,10 +449,6 @@ class TtPlayerDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStatGrid(BuildContext context) {
-    final highestRankLabel = player.highestRankingDate != null
-        ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
-        : '#${player.highestRanking ?? 'N/A'}';
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 12) / 2;
@@ -473,21 +464,9 @@ class TtPlayerDetailScreen extends StatelessWidget {
             ),
             _buildStatCard(
               cardWidth,
-              'Career High',
-              highestRankLabel,
-              Icons.stars_rounded,
-            ),
-            _buildStatCard(
-              cardWidth,
               'Playing Style',
               player.playingStyle ?? 'N/A',
               Icons.sports_tennis,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Height',
-              player.height ?? 'N/A',
-              Icons.height,
             ),
           ],
         );

@@ -245,7 +245,6 @@ class WTTScraper(BaseScraper):
                 "wins": wins,
                 "losses": losses,
                 "image_url": image_url,
-                "highest_ranking": int(data.get("ranking", 0)) if data.get("ranking") else None,
             }
         except Exception as e:
             log.debug(f"Error enriching player {player_id}: {e}")

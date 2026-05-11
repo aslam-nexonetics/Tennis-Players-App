@@ -3,10 +3,7 @@ class TableTennisPlayer {
   final String name;
   final String? country;
   final int? ranking;
-  final int? highestRanking;
-  final DateTime? highestRankingDate;
   final DateTime? birthDate;
-  final String? height;
   final String? weight;
   final String? playingStyle;
   final int wins;
@@ -21,10 +18,7 @@ class TableTennisPlayer {
     required this.name,
     this.country,
     this.ranking,
-    this.highestRanking,
-    this.highestRankingDate,
     this.birthDate,
-    this.height,
     this.weight,
     this.playingStyle,
     this.wins = 0,
@@ -52,14 +46,9 @@ class TableTennisPlayer {
       name: json['name'],
       country: json['country'],
       ranking: json['ranking'],
-      highestRanking: json['highest_ranking'],
-      highestRankingDate: json['highest_ranking_date'] != null
-          ? DateTime.parse(json['highest_ranking_date'])
-          : null,
       birthDate: json['birth_date'] != null
           ? DateTime.parse(json['birth_date'])
           : null,
-      height: json['height'],
       weight: json['weight'],
       playingStyle: json['playing_style'],
       wins: json['wins'] ?? 0,

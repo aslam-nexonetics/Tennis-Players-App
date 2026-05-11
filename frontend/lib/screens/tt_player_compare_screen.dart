@@ -446,7 +446,6 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               _buildStatRow('Wins', '${a.wins}', '${b.wins}'),
               _buildStatRow('Win %', _winRate(a), _winRate(b)),
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}', '#${b.ranking ?? "N/A"}', lowerIsBetter: true),
-              _buildStatRow('Career High', '#${a.highestRanking ?? "N/A"}', '#${b.highestRanking ?? "N/A"}', lowerIsBetter: true),
             ],
           ),
         ),
@@ -505,7 +504,6 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
       }
     }
     check(a.ranking, b.ranking, lowerBetter: true);
-    check(a.highestRanking, b.highestRanking, lowerBetter: true);
     check(a.wins, b.wins);
     check(a.wins + a.losses > 0 ? a.wins / (a.wins + a.losses) : null,
           b.wins + b.losses > 0 ? b.wins / (b.wins + b.losses) : null);
