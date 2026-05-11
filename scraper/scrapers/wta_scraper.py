@@ -35,6 +35,7 @@ class WTAScraper(BaseScraper):
                 
                 try:
                     player_info = item.get('player', {})
+                    player_id = player_info.get('id')
                     ranking = item.get('ranking')
                     
                     first_name = player_info.get('firstName', '')
@@ -54,33 +55,36 @@ class WTAScraper(BaseScraper):
                             pass
 
                     log.info(f"Found WTA {name} (Rank {ranking}). Enriching...")
-                    wiki_data = {}
-                    if ranking <= 1000:
-                        wiki_data = self.wiki.enrich_player(name) or {}
-
+                    
                     player_data = {
                         "name": name,
                         "ranking": ranking,
-                        "highest_ranking": wiki_data.get('highest_ranking', ranking),
-                        "highest_ranking_date": wiki_data.get('highest_ranking_date'),
-                        "birth_date": birth_date or wiki_data.get('birth_date'),
-                        "height": wiki_data.get('height'),
-                        "weight": wiki_data.get('weight'),
-                        "playing_style": wiki_data.get('playing_style'),
-                        "country": wiki_data.get('country', country),
-                        "wins": wiki_data.get('wins', 0),
-                        "losses": wiki_data.get('losses', 0),
-                        "titles": wiki_data.get('titles', 0),
-                        "turned_pro": wiki_data.get('turned_pro'),
-                        "prize_money": wiki_data.get('prize_money'),
+                        "birth_date": birth_date,
+                        "country": country,
                         "gender": "F",
-                        "image_url": wiki_data.get('image_url'),
                         "source": "WTA Tour Official"
                     }
 
+                    # Enrich from Official Profile if ID available
+                    if player_id and ranking <= 500:
+                        slug = name.lower().replace(" ", "-")
+                        profile_url = f"https://www.wtatennis.com/players/{player_id}/{slug}"
+                        self.enrich_from_wta(profile_url, player_data)
+
+                    # Fallback to Wikipedia for additional info or missing fields
+                    if ranking <= 1000 and (not player_data.get("height") or not player_data.get("wins")):
+                        wiki_data = self.wiki.enrich_player(name)
+                        if wiki_data:
+                            for key, val in wiki_data.items():
+                                if not player_data.get(key):
+                                    player_data[key] = val
+
                     # Parse highest ranking if string
-                    if isinstance(player_data['highest_ranking'], str):
-                        match = re.search(r"(\d+)", player_data['highest_ranking'])
+                    if not player_data.get("highest_ranking"):
+                        player_data["highest_ranking"] = ranking
+                    
+                    if isinstance(player_data.get('highest_ranking'), str):
+                        match = re.search(r"(\d+)", str(player_data['highest_ranking']))
                         player_data['highest_ranking'] = int(match.group(1)) if match else ranking
 
                     save_player(player_data)
@@ -91,6 +95,59 @@ class WTAScraper(BaseScraper):
             page += 1
             if len(data) < page_size:
                 break
+
+    def enrich_from_wta(self, url, player_data):
+        log.info(f"Enriching {player_data['name']} from WTA profile...")
+        soup = self.get_soup_playwright(url)
+        if not soup: return
+
+        try:
+            # Image
+            img = soup.select_one(".player-headshot__photo img")
+            if img and img.get("src"):
+                player_data["image_url"] = img.get("src")
+
+            # Stats (Highest Rank, Win/Loss)
+            # These are in blocks with labels
+            stat_blocks = soup.select(".stat-block")
+            for block in stat_blocks:
+                label_el = block.select_one(".stat-block__label")
+                if not label_el: continue
+                label = label_el.text.strip().lower()
+
+                if "highest singles rank" in label:
+                    rank_el = block.select_one(".stat-block__rank-number")
+                    date_el = block.select_one(".stat-block__rank-date")
+                    if rank_el:
+                        try:
+                            player_data["highest_ranking"] = int(rank_el.text.strip())
+                        except: pass
+                    if date_el:
+                        # Format: "04 Apr 22" or similar
+                        try:
+                            player_data["highest_ranking_date"] = datetime.strptime(date_el.text.strip(), "%d %b %y").date()
+                        except: pass
+                
+                elif "won / lost" in label:
+                    val_el = block.select_one(".stat-block__stat-value")
+                    if val_el:
+                        # Format: "418 / 100"
+                        parts = val_el.text.split("/")
+                        if len(parts) == 2:
+                            try:
+                                player_data["wins"] = int(parts[0].strip())
+                                player_data["losses"] = int(parts[1].strip())
+                            except: pass
+
+            # Physical info (Height, Turned Pro)
+            # These are often in a different section or simple text
+            # Usually in .player-profile__info-list
+            height_el = soup.select_one(".player-profile__info-item:nth-child(2) .player-profile__info-value")
+            if height_el and "m" in height_el.text:
+                player_data["height"] = height_el.text.strip()
+
+        except Exception as e:
+            log.error(f"Error enriching from WTA: {e}")
 
     def _fetch_wiki_image(self, name):
         try:

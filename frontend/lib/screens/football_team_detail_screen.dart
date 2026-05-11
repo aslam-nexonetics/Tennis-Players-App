@@ -207,6 +207,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
             ? Image.network(
                 team.imageUrl!,
                 fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
                 errorBuilder: (_, __, ___) => _initialsWidget(team.name, 48),
               )
             : _initialsWidget(team.name, 48),

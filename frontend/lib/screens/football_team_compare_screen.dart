@@ -567,6 +567,7 @@ class _Avatar extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: imageUrl!,
                 fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
                 placeholder: (context, url) => Container(color: Colors.grey[200]),
                 errorWidget: (_, __, ___) => _initials(),
               )

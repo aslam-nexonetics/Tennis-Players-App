@@ -136,6 +136,7 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                                       ? Image.network(
                                           player.imageUrl!,
                                           fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
                                           errorBuilder: (_, __, ___) =>
                                               _initialsCenter(player.name),
                                         )

@@ -213,6 +213,7 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
                                   ? Image.network(
                                       team.imageUrl!,
                                       fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
                                       errorBuilder: (_, __, ___) => _initialsWidget(team.name, 18),
                                     )
                                   : _initialsWidget(team.name, 18),

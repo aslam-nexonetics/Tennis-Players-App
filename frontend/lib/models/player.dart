@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class Player {
   final int id;
   final String name;
@@ -73,7 +75,7 @@ class Player {
       titles: json['titles'] ?? 0,
       turnedPro: json['turned_pro'],
       prizeMoney: json['prize_money'],
-      imageUrl: json['image_url'],
+      imageUrl: json['image_url'] != null ? ApiService.getProxyImageUrl(json['image_url']) : null,
       gender: json['gender'],
       source: json['source'],
       lastUpdated: json['last_updated'] != null
@@ -81,6 +83,7 @@ class Player {
           : null,
     );
   }
+
 }
 
 class PlayerListResponse {

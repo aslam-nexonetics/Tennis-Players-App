@@ -575,6 +575,7 @@ class _TtAvatar extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: player!.imageUrl!,
                 fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
                 errorWidget: (_, __, ___) => _initials(),
               )
             : _initials(),

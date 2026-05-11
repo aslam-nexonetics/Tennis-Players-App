@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 
 # Add current directory and project root to sys.path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,12 +18,29 @@ from scrapers.football_national_team_scraper import FootballNationalTeamScraper
 from scrapers.basketball_club_scraper import BasketballClubScraper
 from utils.logger import log
 
-def run_tennis_scraper():
-    log.info("Starting Tennis Scraper...")
-    atp = ATPScraper()
-    atp.scrape_rankings(limit=1000)
-    wta = WTAScraper()
-    wta.scrape_rankings(limit=1000)
+def run_atp():
+    try:
+        atp = ATPScraper()
+        atp.scrape_rankings(limit=1000)
+    except Exception as e:
+        log.error(f"ATP Scraper failed: {e}")
+
+def run_wta():
+    try:
+        wta = WTAScraper()
+        wta.scrape_rankings(limit=1000)
+    except Exception as e:
+        log.error(f"WTA Scraper failed: {e}")
+
+def run_tennis_scraper(parallel=True):
+    log.info(f"Starting Tennis Scraper (Parallel={parallel})...")
+    if parallel:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            executor.submit(run_atp)
+            executor.submit(run_wta)
+    else:
+        run_atp()
+        run_wta()
 
 def run_tt_scraper():
     log.info("Starting Table Tennis Scraper...")
@@ -45,11 +63,13 @@ def main():
     parser.add_argument("--tt-only", action="store_true", help="Run only Table Tennis scraper")
     parser.add_argument("--football-only", action="store_true", help="Run only Football Club scraper")
     parser.add_argument("--basketball-only", action="store_true", help="Run only Basketball Club scraper")
+    parser.add_argument("--no-parallel", action="store_true", help="Disable parallel execution")
     
     args = parser.parse_args()
+    parallel = not args.no_parallel
 
     if args.tennis_only:
-        run_tennis_scraper()
+        run_tennis_scraper(parallel=parallel)
     elif args.tt_only:
         run_tt_scraper()
     elif args.football_only:
@@ -57,8 +77,8 @@ def main():
     elif args.basketball_only:
         run_basketball_scraper()
     else:
-        # Run all scrapers sequentially
-        run_tennis_scraper()
+        # Run all scrapers
+        run_tennis_scraper(parallel=parallel)
         run_tt_scraper()
         run_football_scraper()
         run_basketball_scraper()

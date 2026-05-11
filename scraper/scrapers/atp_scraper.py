@@ -134,15 +134,51 @@ class ATPScraper(BaseScraper):
         if not soup: return
 
         try:
-            # Image
-            img = soup.select_one(".atp_player-profile-hero-image img")
+            # Hero Image - prioritize headshot
+            img = soup.select_one("img[src*='player-gladiator-headshot']")
+            if not img:
+                img = soup.select_one(".atp_player-profile-hero-image img")
+            
             if img and img.get("src"):
                 player_data["image_url"] = img.get("src")
                 if player_data["image_url"].startswith("/"):
                     player_data["image_url"] = "https://www.atptour.com" + player_data["image_url"]
 
-            # Stats list
-            # Selectors based on browser investigation
+            # Career High Rank - in a div with class "stat" containing "Career High Rank" label
+            stat_divs = soup.select(".stat")
+            for div in stat_divs:
+                label_cell = div.select_one(".stat-label")
+                if label_cell and "Career High Rank" in label_cell.text:
+                    # The rank number is often in a .stat-value div
+                    val_el = div.select_one(".stat-value")
+                    if val_el:
+                        try:
+                            player_data["highest_ranking"] = int(val_el.text.strip())
+                        except: pass
+                    
+                    # Date in label e.g. "(2024.06.10)"
+                    date_match = re.search(r"\((\d{4}\.\d{2}\.\d{2})\)", label_cell.text)
+                    if date_match:
+                        try:
+                            player_data["highest_ranking_date"] = datetime.strptime(date_match.group(1), "%Y.%m.%d").date()
+                        except: pass
+
+            # Win/Loss record - multiple .wins divs exist (YTD and Career)
+            # We want the Career one, which is usually the second one
+            wins_divs = soup.select(".wins")
+            if wins_divs:
+                # If there's more than one, the second one is usually Career
+                target_wins = wins_divs[1] if len(wins_divs) > 1 else wins_divs[0]
+                text_content = target_wins.get_text(separator=" ").strip()
+                # Format: "351 - 88 W-L"
+                wl_match = re.search(r"(\d+)\s*-\s*(\d+)", text_content)
+                if wl_match:
+                    try:
+                        player_data["wins"] = int(wl_match.group(1))
+                        player_data["losses"] = int(wl_match.group(2))
+                    except: pass
+
+            # Personal Info (Age, Height, Weight, etc.)
             age_span = soup.select_one(".pd_left li:nth-child(1) span:nth-child(2)")
             weight_span = soup.select_one(".pd_left li:nth-child(2) span:nth-child(2)")
             height_span = soup.select_one(".pd_left li:nth-child(3) span:nth-child(2)")
@@ -150,23 +186,10 @@ class ATPScraper(BaseScraper):
             plays_span = soup.select_one(".pd_right li:nth-child(3) span:nth-child(2)")
             prize_money_span = soup.select_one(".atp_player-profile-header-stats-row:nth-child(2) .prize_money")
 
-            # Full Name from profile
-            name_div = soup.select_one(".atp_player-profile-hero-name")
-            if name_div:
-                first_name = name_div.select_one(".first-name")
-                last_name = name_div.select_one(".last-name")
-                if first_name and last_name:
-                    full_name = f"{first_name.text.strip()} {last_name.text.strip()}"
-                    player_data["name"] = full_name
-                elif name_div.text.strip():
-                    player_data["name"] = name_div.text.strip()
-
             if age_span:
-                # Format: "23 (2002/12/04)"
                 text = age_span.text.strip()
                 date_match = re.search(r"\((\d{4}/\d{2}/\d{2})\)", text)
                 if date_match:
-                    from datetime import datetime
                     try:
                         player_data["birth_date"] = datetime.strptime(date_match.group(1), "%Y/%m/%d").date()
                     except: pass
@@ -177,10 +200,8 @@ class ATPScraper(BaseScraper):
                 player_data["turned_pro"] = turned_pro_span.text.strip()
             if plays_span: player_data["playing_style"] = plays_span.text.strip()
             if prize_money_span: player_data["prize_money"] = prize_money_span.text.strip()
-
         except Exception as e:
             log.error(f"Error enriching from ATP: {e}")
-
 
     def _fetch_wiki_image(self, name):
         try:

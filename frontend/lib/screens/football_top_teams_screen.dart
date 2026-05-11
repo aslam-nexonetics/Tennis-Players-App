@@ -176,6 +176,7 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                                               ? Image.network(
                                                   team.imageUrl!,
                                                   fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
                                                   errorBuilder: (_, __, ___) => _buildInitials(team.name),
                                                 )
                                               : _buildInitials(team.name),

@@ -98,6 +98,7 @@ class PlayerDetailScreen extends StatelessWidget {
               height: 400,
               width: double.infinity,
               fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
             ),
           )
         else
@@ -178,6 +179,7 @@ class PlayerDetailScreen extends StatelessWidget {
                                 height: 350,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
                               )
                             : Container(
                                 height: 350,

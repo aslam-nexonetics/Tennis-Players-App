@@ -165,6 +165,7 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                                   ? Image.network(
                                       player.imageUrl!,
                                       fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
                                       errorBuilder: (_, __, ___) => _initialsWidget(player.name, 18),
                                     )
                                   : _initialsWidget(player.name, 18),

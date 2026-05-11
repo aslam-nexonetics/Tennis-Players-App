@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+import httpx
+from fastapi import FastAPI, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import players, tt_players, football_national_teams, basketball_clubs
 from app.db.session import engine, Base
@@ -12,6 +13,30 @@ app = FastAPI(
     description="Backend API for searching and viewing sports data.",
     version="1.0.0"
 )
+
+@app.get("/proxy-image")
+def proxy_image(url: str):
+    import urllib.request
+    import urllib.parse
+    try:
+        parsed = urllib.parse.urlparse(url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}/"
+        
+        req = urllib.request.Request(
+            url, 
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+                "Referer": base_url,
+            }
+        )
+        with urllib.request.urlopen(req) as response:
+            content = response.read()
+            content_type = response.headers.get("Content-Type", "image/jpeg")
+            return Response(content=content, media_type=content_type)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 from fastapi.middleware.gzip import GZipMiddleware
 

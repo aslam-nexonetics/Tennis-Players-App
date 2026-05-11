@@ -161,6 +161,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                           player.imageUrl!,
                                         ),
                                         fit: BoxFit.cover,
+                                        alignment: Alignment.topCenter,
                                         errorBuilder: (_, __, ___) =>
                                             _initialsWidget(player.name, 18),
                                       )

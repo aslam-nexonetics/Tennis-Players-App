@@ -305,6 +305,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
             ? Image.network(
                 player.imageUrl!,
                 fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
                 errorBuilder: (_, __, ___) => Center(
                   child: Text(
                     _initials(player.name),

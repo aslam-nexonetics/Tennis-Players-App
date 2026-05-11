@@ -22,6 +22,12 @@ class ApiService {
     return 'http://localhost:8000';
   }
 
+  static String getProxyImageUrl(String originalUrl) {
+    if (!kIsWeb) return originalUrl;
+    if (originalUrl.startsWith(baseUrl)) return originalUrl;
+    return '$baseUrl/proxy-image?url=${Uri.encodeComponent(originalUrl)}';
+  }
+
   Future<PlayerListResponse> getPlayers({
     int page = 1,
     int size = 20,
@@ -162,14 +168,16 @@ class ApiService {
       ),
     );
     if (response.statusCode == 200) {
-      return FootballNationalTeamListResponse.fromJson(json.decode(response.body));
+      return FootballNationalTeamListResponse.fromJson(
+          json.decode(response.body));
     } else {
       throw Exception('Failed to search football teams');
     }
   }
 
   Future<FootballNationalTeam> getFootballTeamDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/football-national-teams/$id'));
+    final response =
+        await http.get(Uri.parse('$baseUrl/football-national-teams/$id'));
     if (response.statusCode == 200) {
       return FootballNationalTeam.fromJson(json.decode(response.body));
     } else {
@@ -184,10 +192,12 @@ class ApiService {
   }) async {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/football-national-teams/?page=$page&size=$size$categoryParam'),
+      Uri.parse(
+          '$baseUrl/football-national-teams/?page=$page&size=$size$categoryParam'),
     );
     if (response.statusCode == 200) {
-      return FootballNationalTeamListResponse.fromJson(json.decode(response.body));
+      return FootballNationalTeamListResponse.fromJson(
+          json.decode(response.body));
     } else {
       throw Exception('Failed to load top football teams');
     }
@@ -202,7 +212,8 @@ class ApiService {
   }) async {
     final categoryParam = category != null ? '&category=$category' : '';
     final response = await http.get(
-      Uri.parse('$baseUrl/basketball-clubs?page=$page&size=$size$categoryParam'),
+      Uri.parse(
+          '$baseUrl/basketball-clubs?page=$page&size=$size$categoryParam'),
     );
     if (response.statusCode == 200) {
       return BasketballClubListResponse.fromJson(json.decode(response.body));
