@@ -11,8 +11,8 @@ class ApiService {
   static String get baseUrl {
     if (kIsWeb) {
       // Production backend on Render
-      // return 'https://tennis-players-app.onrender.com';
-      return 'http://localhost:8000';
+      return 'https://tennis-players-app.onrender.com';
+      // return 'http://localhost:8000';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Physical Android device on LAN
