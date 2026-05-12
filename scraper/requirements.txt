@@ -6,3 +6,5 @@ python-dotenv
 ratelimit
 loguru
 pydantic
+psycopg2-binary
+lxml

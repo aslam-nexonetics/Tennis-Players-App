@@ -77,11 +77,19 @@ def main():
     elif args.basketball_only:
         run_basketball_scraper()
     else:
-        # Run all scrapers
-        run_tennis_scraper(parallel=parallel)
-        run_tt_scraper()
-        run_football_scraper()
-        run_basketball_scraper()
+        # Run all scrapers in parallel
+        log.info(f"Starting all scrapers in parallel (Parallel={parallel})...")
+        if parallel:
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                executor.submit(run_tennis_scraper, True)
+                executor.submit(run_tt_scraper)
+                executor.submit(run_football_scraper)
+                executor.submit(run_basketball_scraper)
+        else:
+            run_tennis_scraper(parallel=False)
+            run_tt_scraper()
+            run_football_scraper()
+            run_basketball_scraper()
 
 if __name__ == "__main__":
     main()
