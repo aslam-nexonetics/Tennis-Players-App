@@ -2,8 +2,8 @@ name: Daily Sports Scrape
 
 on:
   schedule:
-    # Runs at 02:00 UTC (around 07:30 AM IST) every day
-    - cron: '0 2 * * *'
+    # Runs at 18:30 UTC (12:00 AM Midnight IST) every day
+    - cron: '30 18 * * *'
   workflow_dispatch: # Allows you to run it manually from the GitHub UI
 
 jobs:
