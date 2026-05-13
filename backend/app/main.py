@@ -19,30 +19,43 @@ async def proxy_image(url: str):
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
         
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=False, timeout=20.0) as client:
         try:
-            # Basic headers to mimic a browser
+            # Clean the URL - sometimes hidden characters can cause issues
+            url = url.strip()
+            
+            # Standard browser headers
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
             }
             
-            # Special handling for Wikimedia/Wikipedia
+            # Wikipedia specifically likes this User-Agent format
             if "wikimedia.org" in url or "wikipedia.org" in url:
-                headers["User-Agent"] = "TennisPlayerApp/1.0 (contact@example.com)"
-            
-            response = await client.get(url, headers=headers, follow_redirects=True, timeout=15.0)
+                headers["User-Agent"] = "TennisApp/1.0 (https://github.com/aslam-nexonetics/Tennis-Players-App; contact@example.com)"
+
+            try:
+                response = await client.get(url, headers=headers, follow_redirects=True)
+            except Exception as first_error:
+                # Fallback: Try one more time with NO headers if the first one failed
+                try:
+                    response = await client.get(url, follow_redirects=True)
+                except Exception as second_error:
+                    raise Exception(f"Primary error: {str(first_error)}. Fallback error: {str(second_error)}")
             
             if response.status_code != 200:
-                # Log the error internally and return a generic 404 for the image
                 print(f"Failed to fetch image from {url}: {response.status_code}")
-                raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image: {response.status_code}")
+                raise HTTPException(status_code=response.status_code, detail=f"Source server returned {response.status_code}")
                 
             content_type = response.headers.get("Content-Type", "image/jpeg")
             return Response(content=response.content, media_type=content_type)
+            
         except Exception as e:
-            print(f"Proxy error for {url}: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Proxy error: {str(e)}")
+            error_msg = f"Proxy error for {url}: {str(e)}"
+            print(error_msg)
+            # Return the error message in the detail so we can see it in the network tab
+            raise HTTPException(status_code=500, detail=error_msg)
 
 
 from fastapi.middleware.gzip import GZipMiddleware
