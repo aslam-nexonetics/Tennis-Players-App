@@ -116,12 +116,12 @@ class ATPScraper(BaseScraper):
                                     player_data[key] = val
 
                     # Final sanitization
-                    if not player_data.get("highest_ranking"):
+                    if player_data.get("highest_ranking"):
+                        if isinstance(player_data['highest_ranking'], str):
+                            match = re.search(r"(\d+)", str(player_data['highest_ranking']))
+                            player_data['highest_ranking'] = int(match.group(1)) if match else ranking
+                    else:
                         player_data["highest_ranking"] = ranking
-                    
-                    if isinstance(player_data.get('highest_ranking'), str):
-                        match = re.search(r"(\d+)", str(player_data['highest_ranking']))
-                        player_data['highest_ranking'] = int(match.group(1)) if match else ranking
 
                     save_player(player_data)
                     players_scraped += 1

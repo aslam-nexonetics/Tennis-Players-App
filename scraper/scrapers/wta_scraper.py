@@ -1,6 +1,7 @@
 import urllib.parse
 import re
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 from scraper.base_scraper import BaseScraper
 from scraper.utils.logger import log
 from scraper.persistence import save_player
@@ -79,13 +80,13 @@ class WTAScraper(BaseScraper):
                                 if not player_data.get(key):
                                     player_data[key] = val
 
-                    # Parse highest ranking if string
-                    if not player_data.get("highest_ranking"):
+                    # Final sanitization
+                    if player_data.get("highest_ranking"):
+                        if isinstance(player_data['highest_ranking'], str):
+                            match = re.search(r"(\d+)", str(player_data['highest_ranking']))
+                            player_data['highest_ranking'] = int(match.group(1)) if match else ranking
+                    else:
                         player_data["highest_ranking"] = ranking
-                    
-                    if isinstance(player_data.get('highest_ranking'), str):
-                        match = re.search(r"(\d+)", str(player_data['highest_ranking']))
-                        player_data['highest_ranking'] = int(match.group(1)) if match else ranking
 
                     save_player(player_data)
                     players_scraped += 1
@@ -98,15 +99,40 @@ class WTAScraper(BaseScraper):
 
     def enrich_from_wta(self, url, player_data):
         log.info(f"Enriching {player_data['name']} from WTA profile...")
-        soup = self.get_soup_playwright(url)
-        if not soup: return
+        
+        # We need to click "Career" to see career stats
+        from playwright.sync_api import sync_playwright
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                page = context.new_page()
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                
+                # Try to click Career toggle if it exists
+                try:
+                    # More specific selector for the toggle
+                    career_button = page.locator('button.segmented-controls__item:has-text("Career")')
+                    if career_button.count() > 0:
+                        career_button.first.click()
+                        page.wait_for_timeout(1000) # Wait for stats to update
+                except Exception as e:
+                    log.debug(f"Could not click career toggle: {e}")
+
+                content = page.content()
+                browser.close()
+                soup = BeautifulSoup(content, "html.parser")
+        except Exception as e:
+            log.error(f"Error fetching WTA profile with playwright: {e}")
+            return
 
         try:
             # Image
             img = soup.select_one(".player-headshot__photo img")
             if img and img.get("src"):
                 wta_image_url = img.get("src")
-                # Try to get a Wikipedia image for better compatibility with our proxy
                 wiki_image = self._fetch_wiki_image(player_data['name'])
                 if wiki_image:
                     player_data["image_url"] = wiki_image
@@ -114,46 +140,68 @@ class WTAScraper(BaseScraper):
                     player_data["image_url"] = wta_image_url
 
             # Stats (Highest Rank, Win/Loss)
-            # These are in blocks with labels
-            stat_blocks = soup.select(".stat-block")
-            for block in stat_blocks:
-                label_el = block.select_one(".stat-block__label")
-                if not label_el: continue
-                label = label_el.text.strip().lower()
+            # Use specific selectors found for WTA profile
+            
+            # Highest Rank
+            highest_rank_el = soup.select_one(".profile-header__stat-block--rank .stat-block__stat")
+            if highest_rank_el:
+                try:
+                    rank_text = re.search(r"(\d+)", highest_rank_el.text.strip())
+                    if rank_text:
+                        player_data["highest_ranking"] = int(rank_text.group(1))
+                except: pass
+            
+            highest_rank_date_el = soup.select_one(".profile-header__stat-block--rank .stat-block__rank-date")
+            if highest_rank_date_el:
+                # Format: "04 Apr 22"
+                try:
+                    player_data["highest_ranking_date"] = datetime.strptime(highest_rank_date_el.text.strip(), "%d %b %y").date()
+                except: pass
 
-                if "highest singles rank" in label:
-                    rank_el = block.select_one(".stat-block__rank-number")
-                    date_el = block.select_one(".stat-block__rank-date")
-                    if rank_el:
-                        try:
-                            player_data["highest_ranking"] = int(rank_el.text.strip())
-                        except: pass
-                    if date_el:
-                        # Format: "04 Apr 22" or similar
-                        try:
-                            player_data["highest_ranking_date"] = datetime.strptime(date_el.text.strip(), "%d %b %y").date()
-                        except: pass
-                
-                elif "won / lost" in label:
-                    val_el = block.select_one(".stat-block__stat-value")
-                    if val_el:
-                        # Format: "418 / 100"
-                        parts = val_el.text.split("/")
-                        if len(parts) == 2:
-                            try:
-                                player_data["wins"] = int(parts[0].strip())
-                                player_data["losses"] = int(parts[1].strip())
-                            except: pass
+            # Win/Loss
+            win_loss_el = soup.select_one(".profile-header__stat-block--win-loss .stat-block__stat-row")
+            if win_loss_el:
+                # Format: "418 / 100"
+                parts = win_loss_el.text.split("/")
+                if len(parts) == 2:
+                    try:
+                        player_data["wins"] = int(re.sub(r"\D", "", parts[0]))
+                        player_data["losses"] = int(re.sub(r"\D", "", parts[1]))
+                    except: pass
 
-            # Physical info (Height, Turned Pro)
-            # These are often in a different section or simple text
-            # Usually in .player-profile__info-list
-            height_el = soup.select_one(".player-profile__info-item:nth-child(2) .player-profile__info-value")
-            if height_el and "m" in height_el.text:
-                player_data["height"] = height_el.text.strip()
+            # Physical info (Height)
+            height_el = None
+            # Check Bio section (Profile Biography)
+            bio_blocks = soup.select(".profile-bio__info-block")
+            for block in bio_blocks:
+                title = block.select_one(".profile-bio__info-title")
+                if title and "Height" in title.text:
+                    height_el = block.select_one(".profile-bio__info-content")
+                    break
+            
+            # Check Meta section (Header)
+            if not height_el:
+                meta_items = soup.select(".profile-header__meta-item")
+                for item in meta_items:
+                    if "(" in item.text and "m)" in item.text:
+                        height_el = item
+                        break
+
+            if height_el:
+                # Extract the "1.82m" part from "5' 11\" (1.82m)"
+                height_text = height_el.text.strip()
+                match = re.search(r"\((\d+\.?\d*m)\)", height_text)
+                if match:
+                    player_data["height"] = match.group(1)
+                elif "m" in height_text:
+                    player_data["height"] = height_text
+
+            # Note: We explicitly do NOT scrape weight and turned_pro for WTA as requested.
+            player_data["weight"] = None
+            player_data["turned_pro"] = None
 
         except Exception as e:
-            log.error(f"Error enriching from WTA: {e}")
+            log.error(f"Error parsing WTA profile: {e}")
 
     def _fetch_wiki_image(self, name):
         try:

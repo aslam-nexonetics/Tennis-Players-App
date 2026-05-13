@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
-import 'player_compare_screen.dart';
+
 
 class PlayerDetailScreen extends StatelessWidget {
   final Player player;
@@ -41,23 +41,6 @@ class PlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80),
-        child: FloatingActionButton.extended(
-          heroTag: 'compare-tennis-${player.id}',
-          backgroundColor: Colors.indigo,
-          icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
-          label: const Text('Compare',
-              style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PlayerCompareScreen(playerA: player),
-            ),
-          ),
-        ),
-      ),
       backgroundColor: const Color(0xFFCFDEF3), // Matches liquid theme
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -210,29 +193,6 @@ class PlayerDetailScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => PlayerCompareScreen(
-                                        playerA: player),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.compare_arrows_rounded),
-                                label: const Text('Compare Player'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.indigo,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(12)),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -389,56 +349,105 @@ class PlayerDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStatGrid(BuildContext context) {
+    final isWomen = player.gender == 'F';
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth - 12) / 2;
+        
+        if (isWomen) {
+          return _buildWomenStats(cardWidth);
+        } else {
+          return _buildMenStats(cardWidth);
+        }
+      },
+    );
+  }
+
+  Widget _buildMenStats(double cardWidth) {
     final highestRankLabel = player.highestRankingDate != null
         ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
         : '#${player.highestRanking ?? 'N/A'}';
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 12) / 2;
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _buildStatCard(
-              cardWidth,
-              'Current Rank',
-              '#${player.ranking ?? 'N/A'}',
-              Icons.military_tech,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Career High',
-              highestRankLabel,
-              Icons.stars_rounded,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Playing Style',
-              player.playingStyle ?? 'N/A',
-              Icons.sports_tennis,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Height',
-              player.height ?? 'N/A',
-              Icons.height,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Weight',
-              player.weight ?? 'N/A',
-              Icons.monitor_weight_outlined,
-            ),
-            _buildStatCard(
-              cardWidth,
-              'Turned Pro',
-              player.turnedPro ?? 'N/A',
-              Icons.event_available,
-            ),
-          ],
-        );
-      },
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _buildStatCard(
+          cardWidth,
+          'Current Rank',
+          '#${player.ranking ?? 'N/A'}',
+          Icons.military_tech,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Career High',
+          highestRankLabel,
+          Icons.stars_rounded,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Playing Style',
+          player.playingStyle ?? 'N/A',
+          Icons.sports_tennis,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Height',
+          player.height ?? 'N/A',
+          Icons.height,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Weight',
+          player.weight ?? 'N/A',
+          Icons.monitor_weight_outlined,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Turned Pro',
+          player.turnedPro ?? 'N/A',
+          Icons.event_available,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWomenStats(double cardWidth) {
+    final highestRankLabel = player.highestRankingDate != null
+        ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
+        : '#${player.highestRanking ?? 'N/A'}';
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _buildStatCard(
+          cardWidth,
+          'Current Rank',
+          '#${player.ranking ?? 'N/A'}',
+          Icons.military_tech,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Career High',
+          highestRankLabel,
+          Icons.stars_rounded,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Playing Style',
+          player.playingStyle ?? 'N/A',
+          Icons.sports_tennis,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Height',
+          player.height ?? 'N/A',
+          Icons.height,
+        ),
+        // Weight and Turned Pro are removed for WTA as they don't provide it
+      ],
     );
   }
 
