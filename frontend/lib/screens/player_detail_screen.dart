@@ -163,6 +163,19 @@ class PlayerDetailScreen extends StatelessWidget {
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 alignment: Alignment.topCenter,
+                                placeholder: (context, url) => Container(
+                                  height: 350,
+                                  color: Colors.indigo.withOpacity(0.05),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  height: 350,
+                                  color: Colors.indigo.withOpacity(0.1),
+                                  child: const Icon(Icons.person,
+                                      size: 100, color: Colors.indigo),
+                                ),
                               )
                             : Container(
                                 height: 350,

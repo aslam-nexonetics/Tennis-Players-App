@@ -16,30 +16,33 @@ app = FastAPI(
 
 @app.get("/proxy-image")
 async def proxy_image(url: str):
-    async with httpx.AsyncClient() as client:
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+        
+    async with httpx.AsyncClient(verify=False) as client:
         try:
-            parsed = httpx.URL(url)
-            base_url = f"{parsed.scheme}://{parsed.host}/"
-            
+            # Basic headers to mimic a browser
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-                "Referer": base_url,
             }
             
-            response = await client.get(url, headers=headers, follow_redirects=True, timeout=10.0)
+            # Special handling for Wikimedia/Wikipedia
+            if "wikimedia.org" in url or "wikipedia.org" in url:
+                headers["User-Agent"] = "TennisPlayerApp/1.0 (contact@example.com)"
+            
+            response = await client.get(url, headers=headers, follow_redirects=True, timeout=15.0)
             
             if response.status_code != 200:
-                # If we get a 403 or other error, it's likely a bot protection issue.
-                # In this case, we could return a placeholder or just fail.
-                # Since the scraper is being updated to use Wikipedia, this should happen less often.
+                # Log the error internally and return a generic 404 for the image
+                print(f"Failed to fetch image from {url}: {response.status_code}")
                 raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image: {response.status_code}")
                 
             content_type = response.headers.get("Content-Type", "image/jpeg")
             return Response(content=response.content, media_type=content_type)
         except Exception as e:
-            # Fallback for broken images to avoid "EncodingError" in frontend
-            raise HTTPException(status_code=400, detail=str(e))
+            print(f"Proxy error for {url}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Proxy error: {str(e)}")
 
 
 from fastapi.middleware.gzip import GZipMiddleware

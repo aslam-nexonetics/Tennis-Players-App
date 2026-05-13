@@ -141,11 +141,14 @@ class ATPScraper(BaseScraper):
             
             if img and img.get("src"):
                 atp_image_url = img.get("src")
-                if atp_image_url.startswith("/"):
+                if atp_image_url.startswith("//"):
+                    atp_image_url = "https:" + atp_image_url
+                elif atp_image_url.startswith("/"):
                     atp_image_url = "https://www.atptour.com" + atp_image_url
                 
                 # ATP images are often blocked by Cloudflare for proxies.
                 # Let's try to get a Wikipedia image instead for better compatibility.
+                # If we already have a wiki image from a previous run or enrichment, keep it.
                 wiki_image = self._fetch_wiki_image(player_data['name'])
                 if wiki_image:
                     player_data["image_url"] = wiki_image
