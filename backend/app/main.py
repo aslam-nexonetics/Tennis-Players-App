@@ -1,5 +1,8 @@
 import httpx
+import os
+import hashlib
 from fastapi import FastAPI, Response, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import players, tt_players, football_national_teams, basketball_clubs
 from app.db.session import engine, Base
@@ -7,6 +10,10 @@ import uvicorn
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Ensure cache directory exists
+CACHE_DIR = "static/images"
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 app = FastAPI(
     title="Sports Data API",
@@ -19,43 +26,45 @@ async def proxy_image(url: str):
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
         
+    # Generate a unique filename based on the URL
+    url_hash = hashlib.md5(url.encode()).hexdigest()
+    # Extract extension if possible, default to jpg
+    ext = ".jpg"
+    if ".png" in url.lower(): ext = ".png"
+    elif ".svg" in url.lower(): ext = ".svg"
+    elif ".webp" in url.lower(): ext = ".webp"
+    
+    cache_path = os.path.join(CACHE_DIR, f"{url_hash}{ext}")
+    
+    # Return cached image if it exists
+    if os.path.exists(cache_path):
+        return FileResponse(cache_path)
+
     async with httpx.AsyncClient(verify=False, timeout=20.0) as client:
         try:
-            # Clean the URL - sometimes hidden characters can cause issues
             url = url.strip()
-            
-            # Standard browser headers
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
             }
             
-            # Wikipedia specifically likes this User-Agent format
-            if "wikimedia.org" in url or "wikipedia.org" in url:
-                headers["User-Agent"] = "TennisApp/1.0 (https://github.com/aslam-nexonetics/Tennis-Players-App; contact@example.com)"
-
             try:
                 response = await client.get(url, headers=headers, follow_redirects=True)
-            except Exception as first_error:
-                # Fallback: Try one more time with NO headers if the first one failed
-                try:
-                    response = await client.get(url, follow_redirects=True)
-                except Exception as second_error:
-                    raise Exception(f"Primary error: {str(first_error)}. Fallback error: {str(second_error)}")
+            except Exception:
+                response = await client.get(url, follow_redirects=True)
             
-            if response.status_code != 200:
-                print(f"Failed to fetch image from {url}: {response.status_code}")
-                raise HTTPException(status_code=response.status_code, detail=f"Source server returned {response.status_code}")
+            if response.status_code == 200:
+                # Save to cache
+                with open(cache_path, "wb") as f:
+                    f.write(response.content)
                 
-            content_type = response.headers.get("Content-Type", "image/jpeg")
-            return Response(content=response.content, media_type=content_type)
-            
+                content_type = response.headers.get("Content-Type", "image/jpeg")
+                return Response(content=response.content, media_type=content_type)
+            else:
+                raise HTTPException(status_code=response.status_code, detail=f"Source returned {response.status_code}")
+                
         except Exception as e:
-            error_msg = f"Proxy error for {url}: {str(e)}"
-            print(error_msg)
-            # Return the error message in the detail so we can see it in the network tab
-            raise HTTPException(status_code=500, detail=error_msg)
+            raise HTTPException(status_code=500, detail=f"Proxy error: {str(e)}")
 
 
 from fastapi.middleware.gzip import GZipMiddleware
