@@ -152,39 +152,41 @@ class ATPScraper(BaseScraper):
                 else:
                     player_data["image_url"] = atp_image_url
 
-            # Career High Rank - in a div with class "stat" containing "Career High Rank" label
-            stat_divs = soup.select(".stat")
-            for div in stat_divs:
-                label_cell = div.select_one(".stat-label")
-                if label_cell and "Career High Rank" in label_cell.text:
-                    # The rank number is often in a .stat-value div
-                    val_el = div.select_one(".stat-value")
-                    if val_el:
+            # Career Stats (Ranking and Win/Loss)
+            # ATP stats are often in a table-like structure with .player-stats-details
+            stats_rows = soup.select(".player-stats-details")
+            for row in stats_rows:
+                type_el = row.select_one(".type")
+                if type_el and "Career" in type_el.text:
+                    # Career High Rank
+                    rank_stat = row.select_one(".stat")
+                    if rank_stat:
+                        # The rank number is a direct text node
+                        rank_text = rank_stat.get_text(separator="|").split("|")[0].strip()
                         try:
-                            player_data["highest_ranking"] = int(val_el.text.strip())
+                            player_data["highest_ranking"] = int(re.sub(r"\D", "", rank_text))
                         except: pass
+                        
+                        # Date in label e.g. "(2024.06.10)"
+                        label_cell = rank_stat.select_one(".stat-label")
+                        if label_cell:
+                            date_match = re.search(r"\((\d{4}\.\d{2}\.\d{2})\)", label_cell.text)
+                            if date_match:
+                                try:
+                                    player_data["highest_ranking_date"] = datetime.strptime(date_match.group(1), "%Y.%m.%d").date()
+                                except: pass
                     
-                    # Date in label e.g. "(2024.06.10)"
-                    date_match = re.search(r"\((\d{4}\.\d{2}\.\d{2})\)", label_cell.text)
-                    if date_match:
-                        try:
-                            player_data["highest_ranking_date"] = datetime.strptime(date_match.group(1), "%Y.%m.%d").date()
-                        except: pass
-
-            # Win/Loss record - multiple .wins divs exist (YTD and Career)
-            # We want the Career one, which is usually the second one
-            wins_divs = soup.select(".wins")
-            if wins_divs:
-                # If there's more than one, the second one is usually Career
-                target_wins = wins_divs[1] if len(wins_divs) > 1 else wins_divs[0]
-                text_content = target_wins.get_text(separator=" ").strip()
-                # Format: "351 - 88 W-L"
-                wl_match = re.search(r"(\d+)\s*-\s*(\d+)", text_content)
-                if wl_match:
-                    try:
-                        player_data["wins"] = int(wl_match.group(1))
-                        player_data["losses"] = int(wl_match.group(2))
-                    except: pass
+                    # Win/Loss record
+                    wins_el = row.select_one(".wins")
+                    if wins_el:
+                        # Format: "1170 - 235"
+                        wl_text = wins_el.get_text(separator=" ").strip()
+                        wl_match = re.search(r"(\d+)\s*-\s*(\d+)", wl_text)
+                        if wl_match:
+                            try:
+                                player_data["wins"] = int(wl_match.group(1))
+                                player_data["losses"] = int(wl_match.group(2))
+                            except: pass
 
             # Personal Info (Age, Height, Weight, etc.)
             age_span = soup.select_one(".pd_left li:nth-child(1) span:nth-child(2)")
