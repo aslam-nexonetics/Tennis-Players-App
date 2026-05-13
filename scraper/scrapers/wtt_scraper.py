@@ -187,8 +187,8 @@ class WTTScraper(BaseScraper):
                     if enriched_data:
                         player_data.update(enriched_data)
                 
-                # If we still don't have basic stats, add plausible ones as last resort
-                if "wins" not in player_data:
+                # If we still don't have stats, add fallback data as last resort
+                if "win_percentage" not in player_data:
                     player_data.update(self._generate_fallback_stats(ranking))
 
                 save_tt_player(player_data)
@@ -237,12 +237,14 @@ class WTTScraper(BaseScraper):
             if player_info.get("Style"): style_parts.append(player_info["Style"])
             playing_style = " / ".join(style_parts) if style_parts else "N/A"
 
-            # Stats (sum up across all categories like MS, MT)
-            wins = 0
-            losses = 0
+            # Win percentage (usually in MS category)
+            win_percentage = None
             for stat in stats_info:
-                wins += int(stat.get("career_wins", 0) or 0)
-                losses += int(stat.get("career_loss", 0) or 0)
+                if stat.get("SubeventCode") == "MS" or not win_percentage:
+                    try:
+                        win_percentage = float(stat.get("winning_percentage", 0) or 0)
+                    except:
+                        pass
             
             # Image
             image_url = player_info.get("HeadShot") or data.get("headShot")
@@ -250,8 +252,7 @@ class WTTScraper(BaseScraper):
             return {
                 "birth_date": birth_date,
                 "playing_style": playing_style,
-                "wins": wins,
-                "losses": losses,
+                "win_percentage": win_percentage,
                 "image_url": image_url,
             }
         except Exception as e:
@@ -260,11 +261,8 @@ class WTTScraper(BaseScraper):
 
     def _generate_fallback_stats(self, ranking: int) -> dict:
         """Last resort generator for missing stats."""
-        wins = max(0, 1000 - ranking * 2 + random.randint(10, 200))
-        losses = random.randint(5, max(6, wins // 2))
         return {
-            "wins": wins,
-            "losses": losses,
+            "win_percentage": 0.0,
             "playing_style": "Right-handed attacker",
         }
 

@@ -150,8 +150,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
   }
 
   String _winRate(TableTennisPlayer p) {
-    final t = p.wins + p.losses;
-    return t == 0 ? '0%' : '${((p.wins / t) * 100).toStringAsFixed(1)}%';
+    return '${(p.winPercentage ?? 0.0).toStringAsFixed(1)}%';
   }
 
   @override
@@ -442,8 +441,6 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildStatRow('Matches Played', '${a.wins + a.losses}', '${b.wins + b.losses}'),
-              _buildStatRow('Wins', '${a.wins}', '${b.wins}'),
               _buildStatRow('Win %', _winRate(a), _winRate(b)),
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}', '#${b.ranking ?? "N/A"}', lowerIsBetter: true),
             ],
@@ -504,9 +501,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
       }
     }
     check(a.ranking, b.ranking, lowerBetter: true);
-    check(a.wins, b.wins);
-    check(a.wins + a.losses > 0 ? a.wins / (a.wins + a.losses) : null,
-          b.wins + b.losses > 0 ? b.wins / (b.wins + b.losses) : null);
+    check(a.winPercentage, b.winPercentage);
 
     String winnerName = aScore > bScore ? a.name : bScore > aScore ? b.name : "Even Match!";
     Color winnerColor = aScore > bScore ? _kGreen : bScore > aScore ? _kPurple : Colors.grey;

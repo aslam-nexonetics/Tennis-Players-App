@@ -405,26 +405,61 @@ class TtPlayerDetailScreen extends StatelessWidget {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSimpleStat(
-                'WINS',
-                player.wins.toString(),
-                Colors.green[400]!,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildSimpleStat(
-                'LOSSES',
-                player.losses.toString(),
-                Colors.red[400]!,
-              ),
-            ),
-          ],
-        ),
+        _buildWinPercentageBanner(),
       ],
+    );
+  }
+
+  Widget _buildWinPercentageBanner() {
+    final percentage = player.winPercentage ?? 0.0;
+    return GlassContainer(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      borderRadius: 20,
+      opacity: 0.1,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'WIN RATE',
+                  style: TextStyle(
+                    color: Color(0xFF0F9D58),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${percentage.toStringAsFixed(1)}%',
+                  style: const TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 80,
+            height: 80,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF0F9D58).withOpacity(0.1),
+            ),
+            child: CircularProgressIndicator(
+              value: percentage / 100,
+              strokeWidth: 8,
+              backgroundColor: Colors.white.withOpacity(0.2),
+              color: const Color(0xFF0F9D58),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -518,29 +553,5 @@ class TtPlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSimpleStat(String label, String value, Color color) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      borderRadius: 20,
-      opacity: 0.1,
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
+
 }

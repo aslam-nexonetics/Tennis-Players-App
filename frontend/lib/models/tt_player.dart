@@ -6,8 +6,7 @@ class TableTennisPlayer {
   final DateTime? birthDate;
   final String? weight;
   final String? playingStyle;
-  final int wins;
-  final int losses;
+  final double? winPercentage;
   final String? imageUrl;
   final String? source;
   final String? gender;
@@ -21,8 +20,7 @@ class TableTennisPlayer {
     this.birthDate,
     this.weight,
     this.playingStyle,
-    this.wins = 0,
-    this.losses = 0,
+    this.winPercentage,
     this.imageUrl,
     this.source,
     this.gender,
@@ -51,8 +49,7 @@ class TableTennisPlayer {
           : null,
       weight: json['weight'],
       playingStyle: json['playing_style'],
-      wins: json['wins'] ?? 0,
-      losses: json['losses'] ?? 0,
+      winPercentage: json['win_percentage'] != null ? (json['win_percentage'] as num).toDouble() : null,
       imageUrl: json['image_url'],
       source: json['source'],
       gender: json['gender'],

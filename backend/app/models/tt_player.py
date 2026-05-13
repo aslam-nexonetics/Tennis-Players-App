@@ -13,8 +13,7 @@ class TableTennisPlayer(Base):
     birth_date = Column(Date)
     weight = Column(String)
     playing_style = Column(String)
-    wins = Column(Integer, default=0)
-    losses = Column(Integer, default=0)
+    win_percentage = Column(Float)
     image_url = Column(String)
     source = Column(String)
     gender = Column(String)  # 'M' or 'F'

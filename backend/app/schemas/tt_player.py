@@ -10,8 +10,7 @@ class TtPlayerBase(BaseModel):
     birth_date: Optional[date] = None
     weight: Optional[str] = None
     playing_style: Optional[str] = None
-    wins: Optional[int] = 0
-    losses: Optional[int] = 0
+    win_percentage: Optional[float] = None
     image_url: Optional[str] = None
     source: Optional[str] = None
     gender: Optional[str] = None
