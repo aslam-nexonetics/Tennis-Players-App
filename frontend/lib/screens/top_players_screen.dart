@@ -132,7 +132,7 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Text(
-                                      '${index + 1}',
+                                      '${player.ranking ?? index + 1}',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 10,

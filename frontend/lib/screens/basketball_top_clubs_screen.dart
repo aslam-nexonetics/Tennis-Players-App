@@ -139,7 +139,7 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
                             child: Row(
                               children: [
                                 Text(
-                                  '${index + 1}',
+                                  '${club.ranking ?? index + 1}',
                                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
                                 ),
                                 const SizedBox(width: 20),

@@ -135,6 +135,20 @@ class WTTScraper(BaseScraper):
                 break
             try:
                 rank_cell = row.select_one(".player-rank")
+                if not rank_cell:
+                    continue
+                
+                # Clone or work on a copy to avoid modifying the original row if needed
+                # but here we can just find and remove the diff element
+                for diff in rank_cell.select("app-rank-diff, .rank-diff"):
+                    diff.decompose()
+                
+                rank_text = rank_cell.get_text(strip=True)
+                rank_match = re.search(r"(\d+)", rank_text)
+                if not rank_match:
+                    continue
+                ranking = int(rank_match.group(1))
+
                 name_cell = row.select_one(".player_name")
                 # Handle nested span for name
                 if name_cell and name_cell.select_one("span.link_on_hover"):
@@ -145,12 +159,6 @@ class WTTScraper(BaseScraper):
                     continue
 
                 country_cell = row.select_one(".country_name")
-
-                rank_text = rank_cell.get_text(strip=True)
-                rank_match = re.search(r"(\d+)", rank_text)
-                if not rank_match:
-                    continue
-                ranking = int(rank_match.group(1))
 
                 # Extract Player ID from link
                 link_el = name_cell.select_one("a[href*='playerId=']")
