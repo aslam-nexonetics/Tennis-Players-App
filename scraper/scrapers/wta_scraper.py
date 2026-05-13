@@ -105,7 +105,13 @@ class WTAScraper(BaseScraper):
             # Image
             img = soup.select_one(".player-headshot__photo img")
             if img and img.get("src"):
-                player_data["image_url"] = img.get("src")
+                wta_image_url = img.get("src")
+                # Try to get a Wikipedia image for better compatibility with our proxy
+                wiki_image = self._fetch_wiki_image(player_data['name'])
+                if wiki_image:
+                    player_data["image_url"] = wiki_image
+                else:
+                    player_data["image_url"] = wta_image_url
 
             # Stats (Highest Rank, Win/Loss)
             # These are in blocks with labels

@@ -140,9 +140,17 @@ class ATPScraper(BaseScraper):
                 img = soup.select_one(".atp_player-profile-hero-image img")
             
             if img and img.get("src"):
-                player_data["image_url"] = img.get("src")
-                if player_data["image_url"].startswith("/"):
-                    player_data["image_url"] = "https://www.atptour.com" + player_data["image_url"]
+                atp_image_url = img.get("src")
+                if atp_image_url.startswith("/"):
+                    atp_image_url = "https://www.atptour.com" + atp_image_url
+                
+                # ATP images are often blocked by Cloudflare for proxies.
+                # Let's try to get a Wikipedia image instead for better compatibility.
+                wiki_image = self._fetch_wiki_image(player_data['name'])
+                if wiki_image:
+                    player_data["image_url"] = wiki_image
+                else:
+                    player_data["image_url"] = atp_image_url
 
             # Career High Rank - in a div with class "stat" containing "Career High Rank" label
             stat_divs = soup.select(".stat")

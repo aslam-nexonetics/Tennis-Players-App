@@ -15,27 +15,31 @@ app = FastAPI(
 )
 
 @app.get("/proxy-image")
-def proxy_image(url: str):
-    import urllib.request
-    import urllib.parse
-    try:
-        parsed = urllib.parse.urlparse(url)
-        base_url = f"{parsed.scheme}://{parsed.netloc}/"
-        
-        req = urllib.request.Request(
-            url, 
-            headers={
+async def proxy_image(url: str):
+    async with httpx.AsyncClient() as client:
+        try:
+            parsed = httpx.URL(url)
+            base_url = f"{parsed.scheme}://{parsed.host}/"
+            
+            headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
                 "Referer": base_url,
             }
-        )
-        with urllib.request.urlopen(req) as response:
-            content = response.read()
+            
+            response = await client.get(url, headers=headers, follow_redirects=True, timeout=10.0)
+            
+            if response.status_code != 200:
+                # If we get a 403 or other error, it's likely a bot protection issue.
+                # In this case, we could return a placeholder or just fail.
+                # Since the scraper is being updated to use Wikipedia, this should happen less often.
+                raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image: {response.status_code}")
+                
             content_type = response.headers.get("Content-Type", "image/jpeg")
-            return Response(content=content, media_type=content_type)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+            return Response(content=response.content, media_type=content_type)
+        except Exception as e:
+            # Fallback for broken images to avoid "EncodingError" in frontend
+            raise HTTPException(status_code=400, detail=str(e))
 
 
 from fastapi.middleware.gzip import GZipMiddleware
