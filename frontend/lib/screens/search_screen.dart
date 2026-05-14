@@ -50,35 +50,47 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 50),
-        const Text(
-          'Tennis Search',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
-            color: Color(0xFF1D1D1F),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tennis Search',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: Color(0xFF1D1D1F),
+                      ),
+                    ),
+                    Text(
+                      'Find your favorite athletes',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              _GenderFilterChips(provider: playerProvider),
+            ],
           ),
         ),
-        const SizedBox(height: 5),
-        const Text(
-          'Find your favorite athletes',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 12),
-        _GenderFilterChips(provider: playerProvider),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
           child: GlassContainer(
-            borderRadius: 30,
+            borderRadius: 20,
             opacity: 0.1,
             child: TextField(
               controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Search players...',
-                prefixIcon: Icon(Icons.search, color: Colors.indigo),
+                hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                prefixIcon: Icon(Icons.search, color: Colors.indigo, size: 20),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
               onChanged: playerProvider.onSearchChanged,
             ),

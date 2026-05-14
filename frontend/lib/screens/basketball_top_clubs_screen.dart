@@ -40,75 +40,113 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<BasketballClubProvider>(context);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // Category Toggle
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => provider.setCategory('men'),
-                    child: GlassContainer(
-                      opacity: provider.selectedCategory == 'men' ? 0.3 : 0.05,
-                      borderRadius: 15,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Center(
-                        child: Text(
-                          'Men',
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.sports_basketball, color: Colors.orange, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'Club Rankings',
                           style: TextStyle(
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: provider.selectedCategory == 'men'
-                                ? Colors.orange
-                                : Colors.grey,
+                            letterSpacing: -0.5,
+                            color: Color(0xFF1D1D1F),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => provider.setCategory('women'),
-                    child: GlassContainer(
-                      opacity: provider.selectedCategory == 'women' ? 0.3 : 0.05,
-                      borderRadius: 15,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Center(
-                        child: Text(
-                          'Women',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: provider.selectedCategory == 'women'
-                                ? Colors.orange
-                                : Colors.grey,
-                          ),
-                        ),
-                      ),
+                    Text(
+                      'Global Basketball Giants',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Consumer<BasketballClubProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading && provider.topClubs.isEmpty) {
-                  return const Center(child: CircularProgressIndicator(color: Colors.orange));
-                }
-                if (provider.error.isNotEmpty && provider.topClubs.isEmpty) {
-                  return Center(child: Text('Error: ${provider.error}', style: const TextStyle(color: Colors.white)));
-                }
-                return RefreshIndicator(
-                  onRefresh: () => provider.fetchTopClubs(),
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
+        ),
+        // Category Toggle
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => provider.setCategory('men'),
+                  child: GlassContainer(
+                    opacity: provider.selectedCategory == 'men' ? 0.3 : 0.05,
+                    borderRadius: 12,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Center(
+                      child: Text(
+                        'Men',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: provider.selectedCategory == 'men'
+                              ? Colors.orange
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => provider.setCategory('women'),
+                  child: GlassContainer(
+                    opacity: provider.selectedCategory == 'women' ? 0.3 : 0.05,
+                    borderRadius: 12,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Center(
+                      child: Text(
+                        'Women',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: provider.selectedCategory == 'women'
+                              ? Colors.orange
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Consumer<BasketballClubProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading && provider.topClubs.isEmpty) {
+                return const Center(child: CircularProgressIndicator(color: Colors.orange));
+              }
+              if (provider.error.isNotEmpty && provider.topClubs.isEmpty) {
+                return Center(child: Text('Error: ${provider.error}', style: const TextStyle(color: Colors.redAccent)));
+              }
+              return RefreshIndicator(
+                onRefresh: () => provider.fetchTopClubs(),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: MediaQuery.of(context).padding.bottom + 100,
+                  ),
                     itemCount: provider.topClubs.length +
                         (provider.topClubsHasMore ? 1 : 0),
                     itemBuilder: (context, index) {
@@ -175,7 +213,6 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

@@ -49,43 +49,53 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 50),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.sports_tennis, color: Color(0xFF0F9D58), size: 26),
-            const SizedBox(width: 8),
-            const Text(
-              'TT Search',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-                color: Color(0xFF1D1D1F),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 5),
-        const Text(
-          'Find table tennis athletes',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 12),
-        // Gender filter chips
-        _GenderFilterChips(provider: provider),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.sports_tennis, color: Color(0xFF0F9D58), size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'TT Search',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                            color: Color(0xFF1D1D1F),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Find table tennis athletes',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              _GenderFilterChips(provider: provider),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
           child: GlassContainer(
-            borderRadius: 30,
+            borderRadius: 20,
             opacity: 0.1,
             child: TextField(
               controller: _controller,
               decoration: const InputDecoration(
-                hintText: 'Search table tennis players...',
-                prefixIcon: Icon(Icons.search, color: Color(0xFF0F9D58)),
+                hintText: 'Search players...',
+                hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                prefixIcon: Icon(Icons.search, color: Color(0xFF0F9D58), size: 20),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
               onChanged: provider.onSearchChanged,
             ),

@@ -47,32 +47,38 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 50),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.sports_soccer, color: Color(0xFFE4405F), size: 26),
-            const SizedBox(width: 8),
-            const Text(
-              'National Teams',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-                color: Color(0xFF1D1D1F),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Icon(Icons.sports_soccer, color: Color(0xFFE4405F), size: 18),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'National Teams',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: Color(0xFF1D1D1F),
+                      ),
+                    ),
+                    Text(
+                      'Explore football teams',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: 5),
-        const Text(
-          'Explore football national teams',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 20),
         // Category Toggle
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: Row(
             children: [
               Expanded(
@@ -80,12 +86,13 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
                   onTap: () => provider.setCategory('men'),
                   child: GlassContainer(
                     opacity: provider.selectedCategory == 'men' ? 0.3 : 0.05,
-                    borderRadius: 15,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    borderRadius: 12,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Center(
                       child: Text(
                         'Men',
                         style: TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: provider.selectedCategory == 'men'
                               ? const Color(0xFFE4405F)
@@ -102,12 +109,13 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
                   onTap: () => provider.setCategory('women'),
                   child: GlassContainer(
                     opacity: provider.selectedCategory == 'women' ? 0.3 : 0.05,
-                    borderRadius: 15,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    borderRadius: 12,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Center(
                       child: Text(
                         'Women',
                         style: TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: provider.selectedCategory == 'women'
                               ? const Color(0xFFE4405F)
@@ -121,19 +129,19 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 12),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
           child: GlassContainer(
-            borderRadius: 30,
+            borderRadius: 20,
             opacity: 0.1,
             child: TextField(
               controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Search national teams...',
-                prefixIcon: Icon(Icons.search, color: Color(0xFFE4405F)),
+                hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                prefixIcon: Icon(Icons.search, color: Color(0xFFE4405F), size: 20),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
               onChanged: provider.onSearchChanged,
             ),

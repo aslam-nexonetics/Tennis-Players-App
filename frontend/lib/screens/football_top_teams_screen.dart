@@ -43,32 +43,43 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 50),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.stars, color: Color(0xFFE4405F), size: 26),
-            const SizedBox(width: 8),
-            const Text(
-              'FIFA World Rankings',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-                color: Color(0xFF1D1D1F),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.stars, color: Color(0xFFE4405F), size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'FIFA Rankings',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                            color: Color(0xFF1D1D1F),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Official National Teams',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              // Category Toggle could go here if we wanted, but we'll keep it below for now
+            ],
+          ),
         ),
-        const SizedBox(height: 5),
-        const Text(
-          'Official National Team Rankings',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 20),
         // Category Toggle
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: Row(
             children: [
               Expanded(
@@ -76,12 +87,13 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                   onTap: () => provider.setCategory('men'),
                   child: GlassContainer(
                     opacity: provider.selectedCategory == 'men' ? 0.3 : 0.05,
-                    borderRadius: 15,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    borderRadius: 12,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Center(
                       child: Text(
                         'Men',
                         style: TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: provider.selectedCategory == 'men'
                               ? const Color(0xFFE4405F)
@@ -98,12 +110,13 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                   onTap: () => provider.setCategory('women'),
                   child: GlassContainer(
                     opacity: provider.selectedCategory == 'women' ? 0.3 : 0.05,
-                    borderRadius: 15,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    borderRadius: 12,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Center(
                       child: Text(
                         'Women',
                         style: TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: provider.selectedCategory == 'women'
                               ? const Color(0xFFE4405F)
@@ -117,7 +130,7 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Expanded(
           child: provider.isLoading && provider.topTeams.isEmpty
               ? const Center(child: CircularProgressIndicator(color: Color(0xFFE4405F)))

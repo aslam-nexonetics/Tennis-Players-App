@@ -45,31 +45,41 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 50),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.emoji_events, color: Color(0xFF0F9D58), size: 26),
-            const SizedBox(width: 8),
-            const Text(
-              'TT Rankings',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-                color: Color(0xFF1D1D1F),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.emoji_events, color: Color(0xFF0F9D58), size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'TT Rankings',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                            color: Color(0xFF1D1D1F),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'World Pro Rankings',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              _GenderFilterBar(provider: provider),
+            ],
+          ),
         ),
-        const SizedBox(height: 5),
-        const Text(
-          'World Pro Table Tennis Rankings',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 12),
-        _GenderFilterBar(provider: provider),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Expanded(
           child: provider.isLoading
               ? Center(
@@ -92,7 +102,11 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                 )
               : ListView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: MediaQuery.of(context).padding.bottom + 100,
+                  ),
                   itemCount: provider.topPlayers.length +
                       (provider.topPlayersHasMore ? 1 : 0),
                   itemBuilder: (context, index) {
@@ -204,7 +218,6 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                   },
                 ),
         ),
-        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
       ],
     );
   }

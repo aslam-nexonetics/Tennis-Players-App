@@ -46,24 +46,35 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 50),
-        const Text(
-          'World Rankings',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
-            color: Color(0xFF1D1D1F),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'World Rankings',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: Color(0xFF1D1D1F),
+                      ),
+                    ),
+                    Text(
+                      'Top Tennis Pros',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              _GenderFilterChips(provider: playerProvider),
+            ],
           ),
         ),
-        const SizedBox(height: 5),
-        const Text(
-          'Top Tennis Pros',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 12),
-        _GenderFilterChips(provider: playerProvider),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Expanded(
           child: playerProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -71,7 +82,11 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                   ? Center(child: Text('Error: ${playerProvider.error}'))
                   : ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 100,
+                      ),
                       itemCount: playerProvider.topPlayers.length +
                           (playerProvider.topPlayersHasMore ? 1 : 0),
                       itemBuilder: (context, index) {
@@ -182,7 +197,6 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                       },
                     ),
         ),
-        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
       ],
     );
   }
