@@ -60,16 +60,24 @@ class WTTScraper(BaseScraper):
 
     def scrape_rankings(self, limit=1000):
         """Scrape both men's and women's TT rankings across Senior and Youth categories."""
+        from concurrent.futures import ThreadPoolExecutor
         log.info(f"Starting WTT table tennis scraping (limit {limit} per gender)...")
+
+        def run_scrape(tab_name, gender, category):
+            return self._scrape_gender(tab_name, gender, limit, category)
 
         total_men = 0
         total_women = 0
 
         # Primary categories
         for category in ["SENIOR", "YOUTH"]:
-            log.info(f"Scraping {category} rankings...")
-            total_men += self._scrape_gender("MEN'S SINGLES", "M", limit, category)
-            total_women += self._scrape_gender("WOMEN'S SINGLES", "F", limit, category)
+            log.info(f"Scraping {category} rankings in parallel...")
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                future_men = executor.submit(run_scrape, "MEN'S SINGLES", "M", category)
+                future_women = executor.submit(run_scrape, "WOMEN'S SINGLES", "F", category)
+                
+                total_men += future_men.result()
+                total_women += future_women.result()
 
         log.info(f"WTT scraping complete: {total_men} men, {total_women} women saved.")
 
