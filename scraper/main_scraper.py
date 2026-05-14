@@ -68,6 +68,11 @@ def main():
     args = parser.parse_args()
     parallel = not args.no_parallel
 
+    # Check for pause flag
+    if os.getenv("SCRAPER_PAUSE", "").lower() == "true":
+        log.info("Scraper is currently PAUSED via environment variable.")
+        return
+
     if args.tennis_only:
         run_tennis_scraper(parallel=parallel)
     elif args.tt_only:
