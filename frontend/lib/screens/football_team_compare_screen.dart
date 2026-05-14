@@ -215,37 +215,43 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
                         fontSize: 16)),
               ),
               Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _teamB, false)),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: (_teamA != null && _teamB != null) ? _compare : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE4405F),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('COMPARE',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
             ],
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_teamA != null && _teamB != null) ? _compare : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE4405F),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
+              child: const Text('COMPARE TEAMS',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+            ),
+          ),
           if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _resultsA.isNotEmpty
-                      ? _buildResultList(_resultsA, _selectA)
-                      : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _resultsB.isNotEmpty
-                      ? _buildResultList(_resultsB, _selectB)
-                      : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
-                ),
-                const SizedBox(width: 110),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _resultsA.isNotEmpty
+                        ? _buildResultList(_resultsA, _selectA)
+                        : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                  ),
+                  const SizedBox(width: 44), // Space for 'VS' alignment
+                  Expanded(
+                    child: _resultsB.isNotEmpty
+                        ? _buildResultList(_resultsB, _selectB)
+                        : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                  ),
+                ],
+              ),
             ),
         ],
       ),
@@ -499,11 +505,11 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
   }
 
   Widget _buildExtraInfo() {
-    return Row(
+    return Column(
       children: [
-        Expanded(child: _buildInfoCard('Manager', _teamA!.manager, _teamB!.manager, Icons.sports_rounded)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildInfoCard('Captain', _teamA!.captain, _teamB!.captain, Icons.person_pin)),
+        _buildInfoCard('Manager', _teamA!.manager, _teamB!.manager, Icons.sports_rounded),
+        const SizedBox(height: 16),
+        _buildInfoCard('Captain', _teamA!.captain, _teamB!.captain, Icons.person_pin),
       ],
     );
   }

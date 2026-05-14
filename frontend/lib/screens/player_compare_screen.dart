@@ -223,37 +223,43 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                         fontSize: 16)),
               ),
               Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: (_playerA != null && _playerB != null) ? _compare : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2C3E50),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('COMPARE',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
             ],
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_playerA != null && _playerB != null) ? _compare : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2C3E50),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
+              child: const Text('COMPARE ATHLETES',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+            ),
+          ),
           if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _resultsA.isNotEmpty
-                      ? _buildResultList(_resultsA, _selectA)
-                      : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _resultsB.isNotEmpty
-                      ? _buildResultList(_resultsB, _selectB)
-                      : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
-                ),
-                const SizedBox(width: 110),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _resultsA.isNotEmpty
+                        ? _buildResultList(_resultsA, _selectA)
+                        : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                  ),
+                  const SizedBox(width: 44), // Space for 'VS' alignment
+                  Expanded(
+                    child: _resultsB.isNotEmpty
+                        ? _buildResultList(_resultsB, _selectB)
+                        : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                  ),
+                ],
+              ),
             ),
         ],
       ),
@@ -380,7 +386,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     return GlassContainer(
       borderRadius: 20,
       opacity: 0.1,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -439,16 +445,24 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               accent: isLeft ? Colors.indigo : Colors.pink),
           const SizedBox(height: 12),
           Text(p.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  color: Color(0xFF1D1D1F), fontSize: 16, fontWeight: FontWeight.bold),
+                  color: Color(0xFF1D1D1F), fontSize: 15, fontWeight: FontWeight.bold),
               textAlign: isLeft ? TextAlign.left : TextAlign.right),
-          Text(p.country ?? "N/A", style: const TextStyle(color: Colors.grey)),
-          Text('Age ${p.age ?? "??"} | ${p.playingStyle ?? "R-Handed"}',
-              style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          Text(p.country ?? "N/A", 
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text('Age ${p.age ?? "??"} | ${p.playingStyle ?? "R-H"}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.grey, fontSize: 10)),
           const SizedBox(height: 4),
           Text('Rank ${p.ranking ?? "N/A"}',
               style: TextStyle(
                   color: isLeft ? Colors.indigo : Colors.pink,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold)),
         ],
       ),
@@ -480,12 +494,11 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   }
 
   Widget _buildStatsAndCharts() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Expanded(flex: 3, child: _buildStatsTable()),
-        const SizedBox(width: 16),
-        Expanded(flex: 2, child: _buildSurfaceBreakdown()),
+        _buildStatsTable(),
+        const SizedBox(height: 24),
+        _buildSurfaceBreakdown(),
       ],
     );
   }
@@ -539,42 +552,73 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     final total = stats.matchesPlayed;
     
     // Calculate percentages for pie chart
-    double hard = stats.hardCourtWins.values.reduce((a, b) => a + b) / total;
-    double clay = stats.clayCourtWins.values.reduce((a, b) => a + b) / total;
-    double grass = stats.grassCourtWins.values.reduce((a, b) => a + b) / total;
+    double hard = total > 0 ? stats.hardCourtWins.values.fold(0, (a, b) => a + b) / total : 0;
+    double clay = total > 0 ? stats.clayCourtWins.values.fold(0, (a, b) => a + b) / total : 0;
+    double grass = total > 0 ? stats.grassCourtWins.values.fold(0, (a, b) => a + b) / total : 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('SURFACES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 120,
-          child: PieChart(
-            PieChartData(
-              sections: [
-                PieChartSectionData(value: hard * 100, color: Colors.blue, radius: 40, title: 'H'),
-                PieChartSectionData(value: clay * 100, color: Colors.orange, radius: 40, title: 'C'),
-                PieChartSectionData(value: grass * 100, color: Colors.green, radius: 40, title: 'G'),
-              ],
-              centerSpaceRadius: 20,
-            ),
+    return GlassContainer(
+      borderRadius: 16,
+      opacity: 0.1,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('SURFACE PERFORMANCE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1)),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 140,
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 30,
+                      sections: [
+                        if (hard > 0) PieChartSectionData(value: hard * 100, color: Colors.blue, radius: 40, title: 'H', titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        if (clay > 0) PieChartSectionData(value: clay * 100, color: Colors.orange, radius: 40, title: 'C', titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        if (grass > 0) PieChartSectionData(value: grass * 100, color: Colors.green, radius: 40, title: 'G', titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        if (hard == 0 && clay == 0 && grass == 0) PieChartSectionData(value: 100, color: Colors.grey.withOpacity(0.2), radius: 40, title: ''),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLegendItem('Hard Court', Colors.blue, '${(hard * 100).toStringAsFixed(0)}%'),
+                  const SizedBox(height: 12),
+                  _buildLegendItem('Clay Court', Colors.orange, '${(clay * 100).toStringAsFixed(0)}%'),
+                  const SizedBox(height: 12),
+                  _buildLegendItem('Grass Court', Colors.green, '${(grass * 100).toStringAsFixed(0)}%'),
+                ],
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 10),
-        _buildLegendItem('Hard', Colors.blue),
-        _buildLegendItem('Clay', Colors.orange),
-        _buildLegendItem('Grass', Colors.green),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildLegendItem(String label, Color color, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 10, height: 10, color: color),
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1D1D1F))),
+          ],
+        ),
       ],
     );
   }

@@ -216,37 +216,43 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                         fontSize: 16)),
               ),
               Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: (_playerA != null && _playerB != null) ? _compare : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _kGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('COMPARE',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
             ],
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (_playerA != null && _playerB != null) ? _compare : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kGreen,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
+              child: const Text('COMPARE ATHLETES',
+                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+            ),
+          ),
           if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _resultsA.isNotEmpty
-                      ? _buildResultList(_resultsA, _selectA)
-                      : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
-                ),
-                const SizedBox(width: 100),
-                Expanded(
-                  child: _resultsB.isNotEmpty
-                      ? _buildResultList(_resultsB, _selectB)
-                      : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
-                ),
-                const SizedBox(width: 110),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _resultsA.isNotEmpty
+                        ? _buildResultList(_resultsA, _selectA)
+                        : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                  ),
+                  const SizedBox(width: 44), // Space for 'VS' alignment
+                  Expanded(
+                    child: _resultsB.isNotEmpty
+                        ? _buildResultList(_resultsB, _selectB)
+                        : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                  ),
+                ],
+              ),
             ),
         ],
       ),
@@ -357,7 +363,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     return GlassContainer(
       borderRadius: 20,
       opacity: 0.1,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         children: [
           Row(
@@ -384,15 +390,23 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               accent: isLeft ? _kGreen : _kPurple),
           const SizedBox(height: 12),
           Text(p.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  color: Color(0xFF1D1D1F), fontSize: 18, fontWeight: FontWeight.bold)),
-          Text(p.country ?? "N/A", style: const TextStyle(color: Colors.grey)),
-          Text('Age ${p.age ?? "??"} | ${p.playingStyle ?? "N/A"}',
+                  color: Color(0xFF1D1D1F), fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(p.country ?? "N/A", 
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text('Age ${p.age ?? "??"} | ${p.playingStyle ?? "N/A"}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.grey, fontSize: 10)),
           const SizedBox(height: 4),
           Text('Rank ${p.ranking ?? "N/A"}',
               style: TextStyle(
                   color: isLeft ? _kGreen : _kPurple,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold)),
         ],
       ),
