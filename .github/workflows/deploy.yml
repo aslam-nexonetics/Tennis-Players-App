@@ -24,7 +24,7 @@ jobs:
       - name: Build Web
         run: |
           cd frontend
-          flutter build web --release --web-renderer html --base-href "/${{ github.event.repository.name }}/"
+          flutter build web --release --base-href "/${{ github.event.repository.name }}/"
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
