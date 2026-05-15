@@ -168,6 +168,11 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
                   }
                   return ListView.builder(
                     controller: _scrollController,
+                    padding: EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      bottom: MediaQuery.of(context).padding.bottom + 140,
+                    ),
                     itemCount: provider.searchResults.length +
                         (provider.searchHasMore ? 1 : 0),
                     itemBuilder: (context, index) {

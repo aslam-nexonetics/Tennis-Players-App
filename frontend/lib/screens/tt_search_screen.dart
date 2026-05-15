@@ -137,7 +137,7 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 100,
+                    bottom: MediaQuery.of(context).padding.bottom + 140,
                   ),
                   itemCount: provider.players.length +
                       (provider.searchHasMore ? 1 : 0),

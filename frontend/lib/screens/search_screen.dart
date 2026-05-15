@@ -131,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 100,
+                    bottom: MediaQuery.of(context).padding.bottom + 140,
                   ),
                   itemCount: playerProvider.players.length +
                       (playerProvider.searchHasMore ? 1 : 0),

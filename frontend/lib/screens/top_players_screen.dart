@@ -85,7 +85,7 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                       padding: EdgeInsets.only(
                         left: 16,
                         right: 16,
-                        bottom: MediaQuery.of(context).padding.bottom + 100,
+                        bottom: MediaQuery.of(context).padding.bottom + 140,
                       ),
                       itemCount: playerProvider.topPlayers.length +
                           (playerProvider.topPlayersHasMore ? 1 : 0),

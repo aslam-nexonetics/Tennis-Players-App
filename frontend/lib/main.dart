@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
@@ -238,24 +239,49 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
         bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(left: 48, right: 48, bottom: 24),
-          child: GlassContainer(
-            borderRadius: 30,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(
-                navItems.length,
-                (i) => _BottomNavItem(
-                  def: navItems[i],
-                  accentColor: currentSport.accentColor,
-                  isSelected: displayIndex == i,
-                  onTap: () {
-                    if (_selectedIndex != i) {
-                      _clearAllSearchProviders();
-                      setState(() => _selectedIndex = i);
-                    }
-                  },
+          padding: const EdgeInsets.only(left: 32, right: 32, bottom: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(
+                      navItems.length,
+                      (i) => _BottomNavItem(
+                        def: navItems[i],
+                        accentColor: currentSport.accentColor,
+                        isSelected: displayIndex == i,
+                        onTap: () {
+                          if (_selectedIndex != i) {
+                            _clearAllSearchProviders();
+                            setState(() => _selectedIndex = i);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

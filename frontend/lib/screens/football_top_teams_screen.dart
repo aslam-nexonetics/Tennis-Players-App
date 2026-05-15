@@ -144,7 +144,7 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                         padding: EdgeInsets.only(
                           left: 16,
                           right: 16,
-                          bottom: MediaQuery.of(context).padding.bottom + 100,
+                        bottom: MediaQuery.of(context).padding.bottom + 140,
                         ),
                         itemCount: provider.topTeams.length + (provider.hasMoreTopTeams ? 1 : 0),
                         itemBuilder: (context, index) {
