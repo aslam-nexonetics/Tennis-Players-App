@@ -217,6 +217,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             );
                           },
+                          /*
                           onLongPress: () {
                             Navigator.push(
                               context,
@@ -226,6 +227,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             );
                           },
+                          */
                         ),
                       ),
                     );

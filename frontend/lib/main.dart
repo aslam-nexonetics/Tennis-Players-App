@@ -87,21 +87,25 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> screens = [
       _getRankingsScreen(currentSport.type),
       _getSearchScreen(currentSport.type),
+      /*
       if (currentSport.type == SportType.tennis || 
           currentSport.type == SportType.tableTennis ||
           currentSport.type == SportType.football ||
           currentSport.type == SportType.basketball)
         _getCompareScreen(currentSport.type),
+      */
     ];
 
     final List<_NavDef> navItems = [
       const _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
       const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
+      /*
       if (currentSport.type == SportType.tennis || 
           currentSport.type == SportType.tableTennis ||
           currentSport.type == SportType.football ||
           currentSport.type == SportType.basketball)
         const _NavDef(Icons.compare_arrows_rounded, 'Compare', Colors.indigo),
+      */
     ];
 
     // Safety check: if current sport changed and index is now out of bounds

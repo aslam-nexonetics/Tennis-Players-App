@@ -33,6 +33,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      /*
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 80),
         child: FloatingActionButton.extended(
@@ -50,6 +51,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
           ),
         ),
       ),
+      */
       backgroundColor: const Color(0xFFCEF0DE), // Teal-tinted glass theme
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -217,6 +219,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 24),
+                            /*
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
@@ -239,6 +242,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            */
                           ],
                         ),
                       ),

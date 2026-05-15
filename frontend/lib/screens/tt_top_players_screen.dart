@@ -203,6 +203,7 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                               ),
                             );
                           },
+                          /*
                           onLongPress: () {
                             Navigator.push(
                               context,
@@ -212,6 +213,7 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                               ),
                             );
                           },
+                          */
                         ),
                       ),
                     );

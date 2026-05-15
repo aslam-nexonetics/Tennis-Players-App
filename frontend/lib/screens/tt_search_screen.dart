@@ -221,6 +221,7 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                               ),
                             );
                           },
+                          /*
                           onLongPress: () {
                             Navigator.push(
                               context,
@@ -230,6 +231,7 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                               ),
                             );
                           },
+                          */
                         ),
                       ),
                     );
