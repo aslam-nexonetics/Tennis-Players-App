@@ -8,25 +8,23 @@ from app.db.session import engine
 from sqlalchemy import text
 
 def migrate():
-    with engine.connect() as conn:
-        print("Migrating players table...")
-        try:
-            conn.execute(text("ALTER TABLE players ADD COLUMN titles INTEGER DEFAULT 0"))
-            print("Added titles")
-        except Exception as e: print(f"titles already exists or error: {e}")
-        
-        try:
-            conn.execute(text("ALTER TABLE players ADD COLUMN turned_pro VARCHAR"))
-            print("Added turned_pro")
-        except Exception as e: print(f"turned_pro already exists or error: {e}")
-        
-        try:
-            conn.execute(text("ALTER TABLE players ADD COLUMN prize_money VARCHAR"))
-            print("Added prize_money")
-        except Exception as e: print(f"prize_money already exists or error: {e}")
-        
-        conn.commit()
-        print("Migration complete.")
+    print("Migrating players table...")
+    
+    columns = [
+        ("titles", "INTEGER DEFAULT 0"),
+        ("turned_pro", "VARCHAR"),
+        ("prize_money", "VARCHAR"),
+    ]
+    
+    for col_name, col_type in columns:
+        with engine.begin() as conn:
+            try:
+                conn.execute(text(f"ALTER TABLE players ADD COLUMN {col_name} {col_type}"))
+                print(f"Added {col_name}")
+            except Exception as e:
+                print(f"{col_name} might already exist: {e}")
+    
+    print("Migration complete.")
 
 if __name__ == "__main__":
     migrate()

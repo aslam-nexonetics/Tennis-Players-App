@@ -422,6 +422,12 @@ class PlayerDetailScreen extends StatelessWidget {
           player.turnedPro ?? 'N/A',
           Icons.event_available,
         ),
+        _buildStatCard(
+          cardWidth,
+          'Prize Money',
+          player.prizeMoney ?? 'N/A',
+          Icons.attach_money_rounded,
+        ),
       ],
     );
   }
@@ -458,6 +464,12 @@ class PlayerDetailScreen extends StatelessWidget {
           'Height',
           player.height ?? 'N/A',
           Icons.height,
+        ),
+        _buildStatCard(
+          cardWidth,
+          'Prize Money',
+          player.prizeMoney ?? 'N/A',
+          Icons.attach_money_rounded,
         ),
         // Weight and Turned Pro are removed for WTA as they don't provide it
       ],

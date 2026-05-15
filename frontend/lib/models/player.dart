@@ -14,6 +14,7 @@ class Player {
   final int wins;
   final int losses;
   final String? turnedPro;
+  final String? prizeMoney;
   final String? imageUrl;
   final String? gender;
   final String? source;
@@ -33,6 +34,7 @@ class Player {
     this.wins = 0,
     this.losses = 0,
     this.turnedPro,
+    this.prizeMoney,
     this.imageUrl,
     this.gender,
     this.source,
@@ -69,6 +71,7 @@ class Player {
       wins: json['wins'] ?? 0,
       losses: json['losses'] ?? 0,
       turnedPro: json['turned_pro'],
+      prizeMoney: json['prize_money'],
       imageUrl: json['image_url'] != null ? ApiService.getProxyImageUrl(json['image_url']) : null,
       gender: json['gender'],
       source: json['source'],

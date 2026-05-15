@@ -168,6 +168,21 @@ class WTAScraper(BaseScraper):
                         player_data["wins"] = int(re.sub(r"\D", "", parts[0]))
                         player_data["losses"] = int(re.sub(r"\D", "", parts[1]))
                     except: pass
+            
+            # Prize Money
+            prize_money_el = soup.select_one(".profile-header__stat-block--prize-money .stat-block__stat")
+            if prize_money_el:
+                player_data["prize_money"] = prize_money_el.text.strip()
+            else:
+                # Fallback to checking all stat blocks
+                stat_blocks = soup.select(".profile-header__stat-block")
+                for block in stat_blocks:
+                    label = block.select_one(".stat-block__label")
+                    if label and "Prize Money" in label.text:
+                        val = block.select_one(".stat-block__stat")
+                        if val:
+                            player_data["prize_money"] = val.text.strip()
+                        break
 
             # Physical info (Height)
             height_el = None

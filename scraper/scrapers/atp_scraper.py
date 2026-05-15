@@ -190,6 +190,14 @@ class ATPScraper(BaseScraper):
                                 player_data["wins"] = int(wl_match.group(1))
                                 player_data["losses"] = int(wl_match.group(2))
                             except: pass
+                
+                # Extract Prize Money (YTD or Career)
+                prize_money_el = row.select_one(".prize-money") or row.select_one(".prize_money")
+                if prize_money_el:
+                    # Get text and split from label
+                    prize_text = prize_money_el.get_text(separator="|").split("|")[0].strip()
+                    if prize_text:
+                        player_data["prize_money"] = prize_text
 
             # Personal Info (Age, Height, Weight, etc.)
             age_span = soup.select_one(".pd_left li:nth-child(1) span:nth-child(2)")
@@ -210,7 +218,18 @@ class ATPScraper(BaseScraper):
             if height_span: player_data["height"] = height_span.text.strip()
             if turned_pro_span and turned_pro_span.text.strip(): 
                 player_data["turned_pro"] = turned_pro_span.text.strip()
-            if plays_span: player_data["playing_style"] = plays_span.text.strip()
+            
+            # Extract info from profile list robustly
+            profile_items = soup.select(".pd_left li, .pd_right li")
+            for item in profile_items:
+                label = item.select_one("span:nth-child(1)")
+                value = item.select_one("span:nth-child(2)")
+                if label and value:
+                    label_text = label.text.strip()
+                    if "Plays" in label_text:
+                        player_data["playing_style"] = value.text.strip()
+                    elif "Birthplace" in label_text:
+                        pass
         except Exception as e:
             log.error(f"Error enriching from ATP: {e}")
 
