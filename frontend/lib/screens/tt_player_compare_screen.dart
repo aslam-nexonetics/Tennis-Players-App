@@ -635,13 +635,47 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     );
   }
 
+  Widget _buildHighlightBadge({
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.15), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlayerSummary(TableTennisPlayer p, bool isLeft) {
+    final accentColor = isLeft ? _kGreen : _kPurple;
     return Expanded(
       child: Column(
         crossAxisAlignment:
             isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
-          _TtAvatar(player: p, size: 80, accent: isLeft ? _kGreen : _kPurple),
+          _TtAvatar(player: p, size: 80, accent: accentColor),
           const SizedBox(height: 12),
           Text(p.name,
               maxLines: 1,
@@ -650,18 +684,35 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                   color: Color(0xFF1D1D1F),
                   fontSize: 16,
                   fontWeight: FontWeight.bold)),
-          Text(p.country ?? "N/A",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          Text('Age ${p.age ?? "??"} | ${p.playingStyle ?? "N/A"}',
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            alignment: isLeft ? WrapAlignment.start : WrapAlignment.end,
+            children: [
+              if (p.country != null)
+                _buildHighlightBadge(
+                  icon: Icons.public,
+                  text: p.country!,
+                  color: accentColor,
+                ),
+              if (p.age != null)
+                _buildHighlightBadge(
+                  icon: Icons.cake_rounded,
+                  text: '${p.age} yrs',
+                  color: accentColor,
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(p.playingStyle ?? "N/A",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.grey, fontSize: 10)),
           const SizedBox(height: 4),
           Text('Rank ${p.ranking ?? "N/A"}',
               style: TextStyle(
-                  color: isLeft ? _kGreen : _kPurple,
+                  color: accentColor,
                   fontSize: 13,
                   fontWeight: FontWeight.bold)),
         ],
@@ -697,6 +748,10 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              _buildStatRow('Age', a.age != null ? '${a.age} Yrs' : 'N/A', b.age != null ? '${b.age} Yrs' : 'N/A',
+                  lowerIsBetter: false, isNumeric: false, highlight: true),
+              _buildStatRow('Country', a.country ?? 'N/A', b.country ?? 'N/A',
+                  isNumeric: false, highlight: true),
               _buildStatRow('Win %', _winRate(a), _winRate(b)),
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
                   '#${b.ranking ?? "N/A"}',
@@ -709,9 +764,9 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
   }
 
   Widget _buildStatRow(String label, String aVal, String bVal,
-      {bool lowerIsBetter = false}) {
-    num? nvA = num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
-    num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+      {bool lowerIsBetter = false, bool isNumeric = true, bool highlight = false}) {
+    num? nvA = isNumeric ? num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), '')) : null;
+    num? nvB = isNumeric ? num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), '')) : null;
     bool aWins = false;
     bool bWins = false;
     if (nvA != null && nvB != null) {
@@ -723,8 +778,8 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
         bWins = nvB > nvA;
       }
     }
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+    final rowWidget = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       child: Row(
         children: [
           Expanded(
@@ -732,23 +787,40 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     color: aWins ? _kGreen : Colors.black87,
-                    fontWeight: aWins ? FontWeight.bold : FontWeight.normal)),
+                    fontWeight: (aWins || highlight) ? FontWeight.bold : FontWeight.normal)),
           ),
           Expanded(
             child: Text(label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                style: TextStyle(
+                    color: highlight ? _kGreen.withOpacity(0.8) : Colors.grey,
+                    fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12)),
           ),
           Expanded(
             child: Text(bVal,
                 textAlign: TextAlign.end,
                 style: TextStyle(
                     color: bWins ? _kPurple : Colors.black87,
-                    fontWeight: bWins ? FontWeight.bold : FontWeight.normal)),
+                    fontWeight: (bWins || highlight) ? FontWeight.bold : FontWeight.normal)),
           ),
         ],
       ),
     );
+
+    if (highlight) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: _kGreen.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _kGreen.withOpacity(0.12), width: 1),
+        ),
+        child: rowWidget,
+      );
+    }
+
+    return rowWidget;
   }
 
   Widget _buildOverallEdge(TableTennisPlayer a, TableTennisPlayer b) {

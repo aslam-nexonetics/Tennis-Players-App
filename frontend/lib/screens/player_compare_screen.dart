@@ -643,7 +643,41 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     );
   }
 
+  Widget _buildHighlightBadge({
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.15), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlayerProfile(Player p, bool isLeft) {
+    final accentColor = isLeft ? Colors.indigo : Colors.pink;
     return Expanded(
       child: Column(
         crossAxisAlignment:
@@ -653,7 +687,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               imageUrl: p.imageUrl,
               name: p.name,
               size: 70,
-              accent: isLeft ? Colors.indigo : Colors.pink),
+              accent: accentColor),
           const SizedBox(height: 12),
           Text(p.name,
               maxLines: 1,
@@ -663,18 +697,35 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                   fontSize: 15,
                   fontWeight: FontWeight.bold),
               textAlign: isLeft ? TextAlign.left : TextAlign.right),
-          Text(p.country ?? "N/A",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          Text('Age ${p.age ?? "??"} | ${p.playingStyle ?? "R-H"}',
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            alignment: isLeft ? WrapAlignment.start : WrapAlignment.end,
+            children: [
+              if (p.country != null)
+                _buildHighlightBadge(
+                  icon: Icons.public,
+                  text: p.country!,
+                  color: accentColor,
+                ),
+              if (p.age != null)
+                _buildHighlightBadge(
+                  icon: Icons.cake_rounded,
+                  text: '${p.age} yrs',
+                  color: accentColor,
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(p.playingStyle ?? "R-H",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.grey, fontSize: 10)),
           const SizedBox(height: 4),
           Text('Rank ${p.ranking ?? "N/A"}',
               style: TextStyle(
-                  color: isLeft ? Colors.indigo : Colors.pink,
+                  color: accentColor,
                   fontSize: 13,
                   fontWeight: FontWeight.bold)),
         ],
@@ -698,6 +749,10 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              _buildStatRow('Age', a.age != null ? '${a.age} Yrs' : 'N/A', b.age != null ? '${b.age} Yrs' : 'N/A',
+                  lowerIsBetter: false, isNumeric: false, highlight: true),
+              _buildStatRow('Country', a.country ?? 'N/A', b.country ?? 'N/A',
+                  isNumeric: false, highlight: true),
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
                   '#${b.ranking ?? "N/A"}',
                   lowerIsBetter: true),
@@ -726,7 +781,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   }
 
   Widget _buildStatRow(String label, String aVal, String bVal,
-      {bool lowerIsBetter = false, bool isNumeric = true}) {
+      {bool lowerIsBetter = false, bool isNumeric = true, bool highlight = false}) {
     bool aWins = false;
     bool bWins = false;
 
@@ -745,8 +800,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       }
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+    final rowWidget = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       child: Row(
         children: [
           Expanded(
@@ -754,23 +809,40 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     color: aWins ? Colors.indigo : Colors.black87,
-                    fontWeight: aWins ? FontWeight.bold : FontWeight.normal)),
+                    fontWeight: (aWins || highlight) ? FontWeight.bold : FontWeight.normal)),
           ),
           Expanded(
             child: Text(label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                style: TextStyle(
+                    color: highlight ? Colors.indigo.withOpacity(0.8) : Colors.grey,
+                    fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12)),
           ),
           Expanded(
             child: Text(bVal,
                 textAlign: TextAlign.end,
                 style: TextStyle(
                     color: bWins ? Colors.pink : Colors.black87,
-                    fontWeight: bWins ? FontWeight.bold : FontWeight.normal)),
+                    fontWeight: (bWins || highlight) ? FontWeight.bold : FontWeight.normal)),
           ),
         ],
       ),
     );
+
+    if (highlight) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.indigo.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.indigo.withOpacity(0.12), width: 1),
+        ),
+        child: rowWidget,
+      );
+    }
+
+    return rowWidget;
   }
 
   Widget _buildOverallEdge(Player a, Player b) {
