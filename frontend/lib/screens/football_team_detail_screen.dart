@@ -75,7 +75,8 @@ class FootballTeamDetailScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (team.ranking != null)
-                      _buildRankBadge('FIFA Rank #${team.ranking}', Colors.amber),
+                      _buildRankBadge(
+                          'FIFA Rank #${team.ranking}', Colors.amber),
                   ],
                 ),
               ],
@@ -162,8 +163,8 @@ class FootballTeamDetailScreen extends StatelessWidget {
                             Row(
                               children: [
                                 if (team.ranking != null)
-                                  _buildRankBadge(
-                                      'FIFA Rank #${team.ranking}', Colors.amber),
+                                  _buildRankBadge('FIFA Rank #${team.ranking}',
+                                      Colors.amber),
                               ],
                             ),
                           ],
@@ -207,7 +208,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
             ? Image.network(
                 team.imageUrl!,
                 fit: BoxFit.cover,
-                                                alignment: Alignment.topCenter,
+                alignment: Alignment.topCenter,
                 errorBuilder: (_, __, ___) => _initialsWidget(team.name, 48),
               )
             : _initialsWidget(team.name, 48),
@@ -227,7 +228,9 @@ class FootballTeamDetailScreen extends StatelessWidget {
         Text(
           'National Team • Founded ${team.foundedYear ?? 'TBD'}',
           style: TextStyle(
-              fontSize: 18, color: Colors.grey[700], fontWeight: FontWeight.w500),
+              fontSize: 18,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -304,8 +307,11 @@ class FootballTeamDetailScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 8, right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+      decoration:
+          BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
+      child: Text(label,
+          style: const TextStyle(
+              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
     );
   }
 
@@ -313,17 +319,20 @@ class FootballTeamDetailScreen extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _buildStatBadge('TOTAL TROPHIES', '${team.totalTrophies}', Icons.military_tech_rounded, Colors.amber[800]!),
+          child: _buildStatBadge('TOTAL TROPHIES', '${team.totalTrophies}',
+              Icons.military_tech_rounded, Colors.amber[800]!),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatBadge('WC TITLES', '${team.worldCupTitles}', Icons.emoji_events_rounded, Colors.orange[700]!),
+          child: _buildStatBadge('WC TITLES', '${team.worldCupTitles}',
+              Icons.emoji_events_rounded, Colors.orange[700]!),
         ),
       ],
     );
   }
 
-  Widget _buildStatBadge(String label, String value, IconData icon, Color color) {
+  Widget _buildStatBadge(
+      String label, String value, IconData icon, Color color) {
     return GlassContainer(
       padding: const EdgeInsets.symmetric(vertical: 20),
       borderRadius: 20,
@@ -332,9 +341,15 @@ class FootballTeamDetailScreen extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(value,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -344,7 +359,9 @@ class FootballTeamDetailScreen extends StatelessWidget {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: team.honors!.entries.map((e) => _buildHonorCard(e.key, e.value)).toList(),
+      children: team.honors!.entries
+          .map((e) => _buildHonorCard(e.key, e.value))
+          .toList(),
     );
   }
 
@@ -361,7 +378,10 @@ class FootballTeamDetailScreen extends StatelessWidget {
         children: [
           Text(
             '$count',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFFE4405F)),
+            style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFE4405F)),
           ),
           const SizedBox(height: 4),
           Text(
@@ -381,8 +401,10 @@ class FootballTeamDetailScreen extends StatelessWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        _buildInfoCard('Captain', team.captain ?? 'TBD', Icons.person_pin, 0.45),
-        _buildInfoCard('Manager', team.manager ?? 'TBD', Icons.sports_rounded, 0.45),
+        _buildInfoCard(
+            'Captain', team.captain ?? 'TBD', Icons.person_pin, 0.45),
+        _buildInfoCard(
+            'Manager', team.manager ?? 'TBD', Icons.sports_rounded, 0.45),
       ],
     );
   }
@@ -400,9 +422,12 @@ class FootballTeamDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(team.stadium ?? 'National Stadium', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(team.stadium ?? 'National Stadium',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('Primary Venue', style: TextStyle(color: Colors.grey[700])),
+                Text('Primary Venue',
+                    style: TextStyle(color: Colors.grey[700])),
               ],
             ),
           ),
@@ -415,41 +440,56 @@ class FootballTeamDetailScreen extends StatelessWidget {
     final rivals = team.mainRivals!.split(',');
     return Wrap(
       spacing: 8,
-      children: rivals.map((r) => Chip(
-        label: Text(r.trim(), style: const TextStyle(fontSize: 12)),
-        backgroundColor: const Color(0xFFE4405F).withOpacity(0.1),
-        side: BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      )).toList(),
+      children: rivals
+          .map((r) => Chip(
+                label: Text(r.trim(), style: const TextStyle(fontSize: 12)),
+                backgroundColor: const Color(0xFFE4405F).withOpacity(0.1),
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+              ))
+          .toList(),
     );
   }
 
-  Widget _buildInfoCard(String label, String value, IconData icon, double widthFactor) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return GlassContainer(
-          width: constraints.maxWidth * widthFactor - (widthFactor < 1.0 ? 6 : 0),
-          padding: const EdgeInsets.all(16),
-          borderRadius: 15,
-          opacity: 0.1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 20, color: const Color(0xFFE4405F)),
-              const SizedBox(height: 8),
-              Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-              const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), overflow: TextOverflow.ellipsis),
-            ],
-          ),
-        );
-      }
-    );
+  Widget _buildInfoCard(
+      String label, String value, IconData icon, double widthFactor) {
+    return LayoutBuilder(builder: (context, constraints) {
+      return GlassContainer(
+        width: constraints.maxWidth * widthFactor - (widthFactor < 1.0 ? 6 : 0),
+        padding: const EdgeInsets.all(16),
+        borderRadius: 15,
+        opacity: 0.1,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 20, color: const Color(0xFFE4405F)),
+            const SizedBox(height: 8),
+            Text(label,
+                style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            const SizedBox(height: 4),
+            Text(value,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                overflow: TextOverflow.ellipsis),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _initialsWidget(String name, double fontSize) {
     final parts = name.trim().split(' ');
-    final initials = parts.length >= 2 ? '${parts[0][0]}${parts[1][0]}'.toUpperCase() : name.isNotEmpty ? name[0].toUpperCase() : '?';
-    return Center(child: Text(initials, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: fontSize)));
+    final initials = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+        : name.isNotEmpty
+            ? name[0].toUpperCase()
+            : '?';
+    return Center(
+        child: Text(initials,
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: fontSize)));
   }
 }

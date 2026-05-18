@@ -39,9 +39,10 @@ class BasketballClubDetailScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildStatItem('Titles', '${club.titles}', Icons.emoji_events),
                   _buildStatItem(
-                      'Playoffs', '${club.playoffAppearances}', Icons.trending_up),
+                      'Titles', '${club.titles}', Icons.emoji_events),
+                  _buildStatItem('Playoffs', '${club.playoffAppearances}',
+                      Icons.trending_up),
                   _buildStatItem('Rank', '#${club.ranking}', Icons.bar_chart),
                 ],
               ),
@@ -138,7 +139,8 @@ class BasketballClubDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem('Titles', '${club.titles}', Icons.emoji_events),
+                    _buildStatItem(
+                        'Titles', '${club.titles}', Icons.emoji_events),
                     _buildStatItem('Rank', '#${club.ranking}', Icons.bar_chart),
                   ],
                 ),
@@ -245,7 +247,8 @@ class BasketballClubDetailScreen extends StatelessWidget {
               _buildDetailRow('Home Arena', club.arena ?? 'N/A'),
               _buildDetailRow('Capacity', club.capacity?.toString() ?? 'N/A'),
               _buildDetailRow('Market Value', club.marketValue ?? 'N/A'),
-              _buildDetailRow('Current Record', club.currentSeasonRecord ?? 'N/A'),
+              _buildDetailRow(
+                  'Current Record', club.currentSeasonRecord ?? 'N/A'),
             ],
           ),
         ),
@@ -274,8 +277,8 @@ class BasketballClubDetailScreen extends StatelessWidget {
                       ),
                       Text(
                         e.key,
-                        style:
-                            const TextStyle(color: Colors.white70, fontSize: 12),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
@@ -300,13 +303,19 @@ class BasketballClubDetailScreen extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.orange, size: 28),
         const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        Text(value,
+            style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
+        Text(label,
+            style: const TextStyle(color: Colors.white70, fontSize: 14)),
       ],
     );
   }
 
-  Widget _buildGlassCard({required String title, required IconData icon, required Widget child}) {
+  Widget _buildGlassCard(
+      {required String title, required IconData icon, required Widget child}) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(20),
@@ -322,7 +331,11 @@ class BasketballClubDetailScreen extends StatelessWidget {
             children: [
               Icon(icon, color: Colors.orange, size: 24),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
             ],
           ),
           const Divider(color: Colors.white24, height: 25),
@@ -338,8 +351,13 @@ class BasketballClubDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 16)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+          Text(label,
+              style: const TextStyle(color: Colors.white70, fontSize: 16)),
+          Text(value,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500)),
         ],
       ),
     );

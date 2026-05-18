@@ -20,22 +20,22 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     with TickerProviderStateMixin {
   TableTennisPlayer? _playerA;
   TableTennisPlayer? _playerB;
-  
+
   bool _searchingA = false;
   bool _searchingB = false;
-  
+
   List<TableTennisPlayer> _resultsA = [];
   List<TableTennisPlayer> _resultsB = [];
-  
+
   bool _noResultsA = false;
   bool _noResultsB = false;
-  
+
   final TextEditingController _ctrlA = TextEditingController();
   final TextEditingController _ctrlB = TextEditingController();
-  
+
   Timer? _debounceA;
   Timer? _debounceB;
-  
+
   bool _showComparison = false;
 
   late AnimationController _fadeCtrl;
@@ -48,11 +48,11 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     if (_playerA != null) {
       _ctrlA.text = _playerA!.name;
     }
-    
+
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
-    
+
     if (_playerA != null) {
       _showComparison = false;
     }
@@ -98,7 +98,10 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
 
   Future<void> _doSearch(String q, bool isA) async {
     setState(() {
-      if (isA) _searchingA = true; else _searchingB = true;
+      if (isA)
+        _searchingA = true;
+      else
+        _searchingB = true;
     });
     try {
       final res = await ApiService().searchTtPlayers(q, size: 5);
@@ -115,7 +118,10 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
       // Handle error
     } finally {
       setState(() {
-        if (isA) _searchingA = false; else _searchingB = false;
+        if (isA)
+          _searchingA = false;
+        else
+          _searchingB = false;
       });
     }
   }
@@ -206,7 +212,8 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
         children: [
           Row(
             children: [
-              Expanded(child: _buildSearchBox(_ctrlA, _onSearchA, _playerA, true)),
+              Expanded(
+                  child: _buildSearchBox(_ctrlA, _onSearchA, _playerA, true)),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Text('VS',
@@ -215,26 +222,33 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
               ),
-              Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
+              Expanded(
+                  child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
             ],
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_playerA != null && _playerB != null) ? _compare : null,
+              onPressed:
+                  (_playerA != null && _playerB != null) ? _compare : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kGreen,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
               ),
               child: const Text('COMPARE ATHLETES',
-                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
             ),
           ),
-          if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
+          if (_resultsA.isNotEmpty ||
+              _resultsB.isNotEmpty ||
+              _noResultsA ||
+              _noResultsB)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Row(
@@ -243,13 +257,17 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                   Expanded(
                     child: _resultsA.isNotEmpty
                         ? _buildResultList(_resultsA, _selectA)
-                        : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                        : (_noResultsA && _ctrlA.text.isNotEmpty
+                            ? _buildNoResults()
+                            : const SizedBox()),
                   ),
                   const SizedBox(width: 44), // Space for 'VS' alignment
                   Expanded(
                     child: _resultsB.isNotEmpty
                         ? _buildResultList(_resultsB, _selectB)
-                        : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                        : (_noResultsB && _ctrlB.text.isNotEmpty
+                            ? _buildNoResults()
+                            : const SizedBox()),
                   ),
                 ],
               ),
@@ -311,13 +329,14 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.black12),
       ),
-      child: const Text('No results found', 
-        style: TextStyle(color: Colors.grey, fontSize: 12),
-        textAlign: TextAlign.center),
+      child: const Text('No results found',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+          textAlign: TextAlign.center),
     );
   }
 
-  Widget _buildResultList(List<TableTennisPlayer> results, Function(TableTennisPlayer) onSelect) {
+  Widget _buildResultList(
+      List<TableTennisPlayer> results, Function(TableTennisPlayer) onSelect) {
     return Container(
       margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
@@ -331,7 +350,8 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                   dense: true,
                   leading: _TtAvatar(player: p, size: 24, accent: _kGreen),
                   title: Text(p.name,
-                      style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 12)),
+                      style: const TextStyle(
+                          color: Color(0xFF1D1D1F), fontSize: 12)),
                   subtitle: Text('#${p.ranking ?? "N/A"}',
                       style: const TextStyle(color: Colors.grey, fontSize: 10)),
                   onTap: () => onSelect(p),
@@ -382,19 +402,19 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
   Widget _buildPlayerSummary(TableTennisPlayer p, bool isLeft) {
     return Expanded(
       child: Column(
-        crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        crossAxisAlignment:
+            isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
-          _TtAvatar(
-              player: p,
-              size: 80,
-              accent: isLeft ? _kGreen : _kPurple),
+          _TtAvatar(player: p, size: 80, accent: isLeft ? _kGreen : _kPurple),
           const SizedBox(height: 12),
           Text(p.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  color: Color(0xFF1D1D1F), fontSize: 16, fontWeight: FontWeight.bold)),
-          Text(p.country ?? "N/A", 
+                  color: Color(0xFF1D1D1F),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
+          Text(p.country ?? "N/A",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.grey, fontSize: 12)),
@@ -417,18 +437,18 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     return Column(
       children: [
         const Text('HEAD TO HEAD',
-            style: TextStyle(color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
+            style: TextStyle(
+                color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
         const SizedBox(height: 8),
         Row(
           children: [
             const Text('0',
                 style: TextStyle(
-                    color: _kGreen,
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold)),
+                    color: _kGreen, fontSize: 42, fontWeight: FontWeight.bold)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Container(width: 12, height: 2, color: Colors.grey.withOpacity(0.3)),
+              child: Container(
+                  width: 12, height: 2, color: Colors.grey.withOpacity(0.3)),
             ),
             const Text('0',
                 style: TextStyle(
@@ -447,7 +467,9 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
       children: [
         const Text('STATS SUMMARY',
             style: TextStyle(
-                color: Color(0xFF1D1D1F), fontWeight: FontWeight.bold, letterSpacing: 1)),
+                color: Color(0xFF1D1D1F),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1)),
         const SizedBox(height: 12),
         GlassContainer(
           borderRadius: 16,
@@ -456,7 +478,9 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
           child: Column(
             children: [
               _buildStatRow('Win %', _winRate(a), _winRate(b)),
-              _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}', '#${b.ranking ?? "N/A"}', lowerIsBetter: true),
+              _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
+                  '#${b.ranking ?? "N/A"}',
+                  lowerIsBetter: true),
             ],
           ),
         ),
@@ -464,16 +488,19 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     );
   }
 
-  Widget _buildStatRow(String label, String aVal, String bVal, {bool lowerIsBetter = false}) {
+  Widget _buildStatRow(String label, String aVal, String bVal,
+      {bool lowerIsBetter = false}) {
     num? nvA = num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
     num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
     bool aWins = false;
     bool bWins = false;
     if (nvA != null && nvB != null) {
       if (lowerIsBetter) {
-        aWins = nvA < nvB; bWins = nvB < nvA;
+        aWins = nvA < nvB;
+        bWins = nvB < nvA;
       } else {
-        aWins = nvA > nvB; bWins = nvB > nvA;
+        aWins = nvA > nvB;
+        bWins = nvB > nvA;
       }
     }
     return Padding(
@@ -509,16 +536,27 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     void check(num? aV, num? bV, {bool lowerBetter = false}) {
       if (aV == null || bV == null) return;
       if (lowerBetter) {
-        if (aV < bV) aScore++; if (bV < aV) bScore++;
+        if (aV < bV) aScore++;
+        if (bV < aV) bScore++;
       } else {
-        if (aV > bV) aScore++; if (bV > aV) bScore++;
+        if (aV > bV) aScore++;
+        if (bV > aV) bScore++;
       }
     }
+
     check(a.ranking, b.ranking, lowerBetter: true);
     check(a.winPercentage, b.winPercentage);
 
-    String winnerName = aScore > bScore ? a.name : bScore > aScore ? b.name : "Even Match!";
-    Color winnerColor = aScore > bScore ? _kGreen : bScore > aScore ? _kPurple : Colors.grey;
+    String winnerName = aScore > bScore
+        ? a.name
+        : bScore > aScore
+            ? b.name
+            : "Even Match!";
+    Color winnerColor = aScore > bScore
+        ? _kGreen
+        : bScore > aScore
+            ? _kPurple
+            : Colors.grey;
 
     return GlassContainer(
       borderRadius: 16,
@@ -532,12 +570,21 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('OVERALL EDGE', style: TextStyle(color: Colors.grey, fontSize: 10)),
-                Text(winnerName, style: TextStyle(color: winnerColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text('OVERALL EDGE',
+                    style: TextStyle(color: Colors.grey, fontSize: 10)),
+                Text(winnerName,
+                    style: TextStyle(
+                        color: winnerColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
               ],
             ),
           ),
-          Text('$aScore - $bScore', style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 24, fontWeight: FontWeight.bold)),
+          Text('$aScore - $bScore',
+              style: const TextStyle(
+                  color: Color(0xFF1D1D1F),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -550,9 +597,11 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.compare_arrows, color: Colors.grey.withOpacity(0.3), size: 100),
+          Icon(Icons.compare_arrows,
+              color: Colors.grey.withOpacity(0.3), size: 100),
           const SizedBox(height: 20),
-          Text('Select two players and press COMPARE\nto see the head-to-head analysis',
+          Text(
+              'Select two players and press COMPARE\nto see the head-to-head analysis',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],
@@ -565,7 +614,8 @@ class _TtAvatar extends StatelessWidget {
   final TableTennisPlayer? player;
   final double size;
   final Color accent;
-  const _TtAvatar({required this.player, required this.size, required this.accent});
+  const _TtAvatar(
+      {required this.player, required this.size, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +643,16 @@ class _TtAvatar extends StatelessWidget {
   Widget _initials() {
     final name = player?.name ?? '?';
     final parts = name.trim().split(' ');
-    final text = parts.length >= 2 ? '${parts[0][0]}${parts[1][0]}' : name.isNotEmpty ? name[0] : '?';
-    return Center(child: Text(text.toUpperCase(), style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: size * 0.4)));
+    final text = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'
+        : name.isNotEmpty
+            ? name[0]
+            : '?';
+    return Center(
+        child: Text(text.toUpperCase(),
+            style: TextStyle(
+                color: accent,
+                fontWeight: FontWeight.bold,
+                fontSize: size * 0.4)));
   }
 }

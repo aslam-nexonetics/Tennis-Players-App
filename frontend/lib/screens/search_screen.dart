@@ -42,7 +42,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final playerProvider = Provider.of<PlayerProvider>(context);
-    
+
     // Sync controller with provider if provider was cleared externally
     if (playerProvider.lastQuery.isEmpty && _controller.text.isNotEmpty) {
       _controller.clear();
@@ -217,7 +217,6 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             );
                           },
-                          /*
                           onLongPress: () {
                             Navigator.push(
                               context,
@@ -227,7 +226,6 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             );
                           },
-                          */
                         ),
                       ),
                     );

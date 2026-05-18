@@ -55,7 +55,8 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.emoji_events, color: Color(0xFF0F9D58), size: 18),
+                        Icon(Icons.emoji_events,
+                            color: Color(0xFF0F9D58), size: 18),
                         SizedBox(width: 6),
                         Text(
                           'TT Rankings',
@@ -88,137 +89,135 @@ class _TtTopPlayersScreenState extends State<TtTopPlayersScreen> {
                   ),
                 )
               : provider.error != null
-              ? Center(child: Text('Error: ${provider.error}'))
-              : provider.topPlayers.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text(
-                      'No table tennis players found.\nTap the refresh button or run the TT scraper.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  controller: _scrollController,
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: MediaQuery.of(context).padding.bottom + 140,
-                  ),
-                  itemCount: provider.topPlayers.length +
-                      (provider.topPlayersHasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == provider.topPlayers.length) {
-                      return Opacity(
-                        opacity: provider.isFetchingMore ? 1.0 : 0.0,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 32),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                      );
-                    }
-                    final player = provider.topPlayers[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: GlassContainer(
-                        blur: 0,
-                        borderRadius: 20,
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-                          leading: Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(
-                                    0xFF0F9D58,
-                                  ).withOpacity(0.1),
-                                  border: Border.all(
-                                    color: const Color(
-                                      0xFF0F9D58,
-                                    ).withOpacity(0.3),
-                                    width: 2,
-                                  ),
-                                ),
-                                child: ClipOval(
-                                  child: player.imageUrl != null
-                                      ? Image.network(
-                                          player.imageUrl!,
-                                          fit: BoxFit.cover,
-                                                alignment: Alignment.topCenter,
-                                          errorBuilder: (_, __, ___) =>
-                                              _initialsCenter(player.name),
-                                        )
-                                      : _initialsCenter(player.name),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF0F9D58),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${player.ranking ?? index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          title: Text(
-                            player.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                  ? Center(child: Text('Error: ${provider.error}'))
+                  : provider.topPlayers.isEmpty
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32),
+                            child: Text(
+                              'No table tennis players found.\nTap the refresh button or run the TT scraper.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey),
                             ),
                           ),
-                          subtitle: Text(
-                            '${player.country ?? 'Unknown'} • ${player.gender == 'M'
-                                ? '♂ Men'
-                                : player.gender == 'F'
-                                ? '♀ Women'
-                                : ''}',
-                            style: TextStyle(color: Colors.grey[600]),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: MediaQuery.of(context).padding.bottom + 140,
                           ),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    TtPlayerDetailScreen(player: player),
+                          itemCount: provider.topPlayers.length +
+                              (provider.topPlayersHasMore ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == provider.topPlayers.length) {
+                              return Opacity(
+                                opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 32),
+                                  child: Center(
+                                      child: CircularProgressIndicator()),
+                                ),
+                              );
+                            }
+                            final player = provider.topPlayers[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: GlassContainer(
+                                blur: 0,
+                                borderRadius: 20,
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(12),
+                                  leading: Stack(
+                                    alignment: Alignment.bottomRight,
+                                    children: [
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: const Color(
+                                            0xFF0F9D58,
+                                          ).withOpacity(0.1),
+                                          border: Border.all(
+                                            color: const Color(
+                                              0xFF0F9D58,
+                                            ).withOpacity(0.3),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child: player.imageUrl != null
+                                              ? Image.network(
+                                                  player.imageUrl!,
+                                                  fit: BoxFit.cover,
+                                                  alignment:
+                                                      Alignment.topCenter,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      _initialsCenter(
+                                                          player.name),
+                                                )
+                                              : _initialsCenter(player.name),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF0F9D58),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          '${player.ranking ?? index + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  title: Text(
+                                    player.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '${player.country ?? 'Unknown'} • ${player.gender == 'M' ? '♂ Men' : player.gender == 'F' ? '♀ Women' : ''}',
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            TtPlayerDetailScreen(
+                                                player: player),
+                                      ),
+                                    );
+                                  },
+                                  onLongPress: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => TtPlayerCompareScreen(
+                                            playerA: player),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             );
                           },
-                          /*
-                          onLongPress: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    TtPlayerCompareScreen(playerA: player),
-                              ),
-                            );
-                          },
-                          */
                         ),
-                      ),
-                    );
-                  },
-                ),
         ),
       ],
     );
@@ -292,4 +291,3 @@ class _GenderFilterBar extends StatelessWidget {
     );
   }
 }
-

@@ -49,7 +49,9 @@ class TableTennisPlayer {
           : null,
       weight: json['weight'],
       playingStyle: json['playing_style'],
-      winPercentage: json['win_percentage'] != null ? (json['win_percentage'] as num).toDouble() : null,
+      winPercentage: json['win_percentage'] != null
+          ? (json['win_percentage'] as num).toDouble()
+          : null,
       imageUrl: json['image_url'],
       source: json['source'],
       gender: json['gender'],

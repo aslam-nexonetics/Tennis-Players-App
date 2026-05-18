@@ -72,7 +72,9 @@ class Player {
       losses: json['losses'] ?? 0,
       turnedPro: json['turned_pro'],
       prizeMoney: json['prize_money'],
-      imageUrl: json['image_url'] != null ? ApiService.getProxyImageUrl(json['image_url']) : null,
+      imageUrl: json['image_url'] != null
+          ? ApiService.getProxyImageUrl(json['image_url'])
+          : null,
       gender: json['gender'],
       source: json['source'],
       lastUpdated: json['last_updated'] != null
@@ -80,7 +82,6 @@ class Player {
           : null,
     );
   }
-
 }
 
 class PlayerListResponse {
@@ -199,9 +200,8 @@ class H2HResponse {
       player1: Player.fromJson(json['player1']),
       player2: Player.fromJson(json['player2']),
       stats: H2HStats.fromJson(json['stats']),
-      history: (json['history'] as List)
-          .map((i) => H2HMatch.fromJson(i))
-          .toList(),
+      history:
+          (json['history'] as List).map((i) => H2HMatch.fromJson(i)).toList(),
     );
   }
 }

@@ -88,25 +88,21 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> screens = [
       _getRankingsScreen(currentSport.type),
       _getSearchScreen(currentSport.type),
-      /*
-      if (currentSport.type == SportType.tennis || 
+      if (currentSport.type == SportType.tennis ||
           currentSport.type == SportType.tableTennis ||
           currentSport.type == SportType.football ||
           currentSport.type == SportType.basketball)
         _getCompareScreen(currentSport.type),
-      */
     ];
 
     final List<_NavDef> navItems = [
       const _NavDef(Icons.leaderboard_rounded, 'Rankings', Colors.indigo),
       const _NavDef(Icons.search_rounded, 'Search', Colors.indigo),
-      /*
-      if (currentSport.type == SportType.tennis || 
+      if (currentSport.type == SportType.tennis ||
           currentSport.type == SportType.tableTennis ||
           currentSport.type == SportType.football ||
           currentSport.type == SportType.basketball)
         const _NavDef(Icons.compare_arrows_rounded, 'Compare', Colors.indigo),
-      */
     ];
 
     // Safety check: if current sport changed and index is now out of bounds
@@ -116,8 +112,10 @@ class _MainNavigationState extends State<MainNavigation> {
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= _kCompactBreakpoint;
         return isWide
-            ? _wideLayout(context, screens, navItems, currentSport, sportProvider, displayIndex)
-            : _compactLayout(context, screens, navItems, currentSport, sportProvider, displayIndex);
+            ? _wideLayout(context, screens, navItems, currentSport,
+                sportProvider, displayIndex)
+            : _compactLayout(context, screens, navItems, currentSport,
+                sportProvider, displayIndex);
       },
     );
   }
@@ -125,7 +123,8 @@ class _MainNavigationState extends State<MainNavigation> {
   void _clearAllSearchProviders() {
     Provider.of<PlayerProvider>(context, listen: false).clearSearch();
     Provider.of<TtPlayerProvider>(context, listen: false).clearSearch();
-    Provider.of<FootballNationalTeamProvider>(context, listen: false).clearSearch();
+    Provider.of<FootballNationalTeamProvider>(context, listen: false)
+        .clearSearch();
     Provider.of<BasketballClubProvider>(context, listen: false).clearSearch();
   }
 
@@ -171,8 +170,13 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   // ── Wide layout (web / tablet) ─────────────────────────────────────────────
-  Widget _wideLayout(BuildContext context, List<Widget> screens,
-      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider, int displayIndex) {
+  Widget _wideLayout(
+      BuildContext context,
+      List<Widget> screens,
+      List<_NavDef> navItems,
+      Sport currentSport,
+      SportProvider sportProvider,
+      int displayIndex) {
     return LiquidBackground(
       child: Scaffold(
         appBar: _buildAppBar(context, currentSport),
@@ -218,8 +222,13 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   // ── Compact layout (mobile) ────────────────────────────────────────────────
-  Widget _compactLayout(BuildContext context, List<Widget> screens,
-      List<_NavDef> navItems, Sport currentSport, SportProvider sportProvider, int displayIndex) {
+  Widget _compactLayout(
+      BuildContext context,
+      List<Widget> screens,
+      List<_NavDef> navItems,
+      Sport currentSport,
+      SportProvider sportProvider,
+      int displayIndex) {
     return LiquidBackground(
       child: Scaffold(
         extendBody: true,
@@ -256,7 +265,8 @@ class _MainNavigationState extends State<MainNavigation> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(30),
@@ -334,17 +344,23 @@ class _SportCategoryBar extends StatelessWidget {
               onTap: () {
                 if (currentSport.type != sport.type) {
                   // Clear all search results when switching sports
-                  Provider.of<PlayerProvider>(context, listen: false).clearSearch();
-                  Provider.of<TtPlayerProvider>(context, listen: false).clearSearch();
-                  Provider.of<FootballNationalTeamProvider>(context, listen: false).clearSearch();
-                  Provider.of<BasketballClubProvider>(context, listen: false).clearSearch();
-                  
+                  Provider.of<PlayerProvider>(context, listen: false)
+                      .clearSearch();
+                  Provider.of<TtPlayerProvider>(context, listen: false)
+                      .clearSearch();
+                  Provider.of<FootballNationalTeamProvider>(context,
+                          listen: false)
+                      .clearSearch();
+                  Provider.of<BasketballClubProvider>(context, listen: false)
+                      .clearSearch();
+
                   sportProvider.setSport(sport);
                 }
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? sport.accentColor.withOpacity(0.15)
@@ -378,8 +394,10 @@ class _SportCategoryBar extends StatelessWidget {
                     Text(
                       sport.name,
                       style: TextStyle(
-                        color: isSelected ? sport.accentColor : Colors.grey[700],
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color:
+                            isSelected ? sport.accentColor : Colors.grey[700],
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
                         fontSize: 14,
                       ),
                     ),
@@ -500,7 +518,8 @@ class _SideRailItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? accentColor.withOpacity(0.12) : Colors.transparent,
+          color:
+              isSelected ? accentColor.withOpacity(0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

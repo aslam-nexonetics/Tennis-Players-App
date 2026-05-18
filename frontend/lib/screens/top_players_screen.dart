@@ -182,7 +182,6 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                                   ),
                                 );
                               },
-                              /*
                               onLongPress: () {
                                 Navigator.push(
                                   context,
@@ -192,7 +191,6 @@ class _TopPlayersScreenState extends State<TopPlayersScreen> {
                                   ),
                                 );
                               },
-                              */
                             ),
                           ),
                         );
@@ -267,4 +265,3 @@ class _GenderFilterChips extends StatelessWidget {
     );
   }
 }
-

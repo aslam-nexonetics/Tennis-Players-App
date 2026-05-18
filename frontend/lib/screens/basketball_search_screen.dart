@@ -53,7 +53,8 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Row(
             children: [
-              const Icon(Icons.sports_basketball, color: Colors.orange, size: 18),
+              const Icon(Icons.sports_basketball,
+                  color: Colors.orange, size: 18),
               const SizedBox(width: 8),
               const Expanded(
                 child: Column(
@@ -149,85 +150,91 @@ class _BasketballSearchScreenState extends State<BasketballSearchScreen> {
             ),
           ),
         ),
-            Expanded(
-              child: Consumer<BasketballClubProvider>(
-                builder: (context, provider, child) {
-                  if (provider.isSearching && provider.searchResults.isEmpty) {
-                    return const Center(
-                        child: CircularProgressIndicator(color: Colors.orange));
-                  }
-                  if (provider.searchResults.isEmpty) {
-                    return Center(
-                      child: Text(
-                        provider.lastQuery.isEmpty
-                            ? 'Enter a club name to start'
-                            : 'No results found for "${provider.lastQuery}"',
-                        style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    controller: _scrollController,
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      bottom: MediaQuery.of(context).padding.bottom + 140,
-                    ),
-                    itemCount: provider.searchResults.length +
-                        (provider.searchHasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == provider.searchResults.length) {
-                        return Opacity(
-                          opacity: provider.isFetchingMore ? 1.0 : 0.0,
-                          child: const Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: CircularProgressIndicator(
-                                  color: Colors.orange),
-                            ),
-                          ),
-                        );
-                      }
-                      final club = provider.searchResults[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: GlassContainer(
-                          blur: 0,
-                          borderRadius: 20,
-                        child: ListTile(
-                          leading: club.imageUrl != null
-                              ? CircleAvatar(
-                                  backgroundImage: NetworkImage(club.imageUrl!),
-                                )
-                              : const CircleAvatar(
-                                  backgroundColor: Colors.orange,
-                                  child: Icon(Icons.sports_basketball, color: Colors.white),
-                                ),
-                          title: Text(
-                            club.name,
-                            style: const TextStyle(color: Color(0xFF1D1D1F), fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            '${club.league} • ${club.category.toUpperCase()}',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => BasketballClubDetailScreen(club: club),
-                              ),
-                            );
-                          },
+        Expanded(
+          child: Consumer<BasketballClubProvider>(
+            builder: (context, provider, child) {
+              if (provider.isSearching && provider.searchResults.isEmpty) {
+                return const Center(
+                    child: CircularProgressIndicator(color: Colors.orange));
+              }
+              if (provider.searchResults.isEmpty) {
+                return Center(
+                  child: Text(
+                    provider.lastQuery.isEmpty
+                        ? 'Enter a club name to start'
+                        : 'No results found for "${provider.lastQuery}"',
+                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  ),
+                );
+              }
+              return ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: MediaQuery.of(context).padding.bottom + 140,
+                ),
+                itemCount: provider.searchResults.length +
+                    (provider.searchHasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == provider.searchResults.length) {
+                    return Opacity(
+                      opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                      child: const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child:
+                              CircularProgressIndicator(color: Colors.orange),
                         ),
                       ),
                     );
-                    },
+                  }
+                  final club = provider.searchResults[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: GlassContainer(
+                      blur: 0,
+                      borderRadius: 20,
+                      child: ListTile(
+                        leading: club.imageUrl != null
+                            ? CircleAvatar(
+                                backgroundImage: NetworkImage(club.imageUrl!),
+                              )
+                            : const CircleAvatar(
+                                backgroundColor: Colors.orange,
+                                child: Icon(Icons.sports_basketball,
+                                    color: Colors.white),
+                              ),
+                        title: Text(
+                          club.name,
+                          style: const TextStyle(
+                              color: Color(0xFF1D1D1F),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${club.league} • ${club.category.toUpperCase()}',
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios,
+                            color: Colors.grey, size: 14),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  BasketballClubDetailScreen(club: club),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   );
                 },
-              ),
-            ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }

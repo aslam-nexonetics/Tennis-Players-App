@@ -5,7 +5,6 @@ import '../models/player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
 
-
 class PlayerDetailScreen extends StatelessWidget {
   final Player player;
 
@@ -15,8 +14,7 @@ class PlayerDetailScreen extends StatelessWidget {
   List<RankingPoint> _generateRankingTrend() {
     final current = player.ranking ?? 100;
     final highest = player.highestRanking ?? current - 10;
-    final highestDate =
-        player.highestRankingDate ??
+    final highestDate = player.highestRankingDate ??
         DateTime.now().subtract(const Duration(days: 365 * 2));
 
     // Generate 4-5 points to show a trend
@@ -167,7 +165,8 @@ class PlayerDetailScreen extends StatelessWidget {
                                   height: 350,
                                   color: Colors.indigo.withOpacity(0.05),
                                   child: const Center(
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   ),
                                 ),
                                 errorWidget: (context, url, error) => Container(
@@ -363,11 +362,11 @@ class PlayerDetailScreen extends StatelessWidget {
 
   Widget _buildStatGrid(BuildContext context) {
     final isWomen = player.gender == 'F';
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 12) / 2;
-        
+
         if (isWomen) {
           return _buildWomenStats(cardWidth);
         } else {

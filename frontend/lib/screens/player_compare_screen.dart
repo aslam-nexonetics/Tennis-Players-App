@@ -19,23 +19,23 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   Player? _playerA;
   Player? _playerB;
   H2HResponse? _h2hData;
-  
+
   bool _searchingA = false;
   bool _searchingB = false;
   bool _loadingH2H = false;
-  
+
   List<Player> _resultsA = [];
   List<Player> _resultsB = [];
-  
+
   bool _noResultsA = false;
   bool _noResultsB = false;
-  
+
   final TextEditingController _ctrlA = TextEditingController();
   final TextEditingController _ctrlB = TextEditingController();
-  
+
   Timer? _debounceA;
   Timer? _debounceB;
-  
+
   bool _showComparison = false;
 
   late AnimationController _fadeCtrl;
@@ -48,7 +48,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     if (_playerA != null) {
       _ctrlA.text = _playerA!.name;
     }
-    
+
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
@@ -94,7 +94,10 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
 
   Future<void> _doSearch(String q, bool isA) async {
     setState(() {
-      if (isA) _searchingA = true; else _searchingB = true;
+      if (isA)
+        _searchingA = true;
+      else
+        _searchingB = true;
     });
     try {
       final res = await ApiService().searchPlayers(q, size: 5);
@@ -111,7 +114,10 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       // Handle error
     } finally {
       setState(() {
-        if (isA) _searchingA = false; else _searchingB = false;
+        if (isA)
+          _searchingA = false;
+        else
+          _searchingB = false;
       });
     }
   }
@@ -147,7 +153,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
         _showComparison = true;
       });
       _fadeCtrl.forward(from: 0);
-      
+
       try {
         final data = await ApiService().getH2H(_playerA!.id, _playerB!.id);
         setState(() {
@@ -213,7 +219,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
         children: [
           Row(
             children: [
-              Expanded(child: _buildSearchBox(_ctrlA, _onSearchA, _playerA, true)),
+              Expanded(
+                  child: _buildSearchBox(_ctrlA, _onSearchA, _playerA, true)),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Text('VS',
@@ -222,26 +229,33 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
               ),
-              Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
+              Expanded(
+                  child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
             ],
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_playerA != null && _playerB != null) ? _compare : null,
+              onPressed:
+                  (_playerA != null && _playerB != null) ? _compare : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2C3E50),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
               ),
               child: const Text('COMPARE ATHLETES',
-                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
             ),
           ),
-          if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
+          if (_resultsA.isNotEmpty ||
+              _resultsB.isNotEmpty ||
+              _noResultsA ||
+              _noResultsB)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Row(
@@ -250,13 +264,17 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                   Expanded(
                     child: _resultsA.isNotEmpty
                         ? _buildResultList(_resultsA, _selectA)
-                        : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                        : (_noResultsA && _ctrlA.text.isNotEmpty
+                            ? _buildNoResults()
+                            : const SizedBox()),
                   ),
                   const SizedBox(width: 44), // Space for 'VS' alignment
                   Expanded(
                     child: _resultsB.isNotEmpty
                         ? _buildResultList(_resultsB, _selectB)
-                        : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                        : (_noResultsB && _ctrlB.text.isNotEmpty
+                            ? _buildNoResults()
+                            : const SizedBox()),
                   ),
                 ],
               ),
@@ -302,7 +320,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
             const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.indigo),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.indigo),
             ),
           const SizedBox(width: 8),
         ],
@@ -319,9 +338,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
         borderRadius: BorderRadius.circular(8),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
-      child: const Text('No results found', 
-        style: TextStyle(color: Colors.grey, fontSize: 12),
-        textAlign: TextAlign.center),
+      child: const Text('No results found',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+          textAlign: TextAlign.center),
     );
   }
 
@@ -337,9 +356,14 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
         children: results
             .map((p) => ListTile(
                   dense: true,
-                  leading: _Avatar(imageUrl: p.imageUrl, name: p.name, size: 24, accent: Colors.indigo),
+                  leading: _Avatar(
+                      imageUrl: p.imageUrl,
+                      name: p.name,
+                      size: 24,
+                      accent: Colors.indigo),
                   title: Text(p.name,
-                      style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 12)),
+                      style: const TextStyle(
+                          color: Color(0xFF1D1D1F), fontSize: 12)),
                   subtitle: Text('#${p.ranking ?? "N/A"}',
                       style: const TextStyle(color: Colors.grey, fontSize: 10)),
                   onTap: () => onSelect(p),
@@ -358,7 +382,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
         ),
       );
     }
-    
+
     if (_h2hData == null) return const SizedBox();
 
     return FadeTransition(
@@ -394,7 +418,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
           Column(
             children: [
               const Text('HEAD TO HEAD',
-                  style: TextStyle(color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
+                  style: TextStyle(
+                      color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -405,7 +430,10 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                           fontWeight: FontWeight.bold)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Container(width: 12, height: 2, color: Colors.grey.withOpacity(0.3)),
+                    child: Container(
+                        width: 12,
+                        height: 2,
+                        color: Colors.grey.withOpacity(0.3)),
                   ),
                   Text('${stats.player2Wins}',
                       style: const TextStyle(
@@ -414,16 +442,19 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                           fontWeight: FontWeight.bold)),
                 ],
               ),
-              Text('Wins', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+              Text('Wins',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12)),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black12,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text('Total ${stats.matchesPlayed}', 
-                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                child: Text('Total ${stats.matchesPlayed}',
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 12)),
               ),
             ],
           ),
@@ -436,7 +467,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   Widget _buildPlayerProfile(Player p, bool isLeft) {
     return Expanded(
       child: Column(
-        crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        crossAxisAlignment:
+            isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
           _Avatar(
               imageUrl: p.imageUrl,
@@ -448,9 +480,11 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  color: Color(0xFF1D1D1F), fontSize: 15, fontWeight: FontWeight.bold),
+                  color: Color(0xFF1D1D1F),
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold),
               textAlign: isLeft ? TextAlign.left : TextAlign.right),
-          Text(p.country ?? "N/A", 
+          Text(p.country ?? "N/A",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.grey, fontSize: 12)),
@@ -479,15 +513,24 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const Text('LAST MATCH', 
-            style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+          const Text('LAST MATCH',
+              style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          Text('${last.event} ${last.year}, ${last.round}', 
-            style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+          Text('${last.event} ${last.year}, ${last.round}',
+              style: const TextStyle(
+                  color: Colors.black87, fontWeight: FontWeight.w600)),
           const SizedBox(height: 5),
-          Text('${last.winnerName} won', style: const TextStyle(color: Colors.indigo, fontSize: 12)),
+          Text('${last.winnerName} won',
+              style: const TextStyle(color: Colors.indigo, fontSize: 12)),
           const SizedBox(height: 5),
-          Text(last.score, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+          Text(last.score,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
         ],
       ),
     );
@@ -508,7 +551,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('STATS SUMMARY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('STATS SUMMARY',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 10),
         GlassContainer(
           borderRadius: 12,
@@ -516,12 +560,20 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              _buildStatRow('Matches', '${stats.matchesPlayed}', '${stats.matchesPlayed}'),
-              _buildStatRow('Wins', '${stats.player1Wins}', '${stats.player2Wins}'),
-              _buildStatRow('Win %', '${stats.player1WinPct}%', '${stats.player2WinPct}%'),
-              _buildStatRow('Hard Wins', '${stats.hardCourtWins[_playerA!.id]}', '${stats.hardCourtWins[_playerB!.id]}'),
-              _buildStatRow('Clay Wins', '${stats.clayCourtWins[_playerA!.id]}', '${stats.clayCourtWins[_playerB!.id]}'),
-              _buildStatRow('Grass Wins', '${stats.grassCourtWins[_playerA!.id]}', '${stats.grassCourtWins[_playerB!.id]}'),
+              _buildStatRow('Matches', '${stats.matchesPlayed}',
+                  '${stats.matchesPlayed}'),
+              _buildStatRow(
+                  'Wins', '${stats.player1Wins}', '${stats.player2Wins}'),
+              _buildStatRow('Win %', '${stats.player1WinPct}%',
+                  '${stats.player2WinPct}%'),
+              _buildStatRow('Hard Wins', '${stats.hardCourtWins[_playerA!.id]}',
+                  '${stats.hardCourtWins[_playerB!.id]}'),
+              _buildStatRow('Clay Wins', '${stats.clayCourtWins[_playerA!.id]}',
+                  '${stats.clayCourtWins[_playerB!.id]}'),
+              _buildStatRow(
+                  'Grass Wins',
+                  '${stats.grassCourtWins[_playerA!.id]}',
+                  '${stats.grassCourtWins[_playerB!.id]}'),
             ],
           ),
         ),
@@ -539,9 +591,21 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Expanded(child: Text(aVal, style: TextStyle(fontWeight: aWins ? FontWeight.bold : FontWeight.normal, color: aWins ? Colors.indigo : Colors.black87))),
-          Expanded(child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 11))),
-          Expanded(child: Text(bVal, textAlign: TextAlign.right, style: TextStyle(fontWeight: bWins ? FontWeight.bold : FontWeight.normal, color: bWins ? Colors.pink : Colors.black87))),
+          Expanded(
+              child: Text(aVal,
+                  style: TextStyle(
+                      fontWeight: aWins ? FontWeight.bold : FontWeight.normal,
+                      color: aWins ? Colors.indigo : Colors.black87))),
+          Expanded(
+              child: Text(label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.grey, fontSize: 11))),
+          Expanded(
+              child: Text(bVal,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      fontWeight: bWins ? FontWeight.bold : FontWeight.normal,
+                      color: bWins ? Colors.pink : Colors.black87))),
         ],
       ),
     );
@@ -550,11 +614,17 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   Widget _buildSurfaceBreakdown() {
     final stats = _h2hData!.stats;
     final total = stats.matchesPlayed;
-    
+
     // Calculate percentages for pie chart
-    double hard = total > 0 ? stats.hardCourtWins.values.fold(0, (a, b) => a + b) / total : 0;
-    double clay = total > 0 ? stats.clayCourtWins.values.fold(0, (a, b) => a + b) / total : 0;
-    double grass = total > 0 ? stats.grassCourtWins.values.fold(0, (a, b) => a + b) / total : 0;
+    double hard = total > 0
+        ? stats.hardCourtWins.values.fold(0, (a, b) => a + b) / total
+        : 0;
+    double clay = total > 0
+        ? stats.clayCourtWins.values.fold(0, (a, b) => a + b) / total
+        : 0;
+    double grass = total > 0
+        ? stats.grassCourtWins.values.fold(0, (a, b) => a + b) / total
+        : 0;
 
     return GlassContainer(
       borderRadius: 16,
@@ -563,7 +633,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('SURFACE PERFORMANCE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1)),
+          const Text('SURFACE PERFORMANCE',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1)),
           const SizedBox(height: 20),
           Row(
             children: [
@@ -575,10 +647,42 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                       sectionsSpace: 2,
                       centerSpaceRadius: 30,
                       sections: [
-                        if (hard > 0) PieChartSectionData(value: hard * 100, color: Colors.blue, radius: 40, title: 'H', titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                        if (clay > 0) PieChartSectionData(value: clay * 100, color: Colors.orange, radius: 40, title: 'C', titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                        if (grass > 0) PieChartSectionData(value: grass * 100, color: Colors.green, radius: 40, title: 'G', titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                        if (hard == 0 && clay == 0 && grass == 0) PieChartSectionData(value: 100, color: Colors.grey.withOpacity(0.2), radius: 40, title: ''),
+                        if (hard > 0)
+                          PieChartSectionData(
+                              value: hard * 100,
+                              color: Colors.blue,
+                              radius: 40,
+                              title: 'H',
+                              titleStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12)),
+                        if (clay > 0)
+                          PieChartSectionData(
+                              value: clay * 100,
+                              color: Colors.orange,
+                              radius: 40,
+                              title: 'C',
+                              titleStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12)),
+                        if (grass > 0)
+                          PieChartSectionData(
+                              value: grass * 100,
+                              color: Colors.green,
+                              radius: 40,
+                              title: 'G',
+                              titleStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12)),
+                        if (hard == 0 && clay == 0 && grass == 0)
+                          PieChartSectionData(
+                              value: 100,
+                              color: Colors.grey.withOpacity(0.2),
+                              radius: 40,
+                              title: ''),
                       ],
                     ),
                   ),
@@ -588,11 +692,14 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLegendItem('Hard Court', Colors.blue, '${(hard * 100).toStringAsFixed(0)}%'),
+                  _buildLegendItem('Hard Court', Colors.blue,
+                      '${(hard * 100).toStringAsFixed(0)}%'),
                   const SizedBox(height: 12),
-                  _buildLegendItem('Clay Court', Colors.orange, '${(clay * 100).toStringAsFixed(0)}%'),
+                  _buildLegendItem('Clay Court', Colors.orange,
+                      '${(clay * 100).toStringAsFixed(0)}%'),
                   const SizedBox(height: 12),
-                  _buildLegendItem('Grass Court', Colors.green, '${(grass * 100).toStringAsFixed(0)}%'),
+                  _buildLegendItem('Grass Court', Colors.green,
+                      '${(grass * 100).toStringAsFixed(0)}%'),
                 ],
               ),
             ],
@@ -615,8 +722,16 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1D1D1F))),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold)),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1D1D1F))),
           ],
         ),
       ],
@@ -627,7 +742,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('HEAD TO HEAD MATCH HISTORY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('HEAD TO HEAD MATCH HISTORY',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 10),
         GlassContainer(
           borderRadius: 16,
@@ -636,14 +752,31 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 color: Colors.black.withOpacity(0.05),
                 child: const Row(
                   children: [
-                    Expanded(flex: 1, child: Text('Year', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Expanded(flex: 3, child: Text('Winner', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Expanded(flex: 3, child: Text('Event', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Expanded(flex: 2, child: Text('Score', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    Expanded(
+                        flex: 1,
+                        child: Text('Year',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12))),
+                    Expanded(
+                        flex: 3,
+                        child: Text('Winner',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12))),
+                    Expanded(
+                        flex: 3,
+                        child: Text('Event',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12))),
+                    Expanded(
+                        flex: 2,
+                        child: Text('Score',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12))),
                   ],
                 ),
               ),
@@ -660,20 +793,38 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.black.withOpacity(0.05))),
+        border:
+            Border(bottom: BorderSide(color: Colors.black.withOpacity(0.05))),
       ),
       child: Row(
         children: [
-          Expanded(flex: 1, child: Text('${m.year}', style: const TextStyle(fontSize: 11))),
-          Expanded(flex: 3, child: Text(m.winnerName, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: p1Won ? Colors.indigo : Colors.pink))),
-          Expanded(flex: 3, child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(m.event, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-              Text('${m.round} • ${m.surface}', style: const TextStyle(fontSize: 9, color: Colors.grey)),
-            ],
-          )),
-          Expanded(flex: 2, child: Text(m.score, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500))),
+          Expanded(
+              flex: 1,
+              child: Text('${m.year}', style: const TextStyle(fontSize: 11))),
+          Expanded(
+              flex: 3,
+              child: Text(m.winnerName,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: p1Won ? Colors.indigo : Colors.pink))),
+          Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(m.event,
+                      style: const TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w600)),
+                  Text('${m.round} • ${m.surface}',
+                      style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                ],
+              )),
+          Expanded(
+              flex: 2,
+              child: Text(m.score,
+                  style: const TextStyle(
+                      fontSize: 10, fontWeight: FontWeight.w500))),
         ],
       ),
     );
@@ -686,9 +837,11 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.compare_arrows, color: Colors.grey.withOpacity(0.3), size: 100),
+          Icon(Icons.compare_arrows,
+              color: Colors.grey.withOpacity(0.3), size: 100),
           const SizedBox(height: 20),
-          Text('Select two players and press COMPARE\nto see the head-to-head analysis',
+          Text(
+              'Select two players and press COMPARE\nto see the head-to-head analysis',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],
@@ -702,7 +855,11 @@ class _Avatar extends StatelessWidget {
   final String name;
   final double size;
   final Color accent;
-  const _Avatar({required this.imageUrl, required this.name, required this.size, required this.accent});
+  const _Avatar(
+      {required this.imageUrl,
+      required this.name,
+      required this.size,
+      required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -720,7 +877,8 @@ class _Avatar extends StatelessWidget {
                 imageUrl: imageUrl!,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
-                placeholder: (context, url) => Container(color: Colors.grey[200]),
+                placeholder: (context, url) =>
+                    Container(color: Colors.grey[200]),
                 errorWidget: (_, __, ___) => _initials(),
               )
             : _initials(),
@@ -730,7 +888,16 @@ class _Avatar extends StatelessWidget {
 
   Widget _initials() {
     final parts = name.trim().split(' ');
-    final text = parts.length >= 2 ? '${parts[0][0]}${parts[1][0]}' : name.isNotEmpty ? name[0] : '?';
-    return Center(child: Text(text.toUpperCase(), style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: size * 0.4)));
+    final text = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'
+        : name.isNotEmpty
+            ? name[0]
+            : '?';
+    return Center(
+        child: Text(text.toUpperCase(),
+            style: TextStyle(
+                color: accent,
+                fontWeight: FontWeight.bold,
+                fontSize: size * 0.4)));
   }
 }

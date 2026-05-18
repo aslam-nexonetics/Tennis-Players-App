@@ -12,13 +12,13 @@ class FootballNationalTeam {
   final String? description;
   final int? ranking;
   final String category;
-  
+
   // Enhanced Statistics
   final int totalTrophies;
   final int worldCupTitles;
   final String? captain;
   final String? mainRivals;
-  
+
   // Detailed Honors
   final Map<String, int>? honors;
 
@@ -62,8 +62,8 @@ class FootballNationalTeam {
       worldCupTitles: json['world_cup_titles'] ?? 0,
       captain: json['captain'],
       mainRivals: json['main_rivals'],
-      honors: json['honors_json'] != null 
-          ? Map<String, int>.from(json['honors_json']) 
+      honors: json['honors_json'] != null
+          ? Map<String, int>.from(json['honors_json'])
           : null,
     );
   }

@@ -15,7 +15,7 @@ class BasketballClub {
   final String? description;
   final int? ranking;
   final String category;
-  
+
   // Stats & Personnel
   final int titles;
   final int playoffAppearances;
@@ -24,7 +24,7 @@ class BasketballClub {
   final String? starPlayer;
   final String? owner;
   final String? generalManager;
-  
+
   // Detailed Honors
   final Map<String, int>? honors;
 
@@ -80,8 +80,8 @@ class BasketballClub {
       starPlayer: json['star_player'],
       owner: json['owner'],
       generalManager: json['general_manager'],
-      honors: json['honors_json'] != null 
-          ? Map<String, int>.from(json['honors_json']) 
+      honors: json['honors_json'] != null
+          ? Map<String, int>.from(json['honors_json'])
           : null,
     );
   }

@@ -5,7 +5,7 @@ import 'dart:async';
 
 class BasketballClubProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
-  
+
   List<BasketballClub> _topClubs = [];
   List<BasketballClub> _searchResults = [];
   bool _isLoading = false;
@@ -51,7 +51,8 @@ class BasketballClubProvider with ChangeNotifier {
   }
 
   Future<void> fetchTopClubs({bool loadMore = false}) async {
-    if (_isLoading || _isFetchingMore || (loadMore && !_topClubsHasMore)) return;
+    if (_isLoading || _isFetchingMore || (loadMore && !_topClubsHasMore))
+      return;
 
     if (loadMore) {
       _isFetchingMore = true;
@@ -71,16 +72,15 @@ class BasketballClubProvider with ChangeNotifier {
         page: _topClubsPage,
         size: _pageSize,
       );
-      
+
       if (loadMore) {
         _topClubs.addAll(response.items);
       } else {
         _topClubs = response.items;
       }
-      
+
       _topClubsHasMore = response.items.length >= _pageSize;
       if (_topClubsHasMore) _topClubsPage++;
-      
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -109,7 +109,8 @@ class BasketballClubProvider with ChangeNotifier {
   }
 
   Future<void> searchClubsCall(String query, {bool loadMore = false}) async {
-    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore)) return;
+    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore))
+      return;
 
     if (loadMore) {
       _isFetchingMore = true;
@@ -125,21 +126,20 @@ class BasketballClubProvider with ChangeNotifier {
 
     try {
       final response = await _apiService.searchBasketballClubs(
-        query, 
+        query,
         category: _selectedCategory,
         page: _searchPage,
         size: _pageSize,
       );
-      
+
       if (loadMore) {
         _searchResults.addAll(response.items);
       } else {
         _searchResults = response.items;
       }
-      
+
       _searchHasMore = response.items.length >= _pageSize;
       if (_searchHasMore) _searchPage++;
-      
     } catch (e) {
       _error = e.toString();
     } finally {

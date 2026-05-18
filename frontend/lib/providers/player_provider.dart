@@ -57,7 +57,8 @@ class PlayerProvider with ChangeNotifier {
   }
 
   Future<void> fetchTopPlayers({bool loadMore = false}) async {
-    if (_isLoading || _isFetchingMore || (loadMore && !_topPlayersHasMore)) return;
+    if (_isLoading || _isFetchingMore || (loadMore && !_topPlayersHasMore))
+      return;
 
     if (loadMore) {
       _isFetchingMore = true;
@@ -76,16 +77,15 @@ class PlayerProvider with ChangeNotifier {
         page: _topPlayersPage,
         gender: _selectedGender,
       );
-      
+
       if (loadMore) {
         _topPlayers.addAll(response.items);
       } else {
         _topPlayers = response.items;
       }
-      
+
       _topPlayersHasMore = response.items.length >= 20; // Page size is 20
       if (_topPlayersHasMore) _topPlayersPage++;
-      
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -112,7 +112,8 @@ class PlayerProvider with ChangeNotifier {
   }
 
   Future<void> searchPlayers(String query, {bool loadMore = false}) async {
-    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore)) return;
+    if (_isSearching || _isFetchingMore || (loadMore && !_searchHasMore))
+      return;
 
     if (loadMore) {
       _isFetchingMore = true;
@@ -132,16 +133,15 @@ class PlayerProvider with ChangeNotifier {
         page: _searchPage,
         gender: _selectedGender,
       );
-      
+
       if (loadMore) {
         _players.addAll(response.items);
       } else {
         _players = response.items;
       }
-      
+
       _searchHasMore = response.items.length >= 20;
       if (_searchHasMore) _searchPage++;
-      
     } catch (e) {
       _error = e.toString();
     } finally {

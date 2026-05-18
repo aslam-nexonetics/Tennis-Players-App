@@ -11,7 +11,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
 
   List<RankingPoint> _generateRankingTrend() {
     final current = player.ranking ?? 100;
-    
+
     // Generate simulated points to show a trend based on current rank
     return [
       RankingPoint(
@@ -33,7 +33,6 @@ class TtPlayerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 80),
         child: FloatingActionButton.extended(
@@ -41,8 +40,8 @@ class TtPlayerDetailScreen extends StatelessWidget {
           backgroundColor: const Color(0xFF0F9D58),
           icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
           label: const Text('Compare',
-              style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(
@@ -51,7 +50,6 @@ class TtPlayerDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      */
       backgroundColor: const Color(0xFFCEF0DE), // Teal-tinted glass theme
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -109,8 +107,8 @@ class TtPlayerDetailScreen extends StatelessWidget {
                   player.gender == 'M'
                       ? '🏓 Men\'s Singles'
                       : player.gender == 'F'
-                      ? '🏓 Women\'s Singles'
-                      : '🏓 Table Tennis',
+                          ? '🏓 Women\'s Singles'
+                          : '🏓 Table Tennis',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.85),
                     fontSize: 14,
@@ -219,7 +217,6 @@ class TtPlayerDetailScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            /*
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
@@ -235,14 +232,13 @@ class TtPlayerDetailScreen extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF0F9D58),
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12)),
                                 ),
                               ),
                             ),
-                            */
                           ],
                         ),
                       ),
@@ -304,7 +300,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
             ? Image.network(
                 player.imageUrl!,
                 fit: BoxFit.cover,
-                                                alignment: Alignment.topCenter,
+                alignment: Alignment.topCenter,
                 errorBuilder: (_, __, ___) => Center(
                   child: Text(
                     _initials(player.name),
@@ -556,6 +552,4 @@ class TtPlayerDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-
 }

@@ -19,7 +19,8 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FootballNationalTeamProvider>(context, listen: false).fetchTopTeams();
+      Provider.of<FootballNationalTeamProvider>(context, listen: false)
+          .fetchTopTeams();
     });
   }
 
@@ -133,7 +134,8 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
         const SizedBox(height: 8),
         Expanded(
           child: provider.isLoading && provider.topTeams.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFFE4405F)))
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFE4405F)))
               : provider.error != null && provider.topTeams.isEmpty
                   ? Center(child: Text('Error: ${provider.error}'))
                   : RefreshIndicator(
@@ -144,15 +146,17 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                         padding: EdgeInsets.only(
                           left: 16,
                           right: 16,
-                        bottom: MediaQuery.of(context).padding.bottom + 140,
+                          bottom: MediaQuery.of(context).padding.bottom + 140,
                         ),
-                        itemCount: provider.topTeams.length + (provider.hasMoreTopTeams ? 1 : 0),
+                        itemCount: provider.topTeams.length +
+                            (provider.hasMoreTopTeams ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == provider.topTeams.length) {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 32.0),
                               child: Center(
-                                child: CircularProgressIndicator(color: Color(0xFFE4405F)),
+                                child: CircularProgressIndicator(
+                                    color: Color(0xFFE4405F)),
                               ),
                             );
                           }
@@ -182,15 +186,18 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                                         height: 40,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: const Color(0xFFE4405F).withOpacity(0.1),
+                                          color: const Color(0xFFE4405F)
+                                              .withOpacity(0.1),
                                         ),
                                         child: ClipOval(
                                           child: team.imageUrl != null
                                               ? Image.network(
                                                   team.imageUrl!,
                                                   fit: BoxFit.cover,
-                                                alignment: Alignment.topCenter,
-                                                  errorBuilder: (_, __, ___) => _buildInitials(team.name),
+                                                  alignment:
+                                                      Alignment.topCenter,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      _buildInitials(team.name),
                                                 )
                                               : _buildInitials(team.name),
                                         ),
@@ -200,7 +207,8 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                                 ),
                                 title: Text(
                                   team.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Text('${team.confederation}'),
                                 trailing: const Icon(Icons.chevron_right),

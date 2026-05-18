@@ -76,8 +76,7 @@ class _GraphPainter extends CustomPainter {
       // Normalize to 0.0 - 1.0 (inverted for rank)
       double normalized = 1.0 - ((points[i].ranking - minRank) / range);
       double x = i * xStep;
-      double y =
-          size.height *
+      double y = size.height *
           (1.0 - (normalized * 0.7 + 0.15)); // Center with padding
 
       if (i == 0) {

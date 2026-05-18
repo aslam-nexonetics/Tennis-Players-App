@@ -8,7 +8,8 @@ class BasketballTopClubsScreen extends StatefulWidget {
   const BasketballTopClubsScreen({super.key});
 
   @override
-  State<BasketballTopClubsScreen> createState() => _BasketballTopClubsScreenState();
+  State<BasketballTopClubsScreen> createState() =>
+      _BasketballTopClubsScreenState();
 }
 
 class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
@@ -52,7 +53,8 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.sports_basketball, color: Colors.orange, size: 18),
+                        Icon(Icons.sports_basketball,
+                            color: Colors.orange, size: 18),
                         SizedBox(width: 8),
                         Text(
                           'Club Rankings',
@@ -133,10 +135,13 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
           child: Consumer<BasketballClubProvider>(
             builder: (context, provider, child) {
               if (provider.isLoading && provider.topClubs.isEmpty) {
-                return const Center(child: CircularProgressIndicator(color: Colors.orange));
+                return const Center(
+                    child: CircularProgressIndicator(color: Colors.orange));
               }
               if (provider.error.isNotEmpty && provider.topClubs.isEmpty) {
-                return Center(child: Text('Error: ${provider.error}', style: const TextStyle(color: Colors.redAccent)));
+                return Center(
+                    child: Text('Error: ${provider.error}',
+                        style: const TextStyle(color: Colors.redAccent)));
               }
               return RefreshIndicator(
                 onRefresh: () => provider.fetchTopClubs(),
@@ -147,72 +152,99 @@ class _BasketballTopClubsScreenState extends State<BasketballTopClubsScreen> {
                     right: 16,
                     bottom: MediaQuery.of(context).padding.bottom + 100,
                   ),
-                    itemCount: provider.topClubs.length +
-                        (provider.topClubsHasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == provider.topClubs.length) {
-                        return Opacity(
-                          opacity: provider.isFetchingMore ? 1.0 : 0.0,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Center(child: CircularProgressIndicator(color: Colors.orange)),
-                          ),
-                        );
-                      }
-                      final club = provider.topClubs[index];
-                      return Card(
-                        color: Colors.white.withOpacity(0.1),
-                        margin: const EdgeInsets.only(bottom: 15),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => BasketballClubDetailScreen(club: club)),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${club.ranking ?? index + 1}',
-                                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
-                                ),
-                                const SizedBox(width: 20),
-                                club.imageUrl != null
-                                    ? CircleAvatar(radius: 25, backgroundImage: NetworkImage(club.imageUrl!))
-                                    : const CircleAvatar(radius: 25, backgroundColor: Colors.white12, child: Icon(Icons.sports_basketball, color: Colors.white)),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(club.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                                      Text('${club.league} • ${club.category.toUpperCase()}', style: TextStyle(color: Colors.white.withOpacity(0.7))),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    const Icon(Icons.emoji_events, color: Colors.orange, size: 16),
-                                    Text('${club.titles} Titles', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                  itemCount: provider.topClubs.length +
+                      (provider.topClubsHasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == provider.topClubs.length) {
+                      return Opacity(
+                        opacity: provider.isFetchingMore ? 1.0 : 0.0,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.orange)),
                         ),
                       );
-                    },
-                  ),
-                );
-              },
-            ),
+                    }
+                    final club = provider.topClubs[index];
+                    return Card(
+                      color: Colors.white.withOpacity(0.1),
+                      margin: const EdgeInsets.only(bottom: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    BasketballClubDetailScreen(club: club)),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${club.ranking ?? index + 1}',
+                                style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange),
+                              ),
+                              const SizedBox(width: 20),
+                              club.imageUrl != null
+                                  ? CircleAvatar(
+                                      radius: 25,
+                                      backgroundImage:
+                                          NetworkImage(club.imageUrl!))
+                                  : const CircleAvatar(
+                                      radius: 25,
+                                      backgroundColor: Colors.white12,
+                                      child: Icon(Icons.sports_basketball,
+                                          color: Colors.white)),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(club.name,
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white)),
+                                    Text(
+                                        '${club.league} • ${club.category.toUpperCase()}',
+                                        style: TextStyle(
+                                            color:
+                                                Colors.white.withOpacity(0.7))),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Icon(Icons.emoji_events,
+                                      color: Colors.orange, size: 16),
+                                  Text('${club.titles} Titles',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 }

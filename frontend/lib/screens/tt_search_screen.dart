@@ -59,7 +59,8 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.sports_tennis, color: Color(0xFF0F9D58), size: 18),
+                        Icon(Icons.sports_tennis,
+                            color: Color(0xFF0F9D58), size: 18),
                         SizedBox(width: 6),
                         Text(
                           'TT Search',
@@ -93,7 +94,8 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
               decoration: const InputDecoration(
                 hintText: 'Search players...',
                 hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                prefixIcon: Icon(Icons.search, color: Color(0xFF0F9D58), size: 20),
+                prefixIcon:
+                    Icon(Icons.search, color: Color(0xFF0F9D58), size: 20),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
@@ -175,8 +177,9 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                                   ? Image.network(
                                       player.imageUrl!,
                                       fit: BoxFit.cover,
-                                                alignment: Alignment.topCenter,
-                                      errorBuilder: (_, __, ___) => _initialsWidget(player.name, 18),
+                                      alignment: Alignment.topCenter,
+                                      errorBuilder: (_, __, ___) =>
+                                          _initialsWidget(player.name, 18),
                                     )
                                   : _initialsWidget(player.name, 18),
                             ),
@@ -186,11 +189,7 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${player.country ?? 'Unknown'} • ${player.gender == 'M'
-                                ? 'Men'
-                                : player.gender == 'F'
-                                ? 'Women'
-                                : ''}',
+                            '${player.country ?? 'Unknown'} • ${player.gender == 'M' ? 'Men' : player.gender == 'F' ? 'Women' : ''}',
                           ),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -221,7 +220,6 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                               ),
                             );
                           },
-                          /*
                           onLongPress: () {
                             Navigator.push(
                               context,
@@ -231,7 +229,6 @@ class _TtSearchScreenState extends State<TtSearchScreen> {
                               ),
                             );
                           },
-                          */
                         ),
                       ),
                     );

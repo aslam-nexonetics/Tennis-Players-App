@@ -10,29 +10,30 @@ class BasketballClubCompareScreen extends StatefulWidget {
   const BasketballClubCompareScreen({super.key, this.clubA});
 
   @override
-  State<BasketballClubCompareScreen> createState() => _BasketballClubCompareScreenState();
+  State<BasketballClubCompareScreen> createState() =>
+      _BasketballClubCompareScreenState();
 }
 
-class _BasketballClubCompareScreenState extends State<BasketballClubCompareScreen>
-    with TickerProviderStateMixin {
+class _BasketballClubCompareScreenState
+    extends State<BasketballClubCompareScreen> with TickerProviderStateMixin {
   BasketballClub? _clubA;
   BasketballClub? _clubB;
-  
+
   bool _searchingA = false;
   bool _searchingB = false;
-  
+
   List<BasketballClub> _resultsA = [];
   List<BasketballClub> _resultsB = [];
-  
+
   bool _noResultsA = false;
   bool _noResultsB = false;
-  
+
   final TextEditingController _ctrlA = TextEditingController();
   final TextEditingController _ctrlB = TextEditingController();
-  
+
   Timer? _debounceA;
   Timer? _debounceB;
-  
+
   bool _showComparison = false;
 
   late AnimationController _fadeCtrl;
@@ -45,7 +46,7 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
     if (_clubA != null) {
       _ctrlA.text = _clubA!.name;
     }
-    
+
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
@@ -205,7 +206,8 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
         children: [
           Row(
             children: [
-              Expanded(child: _buildSearchBox(_ctrlA, _onSearchA, _clubA, true)),
+              Expanded(
+                  child: _buildSearchBox(_ctrlA, _onSearchA, _clubA, true)),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Text('VS',
@@ -214,7 +216,8 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
               ),
-              Expanded(child: _buildSearchBox(_ctrlB, _onSearchB, _clubB, false)),
+              Expanded(
+                  child: _buildSearchBox(_ctrlB, _onSearchB, _clubB, false)),
             ],
           ),
           const SizedBox(height: 12),
@@ -226,14 +229,19 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
               ),
               child: const Text('COMPARE CLUBS',
-                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
             ),
           ),
-          if (_resultsA.isNotEmpty || _resultsB.isNotEmpty || _noResultsA || _noResultsB)
+          if (_resultsA.isNotEmpty ||
+              _resultsB.isNotEmpty ||
+              _noResultsA ||
+              _noResultsB)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Row(
@@ -242,13 +250,17 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
                   Expanded(
                     child: _resultsA.isNotEmpty
                         ? _buildResultList(_resultsA, _selectA)
-                        : (_noResultsA && _ctrlA.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                        : (_noResultsA && _ctrlA.text.isNotEmpty
+                            ? _buildNoResults()
+                            : const SizedBox()),
                   ),
                   const SizedBox(width: 44), // Space for 'VS' alignment
                   Expanded(
                     child: _resultsB.isNotEmpty
                         ? _buildResultList(_resultsB, _selectB)
-                        : (_noResultsB && _ctrlB.text.isNotEmpty ? _buildNoResults() : const SizedBox()),
+                        : (_noResultsB && _ctrlB.text.isNotEmpty
+                            ? _buildNoResults()
+                            : const SizedBox()),
                   ),
                 ],
               ),
@@ -294,7 +306,8 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
             const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.orange),
             ),
           const SizedBox(width: 8),
         ],
@@ -311,13 +324,14 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
         borderRadius: BorderRadius.circular(8),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
-      child: const Text('No results found', 
-        style: TextStyle(color: Colors.grey, fontSize: 12),
-        textAlign: TextAlign.center),
+      child: const Text('No results found',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+          textAlign: TextAlign.center),
     );
   }
 
-  Widget _buildResultList(List<BasketballClub> results, Function(BasketballClub) onSelect) {
+  Widget _buildResultList(
+      List<BasketballClub> results, Function(BasketballClub) onSelect) {
     return Container(
       margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
@@ -329,9 +343,14 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
         children: results
             .map((c) => ListTile(
                   dense: true,
-                  leading: _Avatar(imageUrl: c.imageUrl, name: c.name, size: 24, accent: Colors.orange),
+                  leading: _Avatar(
+                      imageUrl: c.imageUrl,
+                      name: c.name,
+                      size: 24,
+                      accent: Colors.orange),
                   title: Text(c.name,
-                      style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 12)),
+                      style: const TextStyle(
+                          color: Color(0xFF1D1D1F), fontSize: 12)),
                   subtitle: Text(c.league ?? 'Unknown',
                       style: const TextStyle(color: Colors.grey, fontSize: 10)),
                   onTap: () => onSelect(c),
@@ -369,7 +388,10 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
           Column(
             children: [
               Text('VS',
-                  style: TextStyle(color: Colors.grey.withOpacity(0.2), fontSize: 24, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      color: Colors.grey.withOpacity(0.2),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           _buildClubHeader(_clubB!, false),
@@ -381,7 +403,8 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
   Widget _buildClubHeader(BasketballClub c, bool isLeft) {
     return Expanded(
       child: Column(
-        crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        crossAxisAlignment:
+            isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
           _Avatar(
               imageUrl: c.imageUrl,
@@ -391,11 +414,17 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
           const SizedBox(height: 12),
           Text(c.name,
               style: const TextStyle(
-                  color: Color(0xFF1D1D1F), fontSize: 18, fontWeight: FontWeight.bold),
+                  color: Color(0xFF1D1D1F),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
               textAlign: isLeft ? TextAlign.left : TextAlign.right),
-          Text(c.city ?? c.country ?? "N/A", style: const TextStyle(color: Colors.grey)),
+          Text(c.city ?? c.country ?? "N/A",
+              style: const TextStyle(color: Colors.grey)),
           Text(c.league ?? "N/A",
-              style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold)),
+              style: const TextStyle(
+                  color: Colors.orange,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -408,28 +437,41 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          const Text('COURT STATISTICS', 
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12, letterSpacing: 1.2)),
+          const Text('COURT STATISTICS',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                  fontSize: 12,
+                  letterSpacing: 1.2)),
           const SizedBox(height: 20),
-          _buildStatRow('World Rank', '#${_clubA!.ranking}', '#${_clubB!.ranking}', isLowerBetter: true),
+          _buildStatRow(
+              'World Rank', '#${_clubA!.ranking}', '#${_clubB!.ranking}',
+              isLowerBetter: true),
           _buildStatRow('Titles', '${_clubA!.titles}', '${_clubB!.titles}'),
-          _buildStatRow('Playoff App', '${_clubA!.playoffAppearances}', '${_clubB!.playoffAppearances}'),
-          _buildStatRow('Arena Capacity', _formatNum(_clubA!.capacity), _formatNum(_clubB!.capacity)),
-          _buildStatRow('Market Value', _clubA!.marketValue ?? 'TBD', _clubB!.marketValue ?? 'TBD', isNumeric: false),
-          _buildStatRow('Founded', '${_clubA!.foundedYear}', '${_clubB!.foundedYear}', isNumeric: false),
+          _buildStatRow('Playoff App', '${_clubA!.playoffAppearances}',
+              '${_clubB!.playoffAppearances}'),
+          _buildStatRow('Arena Capacity', _formatNum(_clubA!.capacity),
+              _formatNum(_clubB!.capacity)),
+          _buildStatRow('Market Value', _clubA!.marketValue ?? 'TBD',
+              _clubB!.marketValue ?? 'TBD',
+              isNumeric: false),
+          _buildStatRow(
+              'Founded', '${_clubA!.foundedYear}', '${_clubB!.foundedYear}',
+              isNumeric: false),
         ],
       ),
     );
   }
 
-  Widget _buildStatRow(String label, String aVal, String bVal, {bool isLowerBetter = false, bool isNumeric = true}) {
+  Widget _buildStatRow(String label, String aVal, String bVal,
+      {bool isLowerBetter = false, bool isNumeric = true}) {
     bool aWins = false;
     bool bWins = false;
 
     if (isNumeric) {
       num? nvA = num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
       num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
-      
+
       if (nvA != null && nvB != null) {
         if (isLowerBetter) {
           aWins = nvA < nvB;
@@ -448,29 +490,27 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
           Row(
             children: [
               Expanded(
-                child: Text(aVal, 
-                  style: TextStyle(
-                    fontWeight: aWins ? FontWeight.bold : FontWeight.normal,
-                    color: aWins ? Colors.orange : Colors.black87,
-                    fontSize: 16
-                  )
-                ),
+                child: Text(aVal,
+                    style: TextStyle(
+                        fontWeight: aWins ? FontWeight.bold : FontWeight.normal,
+                        color: aWins ? Colors.orange : Colors.black87,
+                        fontSize: 16)),
               ),
               Expanded(
-                child: Text(label, 
-                  textAlign: TextAlign.center, 
-                  style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)
-                ),
+                child: Text(label,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500)),
               ),
               Expanded(
-                child: Text(bVal, 
-                  textAlign: TextAlign.right, 
-                  style: TextStyle(
-                    fontWeight: bWins ? FontWeight.bold : FontWeight.normal,
-                    color: bWins ? Colors.orange : Colors.black87,
-                    fontSize: 16
-                  )
-                ),
+                child: Text(bVal,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                        fontWeight: bWins ? FontWeight.bold : FontWeight.normal,
+                        color: bWins ? Colors.orange : Colors.black87,
+                        fontSize: 16)),
               ),
             ],
           ),
@@ -486,22 +526,29 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
     num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
 
     if (nvA == null || nvB == null || (nvA == 0 && nvB == 0)) {
-      return Container(height: 4, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2)));
+      return Container(
+          height: 4,
+          decoration: BoxDecoration(
+              color: Colors.black12, borderRadius: BorderRadius.circular(2)));
     }
 
     double total = nvA.toDouble() + nvB.toDouble();
     double ratioA = nvA / total;
-    
+
     if (isLowerBetter) {
-       ratioA = 1 - ratioA;
+      ratioA = 1 - ratioA;
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(2),
       child: Row(
         children: [
-          Expanded(flex: (ratioA * 100).toInt(), child: Container(height: 4, color: Colors.orange)),
-          Expanded(flex: ((1 - ratioA) * 100).toInt(), child: Container(height: 4, color: Colors.black12)),
+          Expanded(
+              flex: (ratioA * 100).toInt(),
+              child: Container(height: 4, color: Colors.orange)),
+          Expanded(
+              flex: ((1 - ratioA) * 100).toInt(),
+              child: Container(height: 4, color: Colors.black12)),
         ],
       ),
     );
@@ -510,9 +557,11 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
   Widget _buildExtraInfo() {
     return Column(
       children: [
-        _buildInfoCard('Head Coach', _clubA!.headCoach, _clubB!.headCoach, Icons.sports_rounded),
+        _buildInfoCard('Head Coach', _clubA!.headCoach, _clubB!.headCoach,
+            Icons.sports_rounded),
         const SizedBox(height: 16),
-        _buildInfoCard('Star Player', _clubA!.starPlayer, _clubB!.starPlayer, Icons.star_rounded),
+        _buildInfoCard('Star Player', _clubA!.starPlayer, _clubB!.starPlayer,
+            Icons.star_rounded),
       ],
     );
   }
@@ -526,11 +575,19 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
         children: [
           Icon(icon, color: Colors.orange, size: 24),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          Text(a ?? 'TBD', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), textAlign: TextAlign.center),
+          Text(a ?? 'TBD',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              textAlign: TextAlign.center),
           const Divider(height: 20),
-          Text(b ?? 'TBD', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), textAlign: TextAlign.center),
+          Text(b ?? 'TBD',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              textAlign: TextAlign.center),
         ],
       ),
     );
@@ -543,9 +600,11 @@ class _BasketballClubCompareScreenState extends State<BasketballClubCompareScree
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.compare_arrows, color: Colors.grey.withOpacity(0.3), size: 100),
+          Icon(Icons.compare_arrows,
+              color: Colors.grey.withOpacity(0.3), size: 100),
           const SizedBox(height: 20),
-          Text('Select two clubs and press COMPARE\nto see the side-by-side analysis',
+          Text(
+              'Select two clubs and press COMPARE\nto see the side-by-side analysis',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],
@@ -564,7 +623,11 @@ class _Avatar extends StatelessWidget {
   final String name;
   final double size;
   final Color accent;
-  const _Avatar({required this.imageUrl, required this.name, required this.size, required this.accent});
+  const _Avatar(
+      {required this.imageUrl,
+      required this.name,
+      required this.size,
+      required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -582,7 +645,8 @@ class _Avatar extends StatelessWidget {
                 imageUrl: imageUrl!,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
-                placeholder: (context, url) => Container(color: Colors.grey[200]),
+                placeholder: (context, url) =>
+                    Container(color: Colors.grey[200]),
                 errorWidget: (_, __, ___) => _initials(),
               )
             : _initials(),
@@ -592,7 +656,16 @@ class _Avatar extends StatelessWidget {
 
   Widget _initials() {
     final parts = name.trim().split(' ');
-    final text = parts.length >= 2 ? '${parts[0][0]}${parts[1][0]}' : name.isNotEmpty ? name[0] : '?';
-    return Center(child: Text(text.toUpperCase(), style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: size * 0.4)));
+    final text = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'
+        : name.isNotEmpty
+            ? name[0]
+            : '?';
+    return Center(
+        child: Text(text.toUpperCase(),
+            style: TextStyle(
+                color: accent,
+                fontWeight: FontWeight.bold,
+                fontSize: size * 0.4)));
   }
 }

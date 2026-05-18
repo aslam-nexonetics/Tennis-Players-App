@@ -20,7 +20,7 @@ class FootballNationalTeamProvider with ChangeNotifier {
 
   String? _error;
   String? get error => _error;
-  
+
   String _selectedCategory = 'men';
   String get selectedCategory => _selectedCategory;
 
@@ -49,13 +49,10 @@ class FootballNationalTeamProvider with ChangeNotifier {
     _topTeamsPage = 1;
     _hasMoreTopTeams = true;
     notifyListeners();
-  
+
     try {
       final response = await _apiService.getFootballTopTeams(
-        page: _topTeamsPage, 
-        size: _pageSize, 
-        category: _selectedCategory
-      );
+          page: _topTeamsPage, size: _pageSize, category: _selectedCategory);
       _topTeams = response.items;
       _totalTopTeams = response.total;
       _hasMoreTopTeams = _topTeams.length < _totalTopTeams;
@@ -80,7 +77,7 @@ class FootballNationalTeamProvider with ChangeNotifier {
         size: _pageSize,
         category: _selectedCategory,
       );
-      
+
       if (response.items.isNotEmpty) {
         _topTeams.addAll(response.items);
         _topTeamsPage = nextPage;
@@ -131,10 +128,10 @@ class FootballNationalTeamProvider with ChangeNotifier {
     _currentPage = 1;
     _hasMore = true;
     notifyListeners();
-  
+
     try {
       final response = await _apiService.searchFootballTeams(
-        query, 
+        query,
         category: _selectedCategory,
         page: _currentPage,
         size: _pageSize,
@@ -165,7 +162,7 @@ class FootballNationalTeamProvider with ChangeNotifier {
         page: nextPage,
         size: _pageSize,
       );
-      
+
       if (response.items.isNotEmpty) {
         _teams.addAll(response.items);
         _currentPage = nextPage;

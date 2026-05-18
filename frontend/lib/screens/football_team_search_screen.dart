@@ -8,7 +8,8 @@ class FootballTeamSearchScreen extends StatefulWidget {
   const FootballTeamSearchScreen({super.key});
 
   @override
-  State<FootballTeamSearchScreen> createState() => _FootballTeamSearchScreenState();
+  State<FootballTeamSearchScreen> createState() =>
+      _FootballTeamSearchScreenState();
 }
 
 class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
@@ -24,7 +25,8 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final provider = Provider.of<FootballNationalTeamProvider>(context, listen: false);
+      final provider =
+          Provider.of<FootballNationalTeamProvider>(context, listen: false);
       provider.fetchMoreTeams();
     }
   }
@@ -51,7 +53,8 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Row(
             children: [
-              const Icon(Icons.sports_soccer, color: Color(0xFFE4405F), size: 18),
+              const Icon(Icons.sports_soccer,
+                  color: Color(0xFFE4405F), size: 18),
               const SizedBox(width: 8),
               const Expanded(
                 child: Column(
@@ -139,7 +142,8 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
               decoration: const InputDecoration(
                 hintText: 'Search national teams...',
                 hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                prefixIcon: Icon(Icons.search, color: Color(0xFFE4405F), size: 20),
+                prefixIcon:
+                    Icon(Icons.search, color: Color(0xFFE4405F), size: 20),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
@@ -221,8 +225,9 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
                                   ? Image.network(
                                       team.imageUrl!,
                                       fit: BoxFit.cover,
-                                                alignment: Alignment.topCenter,
-                                      errorBuilder: (_, __, ___) => _initialsWidget(team.name, 18),
+                                      alignment: Alignment.topCenter,
+                                      errorBuilder: (_, __, ___) =>
+                                          _initialsWidget(team.name, 18),
                                     )
                                   : _initialsWidget(team.name, 18),
                             ),
