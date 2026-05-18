@@ -205,44 +205,101 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
 
   Widget _buildSelectionArea() {
     return GlassContainer(
-      borderRadius: 16,
-      opacity: 0.1,
-      padding: const EdgeInsets.all(16),
+      borderRadius: 24,
+      opacity: 0.08,
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Row(
             children: [
               Expanded(
-                  child: _buildSearchBox(_ctrlA, _onSearchA, _playerA, true)),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('VS',
-                    style: TextStyle(
+                child: _playerA != null
+                    ? _buildSelectedCard(_playerA!, true)
+                    : _buildSearchBox(_ctrlA, _onSearchA, true),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.04),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'VS',
+                      style: TextStyle(
                         color: Colors.grey,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16)),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
               ),
               Expanded(
-                  child: _buildSearchBox(_ctrlB, _onSearchB, _playerB, false)),
+                child: _playerB != null
+                    ? _buildSelectedCard(_playerB!, false)
+                    : _buildSearchBox(_ctrlB, _onSearchB, false),
+              ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed:
-                  (_playerA != null && _playerB != null) ? _compare : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _kGreen,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                elevation: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: (_playerA != null && _playerB != null)
+                    ? const LinearGradient(
+                        colors: [_kGreen, Color(0xFF34A853)],
+                      )
+                    : null,
+                color: (_playerA == null || _playerB == null)
+                    ? Colors.black.withOpacity(0.05)
+                    : null,
+                boxShadow: (_playerA != null && _playerB != null)
+                    ? [
+                        BoxShadow(
+                          color: _kGreen.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [],
               ),
-              child: const Text('COMPARE ATHLETES',
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+              child: ElevatedButton(
+                onPressed:
+                    (_playerA != null && _playerB != null) ? _compare : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: (_playerA != null && _playerB != null)
+                      ? Colors.white
+                      : Colors.grey[400],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.bolt_rounded, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'COMPARE ATHLETES',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           if (_resultsA.isNotEmpty ||
@@ -250,7 +307,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               _noResultsA ||
               _noResultsB)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 12),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -261,7 +318,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                             ? _buildNoResults()
                             : const SizedBox()),
                   ),
-                  const SizedBox(width: 44), // Space for 'VS' alignment
+                  const SizedBox(width: 64),
                   Expanded(
                     child: _resultsB.isNotEmpty
                         ? _buildResultList(_resultsB, _selectB)
@@ -277,44 +334,144 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     );
   }
 
-  Widget _buildSearchBox(TextEditingController ctrl, Function(String) onChanged,
-      TableTennisPlayer? selected, bool isA) {
+  Widget _buildSelectedCard(TableTennisPlayer p, bool isA) {
+    final accentColor = isA ? _kGreen : _kPurple;
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentColor.withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withOpacity(0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          )
+        ],
       ),
       child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _TtAvatar(
-              player: selected,
-              size: 32,
-              accent: isA ? _kGreen : _kPurple,
+          _TtAvatar(
+            player: p,
+            size: 40,
+            accent: accentColor,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  p.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF1D1D1F),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  p.country ?? 'Unknown',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
+          IconButton(
+            icon: Icon(Icons.close_rounded, color: Colors.grey[400], size: 18),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              setState(() {
+                if (isA) {
+                  _playerA = null;
+                  _ctrlA.clear();
+                  _resultsA = [];
+                  _noResultsA = false;
+                } else {
+                  _playerB = null;
+                  _ctrlB.clear();
+                  _resultsB = [];
+                  _noResultsB = false;
+                }
+                _showComparison = false;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBox(TextEditingController ctrl, Function(String) onChanged, bool isA) {
+    final accentColor = isA ? _kGreen : _kPurple;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          Icon(Icons.search_rounded, color: Colors.grey[400], size: 18),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: ctrl,
               onChanged: onChanged,
-              style: const TextStyle(color: Color(0xFF1D1D1F), fontSize: 14),
+              style: const TextStyle(
+                color: Color(0xFF1D1D1F),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
               decoration: InputDecoration(
                 hintText: isA ? 'Search Player 1' : 'Search Player 2',
-                hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                hintStyle: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
           if ((isA && _searchingA) || (!isA && _searchingB))
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: _kGreen),
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: accentColor,
+              ),
+            )
+          else if (ctrl.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  ctrl.clear();
+                  if (isA) {
+                    _resultsA = [];
+                    _noResultsA = false;
+                  } else {
+                    _resultsB = [];
+                    _noResultsB = false;
+                  }
+                });
+              },
+              child: Icon(Icons.clear_rounded, color: Colors.grey[400], size: 16),
             ),
-          const SizedBox(width: 8),
         ],
       ),
     );
@@ -322,41 +479,120 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
 
   Widget _buildNoResults() {
     return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
-      child: const Text('No results found',
-          style: TextStyle(color: Colors.grey, fontSize: 12),
-          textAlign: TextAlign.center),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off_rounded, color: Colors.grey[400], size: 16),
+          const SizedBox(width: 8),
+          const Text(
+            'No results found',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildResultList(
-      List<TableTennisPlayer> results, Function(TableTennisPlayer) onSelect) {
+  Widget _buildResultList(List<TableTennisPlayer> results, Function(TableTennisPlayer) onSelect) {
     return Container(
-      margin: const EdgeInsets.only(top: 4),
+      margin: const EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12),
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Column(
-        children: results
-            .map((p) => ListTile(
-                  dense: true,
-                  leading: _TtAvatar(player: p, size: 24, accent: _kGreen),
-                  title: Text(p.name,
-                      style: const TextStyle(
-                          color: Color(0xFF1D1D1F), fontSize: 12)),
-                  subtitle: Text('#${p.ranking ?? "N/A"}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 10)),
-                  onTap: () => onSelect(p),
-                ))
-            .toList(),
+        children: results.map((p) {
+          final isLast = results.last == p;
+          return Container(
+            decoration: BoxDecoration(
+              border: isLast
+                  ? null
+                  : Border(
+                      bottom: BorderSide(
+                        color: Colors.black.withOpacity(0.05),
+                        width: 0.5,
+                      ),
+                    ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: results.first == p ? const Radius.circular(16) : Radius.zero,
+                    bottom: isLast ? const Radius.circular(16) : Radius.zero,
+                  ),
+                ),
+                hoverColor: Colors.black.withOpacity(0.03),
+                leading: _TtAvatar(
+                  player: p,
+                  size: 32,
+                  accent: _kGreen,
+                ),
+                title: Text(
+                  p.name,
+                  style: const TextStyle(
+                    color: Color(0xFF1D1D1F),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                subtitle: Text(
+                  p.country ?? 'Unknown',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 10,
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _kGreen.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '#${p.ranking ?? "N/A"}',
+                    style: const TextStyle(
+                      color: _kGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+                onTap: () => onSelect(p),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
