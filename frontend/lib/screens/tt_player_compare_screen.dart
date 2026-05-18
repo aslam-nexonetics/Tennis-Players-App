@@ -173,7 +173,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                   children: [
                     const SizedBox(height: 50),
                     const Text(
-                      'Head to Head',
+                      'Player Comparison',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -436,27 +436,11 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
   Widget _buildH2HScore() {
     return Column(
       children: [
-        const Text('HEAD TO HEAD',
+        Text('VS',
             style: TextStyle(
-                color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Text('0',
-                style: TextStyle(
-                    color: _kGreen, fontSize: 42, fontWeight: FontWeight.bold)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Container(
-                  width: 12, height: 2, color: Colors.grey.withOpacity(0.3)),
-            ),
-            const Text('0',
-                style: TextStyle(
-                    color: _kPurple,
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold)),
-          ],
-        ),
+                color: Colors.grey.withOpacity(0.2),
+                fontSize: 24,
+                fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -601,7 +585,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               color: Colors.grey.withOpacity(0.3), size: 100),
           const SizedBox(height: 20),
           Text(
-              'Select two players and press COMPARE\nto see the head-to-head analysis',
+              'Select two players and press COMPARE\nto see the player comparison analysis',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],

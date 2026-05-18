@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../models/player.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
@@ -18,11 +17,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     with TickerProviderStateMixin {
   Player? _playerA;
   Player? _playerB;
-  H2HResponse? _h2hData;
 
   bool _searchingA = false;
   bool _searchingB = false;
-  bool _loadingH2H = false;
 
   List<Player> _resultsA = [];
   List<Player> _resultsB = [];
@@ -129,7 +126,6 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       _noResultsA = false;
       _ctrlA.text = p.name;
       _showComparison = false;
-      _h2hData = null;
     });
     FocusScope.of(context).unfocus();
   }
@@ -141,28 +137,16 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       _noResultsB = false;
       _ctrlB.text = p.name;
       _showComparison = false;
-      _h2hData = null;
     });
     FocusScope.of(context).unfocus();
   }
 
-  Future<void> _compare() async {
+  void _compare() {
     if (_playerA != null && _playerB != null) {
       setState(() {
-        _loadingH2H = true;
         _showComparison = true;
       });
       _fadeCtrl.forward(from: 0);
-
-      try {
-        final data = await ApiService().getH2H(_playerA!.id, _playerB!.id);
-        setState(() {
-          _h2hData = data;
-          _loadingH2H = false;
-        });
-      } catch (e) {
-        setState(() => _loadingH2H = false);
-      }
     }
   }
 
@@ -180,7 +164,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                   children: [
                     const SizedBox(height: 30),
                     const Text(
-                      'Head to Head',
+                      'Player Comparison',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -373,92 +357,54 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     );
   }
 
-  Widget _buildComparisonResults() {
-    if (_loadingH2H) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(50.0),
-          child: CircularProgressIndicator(color: Colors.indigo),
-        ),
-      );
-    }
+  String _winRate(Player p) {
+    final total = p.wins + p.losses;
+    if (total == 0) return '0.0%';
+    return '${(p.wins / total * 100).toStringAsFixed(1)}%';
+  }
 
-    if (_h2hData == null) return const SizedBox();
+  Widget _buildComparisonResults() {
+    final a = _playerA!;
+    final b = _playerB!;
 
     return FadeTransition(
       opacity: _fadeAnim,
       child: Column(
         children: [
-          _buildSummaryCard(),
+          _buildSummaryCard(a, b),
           const SizedBox(height: 20),
-          _buildLastMatchInfo(),
+          _buildStatsSummary(a, b),
           const SizedBox(height: 20),
-          _buildStatsAndCharts(),
-          const SizedBox(height: 20),
-          _buildMatchHistory(),
+          _buildOverallEdge(a, b),
           const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard() {
-    final a = _h2hData!.player1;
-    final b = _h2hData!.player2;
-    final stats = _h2hData!.stats;
-
+  Widget _buildSummaryCard(Player a, Player b) {
     return GlassContainer(
       borderRadius: 20,
       opacity: 0.1,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          _buildPlayerProfile(a, true),
-          Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('HEAD TO HEAD',
-                  style: TextStyle(
-                      color: Colors.grey, fontSize: 10, letterSpacing: 1.2)),
-              const SizedBox(height: 8),
-              Row(
+              _buildPlayerProfile(a, true),
+              Column(
                 children: [
-                  Text('${stats.player1Wins}',
-                      style: const TextStyle(
-                          color: Colors.indigo,
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Container(
-                        width: 12,
-                        height: 2,
-                        color: Colors.grey.withOpacity(0.3)),
-                  ),
-                  Text('${stats.player2Wins}',
-                      style: const TextStyle(
-                          color: Colors.pink,
-                          fontSize: 42,
+                  Text('VS',
+                      style: TextStyle(
+                          color: Colors.grey.withOpacity(0.2),
+                          fontSize: 24,
                           fontWeight: FontWeight.bold)),
                 ],
               ),
-              Text('Wins',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-              const SizedBox(height: 10),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text('Total ${stats.matchesPlayed}',
-                    style:
-                        const TextStyle(color: Colors.white70, fontSize: 12)),
-              ),
+              _buildPlayerProfile(b, false),
             ],
           ),
-          _buildPlayerProfile(b, false),
         ],
       ),
     );
@@ -503,77 +449,42 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     );
   }
 
-  Widget _buildLastMatchInfo() {
-    final last = _h2hData!.stats.lastMatch;
-    if (last == null) return const SizedBox();
-
-    return GlassContainer(
-      borderRadius: 16,
-      opacity: 0.05,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          const Text('LAST MATCH',
-              style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-          Text('${last.event} ${last.year}, ${last.round}',
-              style: const TextStyle(
-                  color: Colors.black87, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 5),
-          Text('${last.winnerName} won',
-              style: const TextStyle(color: Colors.indigo, fontSize: 12)),
-          const SizedBox(height: 5),
-          Text(last.score,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsAndCharts() {
-    return Column(
-      children: [
-        _buildStatsTable(),
-        const SizedBox(height: 24),
-        _buildSurfaceBreakdown(),
-      ],
-    );
-  }
-
-  Widget _buildStatsTable() {
-    final stats = _h2hData!.stats;
+  Widget _buildStatsSummary(Player a, Player b) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('STATS SUMMARY',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 10),
+            style: TextStyle(
+                color: Color(0xFF1D1D1F),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1)),
+        const SizedBox(height: 12),
         GlassContainer(
-          borderRadius: 12,
+          borderRadius: 16,
           opacity: 0.1,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildStatRow('Matches', '${stats.matchesPlayed}',
-                  '${stats.matchesPlayed}'),
+              _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
+                  '#${b.ranking ?? "N/A"}',
+                  lowerIsBetter: true),
+              _buildStatRow('Highest Rank', '#${a.highestRanking ?? "N/A"}',
+                  '#${b.highestRanking ?? "N/A"}',
+                  lowerIsBetter: true),
+              _buildStatRow('Win Rate', _winRate(a), _winRate(b)),
+              _buildStatRow('Wins', '${a.wins}', '${b.wins}'),
+              _buildStatRow('Losses', '${a.losses}', '${b.losses}',
+                  lowerIsBetter: true),
               _buildStatRow(
-                  'Wins', '${stats.player1Wins}', '${stats.player2Wins}'),
-              _buildStatRow('Win %', '${stats.player1WinPct}%',
-                  '${stats.player2WinPct}%'),
-              _buildStatRow('Hard Wins', '${stats.hardCourtWins[_playerA!.id]}',
-                  '${stats.hardCourtWins[_playerB!.id]}'),
-              _buildStatRow('Clay Wins', '${stats.clayCourtWins[_playerA!.id]}',
-                  '${stats.clayCourtWins[_playerB!.id]}'),
+                  'Prize Money', a.prizeMoney ?? 'N/A', b.prizeMoney ?? 'N/A',
+                  isNumeric: false),
               _buildStatRow(
-                  'Grass Wins',
-                  '${stats.grassCourtWins[_playerA!.id]}',
-                  '${stats.grassCourtWins[_playerB!.id]}'),
+                  'Turned Pro', a.turnedPro ?? 'N/A', b.turnedPro ?? 'N/A',
+                  isNumeric: false),
+              _buildStatRow('Height', a.height ?? 'N/A', b.height ?? 'N/A',
+                  isNumeric: false),
+              _buildStatRow('Weight', a.weight ?? 'N/A', b.weight ?? 'N/A',
+                  isNumeric: false),
             ],
           ),
         ),
@@ -581,250 +492,113 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     );
   }
 
-  Widget _buildStatRow(String label, String aVal, String bVal) {
-    num? nvA = num.tryParse(aVal.replaceAll('%', ''));
-    num? nvB = num.tryParse(bVal.replaceAll('%', ''));
-    bool aWins = (nvA ?? 0) > (nvB ?? 0);
-    bool bWins = (nvB ?? 0) > (nvA ?? 0);
+  Widget _buildStatRow(String label, String aVal, String bVal,
+      {bool lowerIsBetter = false, bool isNumeric = true}) {
+    bool aWins = false;
+    bool bWins = false;
+
+    if (isNumeric) {
+      num? nvA = num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+      num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+
+      if (nvA != null && nvB != null) {
+        if (lowerIsBetter) {
+          aWins = nvA < nvB;
+          bWins = nvB < nvA;
+        } else {
+          aWins = nvA > nvB;
+          bWins = nvB > nvA;
+        }
+      }
+    }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
           Expanded(
-              child: Text(aVal,
-                  style: TextStyle(
-                      fontWeight: aWins ? FontWeight.bold : FontWeight.normal,
-                      color: aWins ? Colors.indigo : Colors.black87))),
+            child: Text(aVal,
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                    color: aWins ? Colors.indigo : Colors.black87,
+                    fontWeight: aWins ? FontWeight.bold : FontWeight.normal)),
+          ),
           Expanded(
-              child: Text(label,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey, fontSize: 11))),
+            child: Text(label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ),
           Expanded(
-              child: Text(bVal,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                      fontWeight: bWins ? FontWeight.bold : FontWeight.normal,
-                      color: bWins ? Colors.pink : Colors.black87))),
+            child: Text(bVal,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                    color: bWins ? Colors.pink : Colors.black87,
+                    fontWeight: bWins ? FontWeight.bold : FontWeight.normal)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSurfaceBreakdown() {
-    final stats = _h2hData!.stats;
-    final total = stats.matchesPlayed;
+  Widget _buildOverallEdge(Player a, Player b) {
+    int aScore = 0, bScore = 0;
+    void check(num? aV, num? bV, {bool lowerBetter = false}) {
+      if (aV == null || bV == null) return;
+      if (lowerBetter) {
+        if (aV < bV) aScore++;
+        if (bV < aV) bScore++;
+      } else {
+        if (aV > bV) aScore++;
+        if (bV > aV) bScore++;
+      }
+    }
 
-    // Calculate percentages for pie chart
-    double hard = total > 0
-        ? stats.hardCourtWins.values.fold(0, (a, b) => a + b) / total
-        : 0;
-    double clay = total > 0
-        ? stats.clayCourtWins.values.fold(0, (a, b) => a + b) / total
-        : 0;
-    double grass = total > 0
-        ? stats.grassCourtWins.values.fold(0, (a, b) => a + b) / total
-        : 0;
+    check(a.ranking, b.ranking, lowerBetter: true);
+    check(a.highestRanking, b.highestRanking, lowerBetter: true);
+
+    final pctA = (a.wins + a.losses) > 0 ? (a.wins / (a.wins + a.losses)) : 0;
+    final pctB = (b.wins + b.losses) > 0 ? (b.wins / (b.wins + b.losses)) : 0;
+    check(pctA, pctB);
+    check(a.wins, b.wins);
+
+    String winnerName = aScore > bScore
+        ? a.name
+        : bScore > aScore
+            ? b.name
+            : "Even Match!";
+    Color winnerColor = aScore > bScore
+        ? Colors.indigo
+        : bScore > aScore
+            ? Colors.pink
+            : Colors.grey;
 
     return GlassContainer(
       borderRadius: 16,
       opacity: 0.1,
       padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('SURFACE PERFORMANCE',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1)),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 140,
-                  child: PieChart(
-                    PieChartData(
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 30,
-                      sections: [
-                        if (hard > 0)
-                          PieChartSectionData(
-                              value: hard * 100,
-                              color: Colors.blue,
-                              radius: 40,
-                              title: 'H',
-                              titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12)),
-                        if (clay > 0)
-                          PieChartSectionData(
-                              value: clay * 100,
-                              color: Colors.orange,
-                              radius: 40,
-                              title: 'C',
-                              titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12)),
-                        if (grass > 0)
-                          PieChartSectionData(
-                              value: grass * 100,
-                              color: Colors.green,
-                              radius: 40,
-                              title: 'G',
-                              titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12)),
-                        if (hard == 0 && clay == 0 && grass == 0)
-                          PieChartSectionData(
-                              value: 100,
-                              color: Colors.grey.withOpacity(0.2),
-                              radius: 40,
-                              title: ''),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLegendItem('Hard Court', Colors.blue,
-                      '${(hard * 100).toStringAsFixed(0)}%'),
-                  const SizedBox(height: 12),
-                  _buildLegendItem('Clay Court', Colors.orange,
-                      '${(clay * 100).toStringAsFixed(0)}%'),
-                  const SizedBox(height: 12),
-                  _buildLegendItem('Grass Court', Colors.green,
-                      '${(grass * 100).toStringAsFixed(0)}%'),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(String label, Color color, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold)),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1D1D1F))),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMatchHistory() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('HEAD TO HEAD MATCH HISTORY',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 10),
-        GlassContainer(
-          borderRadius: 16,
-          opacity: 0.1,
-          padding: const EdgeInsets.all(0),
-          child: Column(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: Colors.black.withOpacity(0.05),
-                child: const Row(
-                  children: [
-                    Expanded(
-                        flex: 1,
-                        child: Text('Year',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12))),
-                    Expanded(
-                        flex: 3,
-                        child: Text('Winner',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12))),
-                    Expanded(
-                        flex: 3,
-                        child: Text('Event',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12))),
-                    Expanded(
-                        flex: 2,
-                        child: Text('Score',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12))),
-                  ],
-                ),
-              ),
-              ..._h2hData!.history.map((m) => _buildHistoryRow(m)).toList(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistoryRow(H2HMatch m) {
-    bool p1Won = m.winnerId == _playerA!.id;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border:
-            Border(bottom: BorderSide(color: Colors.black.withOpacity(0.05))),
-      ),
       child: Row(
         children: [
+          Icon(Icons.emoji_events, color: winnerColor, size: 40),
+          const SizedBox(width: 16),
           Expanded(
-              flex: 1,
-              child: Text('${m.year}', style: const TextStyle(fontSize: 11))),
-          Expanded(
-              flex: 3,
-              child: Text(m.winnerName,
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: p1Won ? Colors.indigo : Colors.pink))),
-          Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(m.event,
-                      style: const TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.w600)),
-                  Text('${m.round} • ${m.surface}',
-                      style: const TextStyle(fontSize: 9, color: Colors.grey)),
-                ],
-              )),
-          Expanded(
-              flex: 2,
-              child: Text(m.score,
-                  style: const TextStyle(
-                      fontSize: 10, fontWeight: FontWeight.w500))),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('OVERALL EDGE',
+                    style: TextStyle(color: Colors.grey, fontSize: 10)),
+                Text(winnerName,
+                    style: TextStyle(
+                        color: winnerColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          Text('$aScore - $bScore',
+              style: const TextStyle(
+                  color: Color(0xFF1D1D1F),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -841,7 +615,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               color: Colors.grey.withOpacity(0.3), size: 100),
           const SizedBox(height: 20),
           Text(
-              'Select two players and press COMPARE\nto see the head-to-head analysis',
+              'Select two players and press COMPARE\nto see the player comparison analysis',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.withOpacity(0.5))),
         ],
