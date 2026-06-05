@@ -8,3 +8,5 @@ loguru
 pydantic
 psycopg2-binary
 lxml
+pypdf
+
