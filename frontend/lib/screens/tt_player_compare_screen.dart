@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/tt_player.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
+import '../widgets/ranking_graph.dart';
 
 const _kGreen = Color(0xFF0F9D58);
 const _kPurple = Color(0xFF7C3AED);
@@ -23,6 +24,7 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
 
   bool _searchingA = false;
   bool _searchingB = false;
+  bool _comparing = false;
 
   List<TableTennisPlayer> _resultsA = [];
   List<TableTennisPlayer> _resultsB = [];
@@ -148,10 +150,34 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
     FocusScope.of(context).unfocus();
   }
 
-  void _compare() {
+  Future<void> _compare() async {
     if (_playerA != null && _playerB != null) {
-      setState(() => _showComparison = true);
-      _fadeCtrl.forward(from: 0);
+      setState(() {
+        _comparing = true;
+        _showComparison = false;
+      });
+      try {
+        final detailedA = await ApiService().getTtPlayerDetail(_playerA!.id);
+        final detailedB = await ApiService().getTtPlayerDetail(_playerB!.id);
+        setState(() {
+          _playerA = detailedA;
+          _playerB = detailedB;
+          _showComparison = true;
+        });
+        _fadeCtrl.forward(from: 0);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to fetch comparison details: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _comparing = false;
+          });
+        }
+      }
     }
   }
 
@@ -189,7 +215,16 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
                     const SizedBox(height: 20),
                     _buildSelectionArea(),
                     const SizedBox(height: 20),
-                    if (_showComparison && _playerA != null && _playerB != null)
+                    if (_comparing)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(_kGreen),
+                          ),
+                        ),
+                      )
+                    else if (_showComparison && _playerA != null && _playerB != null)
                       _buildComparisonResults()
                     else
                       _buildPlaceholder(),
@@ -608,10 +643,74 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
           const SizedBox(height: 20),
           _buildStatsSummary(a, b),
           const SizedBox(height: 20),
+          _buildRankingComparisonSection(a, b),
+          const SizedBox(height: 20),
           _buildOverallEdge(a, b),
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildRankingComparisonSection(TableTennisPlayer a, TableTennisPlayer b) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('RANKING TIMELINE COMPARISON',
+            style: TextStyle(
+                color: Color(0xFF1D1D1F),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1)),
+        const SizedBox(height: 12),
+        GlassContainer(
+          borderRadius: 20,
+          opacity: 0.1,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _kGreen,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    a.name,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 24),
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _kPurple,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    b.name,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ComparisonRankingGraph(
+                playerA: a,
+                playerB: b,
+                colorA: _kGreen,
+                colorB: _kPurple,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -755,6 +854,9 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               _buildStatRow('Win %', _winRate(a), _winRate(b)),
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
                   '#${b.ranking ?? "N/A"}',
+                  lowerIsBetter: true),
+              _buildStatRow('Career High Rank', '#${a.careerHighRank ?? "N/A"}',
+                  '#${b.careerHighRank ?? "N/A"}',
                   lowerIsBetter: true),
             ],
           ),

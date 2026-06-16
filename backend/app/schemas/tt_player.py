@@ -24,9 +24,17 @@ class TtPlayerUpdate(TtPlayerBase):
     name: Optional[str] = None
 
 
+class TtRankingHistoryPoint(BaseModel):
+    ranking: int
+    date: date
+
+
 class TtPlayer(TtPlayerBase):
     id: int
     last_updated: Optional[datetime] = None
+    ranking_history: Optional[List[TtRankingHistoryPoint]] = None
+    career_high_rank: Optional[int] = None
+    career_high_date: Optional[date] = None
 
     class Config:
         from_attributes = True
@@ -37,3 +45,4 @@ class TtPlayerList(BaseModel):
     total: int
     page: int
     size: int
+

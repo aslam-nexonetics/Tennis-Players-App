@@ -16,9 +16,7 @@ class ApiService {
 
   static String get baseUrl {
     if (kIsWeb) {
-      // Production backend on Render
-      return 'https://tennis-players-app.onrender.com';
-      // return 'http://localhost:8000';
+      return 'http://localhost:8000';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Physical Android device on LAN
@@ -294,31 +292,13 @@ class ApiService {
     int size = 20,
     String? gender,
   }) async {
-    if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      var list = _localTtPlayers!.where((p) => p.ranking != null).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-      list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-
-      final total = list.length;
-      final start = (page - 1) * size;
-      if (start >= total) {
-        return TtPlayerListResponse(items: [], total: total, page: page, size: size);
-      }
-      final end = (start + size).clamp(0, total);
-      final items = list.sublist(start, end);
-      return TtPlayerListResponse(items: items, total: total, page: page, size: size);
+    var url = '$baseUrl/tt-players/?page=$page&size=$size';
+    if (gender != null) url += '&gender=$gender';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return TtPlayerListResponse.fromJson(json.decode(response.body));
     } else {
-      var url = '$baseUrl/tt-players/?page=$page&size=$size';
-      if (gender != null) url += '&gender=$gender';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return TtPlayerListResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load TT players');
-      }
+      throw Exception('Failed to load TT players');
     }
   }
 
@@ -328,56 +308,22 @@ class ApiService {
     int size = 20,
     String? gender,
   }) async {
-    if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      final q = query.toLowerCase();
-      var list = _localTtPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-
-      list.sort((a, b) {
-        final aPref = a.name.toLowerCase().startsWith(q);
-        final bPref = b.name.toLowerCase().startsWith(q);
-        if (aPref && !bPref) return -1;
-        if (!aPref && bPref) return 1;
-        return (a.ranking ?? 9999).compareTo(b.ranking ?? 9999);
-      });
-
-      final total = list.length;
-      final start = (page - 1) * size;
-      if (start >= total) {
-        return TtPlayerListResponse(items: [], total: total, page: page, size: size);
-      }
-      final end = (start + size).clamp(0, total);
-      final items = list.sublist(start, end);
-      return TtPlayerListResponse(items: items, total: total, page: page, size: size);
+    var url = '$baseUrl/tt-players/search?q=$query&page=$page&size=$size';
+    if (gender != null) url += '&gender=$gender';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return TtPlayerListResponse.fromJson(json.decode(response.body));
     } else {
-      var url = '$baseUrl/tt-players/search?q=$query&page=$page&size=$size';
-      if (gender != null) url += '&gender=$gender';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return TtPlayerListResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to search TT players');
-      }
+      throw Exception('Failed to search TT players');
     }
   }
 
   Future<TableTennisPlayer> getTtPlayerDetail(int id) async {
-    if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      return _localTtPlayers!.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('TT Player not found'),
-      );
+    final response = await http.get(Uri.parse('$baseUrl/tt-players/$id'));
+    if (response.statusCode == 200) {
+      return TableTennisPlayer.fromJson(json.decode(response.body));
     } else {
-      final response = await http.get(Uri.parse('$baseUrl/tt-players/$id'));
-      if (response.statusCode == 200) {
-        return TableTennisPlayer.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load TT player details');
-      }
+      throw Exception('Failed to load TT player details');
     }
   }
 
@@ -385,24 +331,14 @@ class ApiService {
     int limit = 50,
     String? gender,
   }) async {
-    if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      var list = _localTtPlayers!.where((p) => p.ranking != null).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-      list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-      return list.take(limit).toList();
+    var url = '$baseUrl/tt-players/top?limit=$limit';
+    if (gender != null) url += '&gender=$gender';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return data.map((i) => TableTennisPlayer.fromJson(i)).toList();
     } else {
-      var url = '$baseUrl/tt-players/top?limit=$limit';
-      if (gender != null) url += '&gender=$gender';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final List data = json.decode(response.body);
-        return data.map((i) => TableTennisPlayer.fromJson(i)).toList();
-      } else {
-        throw Exception('Failed to load top TT players');
-      }
+      throw Exception('Failed to load top TT players');
     }
   }
 

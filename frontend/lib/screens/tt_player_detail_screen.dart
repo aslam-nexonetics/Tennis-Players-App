@@ -2,83 +2,89 @@ import 'package:flutter/material.dart';
 import '../models/tt_player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
+import '../services/api_service.dart';
 import 'tt_player_compare_screen.dart';
 
-class TtPlayerDetailScreen extends StatelessWidget {
+class TtPlayerDetailScreen extends StatefulWidget {
   final TableTennisPlayer player;
 
   const TtPlayerDetailScreen({super.key, required this.player});
 
-  List<RankingPoint> _generateRankingTrend() {
-    final current = player.ranking ?? 100;
+  @override
+  State<TtPlayerDetailScreen> createState() => _TtPlayerDetailScreenState();
+}
 
-    // Generate simulated points to show a trend based on current rank
-    return [
-      RankingPoint(
-        ranking: current + 10,
-        date: DateTime.now().subtract(const Duration(days: 180)),
-      ),
-      RankingPoint(
-        ranking: current + 5,
-        date: DateTime.now().subtract(const Duration(days: 90)),
-      ),
-      RankingPoint(
-        ranking: current + 2,
-        date: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-      RankingPoint(ranking: current, date: DateTime.now()),
-    ];
+class _TtPlayerDetailScreenState extends State<TtPlayerDetailScreen> {
+  late Future<TableTennisPlayer> _playerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _playerFuture = ApiService().getTtPlayerDetail(widget.player.id);
+  }
+
+  List<RankingPoint> _generateRankingTrend(TableTennisPlayer player) {
+    return player.rankingHistory ?? [];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80),
-        child: FloatingActionButton.extended(
-          heroTag: 'compare-tt-${player.id}',
-          backgroundColor: const Color(0xFF0F9D58),
-          icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
-          label: const Text('Compare',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => TtPlayerCompareScreen(playerA: player),
+    return FutureBuilder<TableTennisPlayer>(
+      future: _playerFuture,
+      initialData: widget.player,
+      builder: (context, snapshot) {
+        final player = snapshot.data ?? widget.player;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        return Scaffold(
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(bottom: 80),
+            child: FloatingActionButton.extended(
+              heroTag: 'compare-tt-${player.id}',
+              backgroundColor: const Color(0xFF0F9D58),
+              icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
+              label: const Text('Compare',
+                  style:
+                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TtPlayerCompareScreen(playerA: player),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      backgroundColor: const Color(0xFFCEF0DE), // Teal-tinted glass theme
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GlassContainer(
-            borderRadius: 12,
-            opacity: 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => Navigator.pop(context),
+          backgroundColor: const Color(0xFFCEF0DE), // Teal-tinted glass theme
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GlassContainer(
+                borderRadius: 12,
+                opacity: 0.1,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 900) {
-            return _buildWebLayout(context, constraints);
-          }
-          return _buildMobileLayout(context);
-        },
-      ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 900) {
+                return _buildWebLayout(context, player, isLoading, constraints);
+              }
+              return _buildMobileLayout(context, player, isLoading);
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context) {
+  Widget _buildMobileLayout(BuildContext context, TableTennisPlayer player, bool isLoading) {
     return Stack(
       children: [
         // Teal gradient background
@@ -101,7 +107,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 80),
-                _buildProfileAvatar(size: 120),
+                _buildProfileAvatar(player, size: 120),
                 const SizedBox(height: 12),
                 Text(
                   player.gender == 'M'
@@ -143,15 +149,15 @@ class TtPlayerDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    _buildHeader(),
+                    _buildHeader(player),
                     const Divider(height: 40, thickness: 1),
-                    _buildRankingSection(),
+                    _buildRankingSection(player, isLoading),
                     const SizedBox(height: 30),
-                    _buildStatGrid(context),
+                    _buildStatGrid(context, player),
                     const SizedBox(height: 32),
-                    _buildPerformanceSection(),
+                    _buildPerformanceSection(player),
                     const SizedBox(height: 30),
-                    _buildSourceFooter(),
+                    _buildSourceFooter(player),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -163,7 +169,8 @@ class TtPlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWebLayout(BuildContext context, BoxConstraints constraints) {
+  Widget _buildWebLayout(
+      BuildContext context, TableTennisPlayer player, bool isLoading, BoxConstraints constraints) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 40),
       child: Center(
@@ -193,13 +200,13 @@ class TtPlayerDetailScreen extends StatelessWidget {
                             colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
                           ),
                         ),
-                        child: Center(child: _buildProfileAvatar(size: 150)),
+                        child: Center(child: _buildProfileAvatar(player, size: 150)),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
                             Text(
                               player.name,
                               style: const TextStyle(
@@ -256,7 +263,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildRankingSection(),
+                      _buildRankingSection(player, isLoading),
                       const SizedBox(height: 40),
                       const Text(
                         'Player Statistics',
@@ -267,11 +274,11 @@ class TtPlayerDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildStatGrid(context),
+                      _buildStatGrid(context, player),
                       const SizedBox(height: 40),
-                      _buildPerformanceSection(),
+                      _buildPerformanceSection(player),
                       const SizedBox(height: 40),
-                      _buildSourceFooter(),
+                      _buildSourceFooter(player),
                     ],
                   ),
                 ),
@@ -283,7 +290,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileAvatar({required double size}) {
+  Widget _buildProfileAvatar(TableTennisPlayer player, {required double size}) {
     return Container(
       width: size,
       height: size,
@@ -326,7 +333,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(TableTennisPlayer player) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -369,14 +376,15 @@ class TtPlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRankingSection() {
+  Widget _buildRankingSection(TableTennisPlayer player, bool isLoading) {
+    final history = _generateRankingTrend(player);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const Text(
               'Ranking Progress',
               style: TextStyle(
                 fontSize: 18,
@@ -384,19 +392,99 @@ class TtPlayerDetailScreen extends StatelessWidget {
                 color: Color(0xFF0F9D58),
               ),
             ),
-            Icon(Icons.query_stats_rounded, color: Color(0xFF0F9D58), size: 20),
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F9D58)),
+                ),
+              )
+            else
+              const Icon(Icons.query_stats_rounded, color: Color(0xFF0F9D58), size: 20),
           ],
         ),
         const SizedBox(height: 10),
-        RankingGraph(
-          points: _generateRankingTrend(),
-          color: const Color(0xFF0F9D58),
-        ),
+        if (isLoading)
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF0F9D58).withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F9D58)),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Loading ranking history...',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (history.isEmpty)
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF0F9D58).withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.history_toggle_off_rounded,
+                    size: 32,
+                    color: Colors.grey.withOpacity(0.6),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'No ranking history available',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          RankingGraph(
+            points: history,
+            color: const Color(0xFF0F9D58),
+          ),
       ],
     );
   }
 
-  Widget _buildPerformanceSection() {
+  Widget _buildPerformanceSection(TableTennisPlayer player) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -405,13 +493,13 @@ class TtPlayerDetailScreen extends StatelessWidget {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        _buildWinPercentageBanner(),
+        _buildWinPercentageBanner(player),
       ],
     );
   }
 
-  Widget _buildWinPercentageBanner() {
-    final percentage = player.winPercentage ?? 0.0;
+  Widget _buildWinPercentageBanner(TableTennisPlayer player) {
+    final percentage = player.winPercentage ?? 50.0;
     return GlassContainer(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       borderRadius: 20,
@@ -463,7 +551,7 @@ class TtPlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSourceFooter() {
+  Widget _buildSourceFooter(TableTennisPlayer player) {
     if (player.source == null) return const SizedBox();
     return Text(
       'Verified by ${player.source}',
@@ -483,10 +571,16 @@ class TtPlayerDetailScreen extends StatelessWidget {
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 
-  Widget _buildStatGrid(BuildContext context) {
+  Widget _buildStatGrid(BuildContext context, TableTennisPlayer player) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 12) / 2;
+        
+        String chDateStr = '';
+        if (player.careerHighDate != null) {
+          chDateStr = ' (${player.careerHighDate!.year})';
+        }
+
         return Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -496,6 +590,12 @@ class TtPlayerDetailScreen extends StatelessWidget {
               'Current Rank',
               '#${player.ranking ?? 'N/A'}',
               Icons.military_tech,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Career High Rank',
+              player.careerHighRank != null ? '#${player.careerHighRank}$chDateStr' : 'N/A',
+              Icons.trending_up_rounded,
             ),
             _buildStatCard(
               cardWidth,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
+import '../models/tt_player.dart';
 
 class RankingPoint {
   final int ranking;
@@ -130,6 +131,240 @@ class _GraphPainter extends CustomPainter {
 
       canvas.drawCircle(Offset(x, y), 5, dotBgPaint);
       canvas.drawCircle(Offset(x, y), 3, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class ComparisonRankingGraph extends StatelessWidget {
+  final TableTennisPlayer playerA;
+  final TableTennisPlayer playerB;
+  final Color colorA;
+  final Color colorB;
+
+  const ComparisonRankingGraph({
+    super.key,
+    required this.playerA,
+    required this.playerB,
+    this.colorA = const Color(0xFF0F9D58),
+    this.colorB = const Color(0xFF5856D6),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pointsA = playerA.rankingHistory ?? [];
+    final pointsB = playerB.rankingHistory ?? [];
+
+    if (pointsA.isEmpty && pointsB.isEmpty) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: const Center(
+          child: Text(
+            'No ranking history available for comparison',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 220,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(15, 25, 15, 45),
+      child: CustomPaint(
+        painter: _ComparisonGraphPainter(
+          playerA.name,
+          playerB.name,
+          pointsA,
+          pointsB,
+          colorA,
+          colorB,
+        ),
+      ),
+    );
+  }
+}
+
+class _ComparisonGraphPainter extends CustomPainter {
+  final String nameA;
+  final String nameB;
+  final List<RankingPoint> pointsA;
+  final List<RankingPoint> pointsB;
+  final Color colorA;
+  final Color colorB;
+
+  _ComparisonGraphPainter(
+    this.nameA,
+    this.nameB,
+    this.pointsA,
+    this.pointsB,
+    this.colorA,
+    this.colorB,
+  );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final allDates = [
+      ...pointsA.map((p) => p.date),
+      ...pointsB.map((p) => p.date),
+    ];
+    if (allDates.isEmpty) return;
+
+    allDates.sort();
+    final minDate = allDates.first;
+    final maxDate = allDates.last;
+    final timeSpanDays = maxDate.difference(minDate).inDays.clamp(1, 9999999);
+
+    final allRanks = [
+      ...pointsA.map((p) => p.ranking.toDouble()),
+      ...pointsB.map((p) => p.ranking.toDouble()),
+    ];
+
+    final minRank = allRanks.isNotEmpty ? allRanks.reduce(math.min) : 1.0;
+    final maxRank = allRanks.isNotEmpty ? allRanks.reduce(math.max) : 100.0;
+    final rankRange = (maxRank - minRank).clamp(1.0, double.infinity);
+
+    final textPainter = TextPainter(
+      textDirection: ui.TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+
+    Offset getCoord(RankingPoint pt) {
+      final daysFromStart = pt.date.difference(minDate).inDays;
+      final double x = (daysFromStart / timeSpanDays) * size.width;
+      final double normalizedRank = 1.0 - ((pt.ranking - minRank) / rankRange);
+      final double y = size.height * (1.0 - (normalizedRank * 0.7 + 0.15));
+      return Offset(x, y);
+    }
+
+    if (pointsA.isNotEmpty) {
+      _drawPlayerLine(canvas, size, pointsA, colorA, getCoord);
+    }
+
+    if (pointsB.isNotEmpty) {
+      _drawPlayerLine(canvas, size, pointsB, colorB, getCoord);
+    }
+
+    final labelCount = 4;
+    for (int i = 0; i < labelCount; i++) {
+      final double fraction = i / (labelCount - 1);
+      final daysOffset = (fraction * timeSpanDays).round();
+      final labelDate = minDate.add(Duration(days: daysOffset));
+      final double x = fraction * size.width;
+
+      textPainter.text = TextSpan(
+        text: DateFormat('yy/MM').format(labelDate),
+        style: const TextStyle(color: Colors.grey, fontSize: 9),
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(x - (textPainter.width / 2), size.height + 12),
+      );
+    }
+  }
+
+  void _drawPlayerLine(
+    Canvas canvas,
+    Size size,
+    List<RankingPoint> points,
+    Color color,
+    Offset Function(RankingPoint) getCoord,
+  ) {
+    final paint = Paint()
+      ..color = color.withOpacity(0.85)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [color.withOpacity(0.18), color.withOpacity(0.0)],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final path = Path();
+    final fillPath = Path();
+
+    final coords = points.map(getCoord).toList();
+
+    for (int i = 0; i < coords.length; i++) {
+      final c = coords[i];
+      if (i == 0) {
+        path.moveTo(c.dx, c.dy);
+        fillPath.moveTo(c.dx, size.height);
+        fillPath.lineTo(c.dx, c.dy);
+      } else {
+        path.lineTo(c.dx, c.dy);
+        fillPath.lineTo(c.dx, c.dy);
+      }
+
+      if (i == coords.length - 1) {
+        fillPath.lineTo(c.dx, size.height);
+        fillPath.close();
+      }
+    }
+
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(path, paint);
+
+    final dotPaint = Paint()..color = color;
+    final dotBgPaint = Paint()..color = Colors.white;
+    
+    int dotStep = (coords.length / 6).clamp(1, double.infinity).toInt();
+    for (int i = 0; i < coords.length; i += dotStep) {
+      final c = coords[i];
+      canvas.drawCircle(c, 4, dotBgPaint);
+      canvas.drawCircle(c, 2.5, dotPaint);
+      
+      final textPainter = TextPainter(
+        textDirection: ui.TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.text = TextSpan(
+        text: '#${points[i].ranking}',
+        style: TextStyle(
+          color: color,
+          fontSize: 8.5,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(c.dx - (textPainter.width / 2), c.dy - 14));
+    }
+    
+    if (coords.isNotEmpty && (coords.length - 1) % dotStep != 0) {
+      final lastIdx = coords.length - 1;
+      final c = coords[lastIdx];
+      canvas.drawCircle(c, 4, dotBgPaint);
+      canvas.drawCircle(c, 2.5, dotPaint);
+
+      final textPainter = TextPainter(
+        textDirection: ui.TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.text = TextSpan(
+        text: '#${points[lastIdx].ranking}',
+        style: TextStyle(
+          color: color,
+          fontSize: 8.5,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(c.dx - (textPainter.width / 2), c.dy - 14));
     }
   }
 
