@@ -8,6 +8,7 @@ import '../models/player.dart';
 import '../models/tt_player.dart';
 import '../models/football_national_team.dart';
 import '../models/basketball_club.dart';
+import '../widgets/ranking_graph.dart';
 
 class ApiService {
   // Toggle Switch: set to true to run fully client-side on local JSON exports.
@@ -35,6 +36,8 @@ class ApiService {
   // ── Local Database Cache ───────────────────────────────────────────────────
   static List<Player>? _localPlayers;
   static List<TableTennisPlayer>? _localTtPlayers;
+  // Histories loaded lazily only when detail screen is opened (large file ~7MB)
+  static Map<String, dynamic>? _localTtHistories;
   static List<FootballNationalTeam>? _localFootballTeams;
   static List<BasketballClub>? _localBasketballClubs;
 
@@ -60,6 +63,14 @@ class ApiService {
       final jsonStr = await rootBundle.loadString('assets/data/basketball_clubs.json');
       final List decoded = json.decode(jsonStr);
       _localBasketballClubs = decoded.map((item) => BasketballClub.fromJson(item)).toList();
+    }
+  }
+
+  /// Load the histories file lazily (only needed for detail screens)
+  static Future<void> _loadTtHistoriesIfNeeded() async {
+    if (_localTtHistories == null) {
+      final jsonStr = await rootBundle.loadString('assets/data/tt_player_histories.json');
+      _localTtHistories = json.decode(jsonStr) as Map<String, dynamic>;
     }
   }
 
@@ -294,7 +305,7 @@ class ApiService {
   }) async {
     if (useLocalDatabase) {
       await _loadLocalDataIfNeeded();
-      var list = _localTtPlayers!.where((p) => p.ranking != null).toList();
+      var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
       if (gender != null) {
         list = list.where((p) => p.gender == gender).toList();
       }
@@ -365,9 +376,41 @@ class ApiService {
   Future<TableTennisPlayer> getTtPlayerDetail(int id) async {
     if (useLocalDatabase) {
       await _loadLocalDataIfNeeded();
-      return _localTtPlayers!.firstWhere(
+      // Load histories lazily (only when a detail screen is opened)
+      await _loadTtHistoriesIfNeeded();
+
+      final base = _localTtPlayers!.firstWhere(
         (p) => p.id == id,
         orElse: () => throw Exception('TT Player not found'),
+      );
+
+      // Merge ranking_history from the histories file
+      final rawHistory = _localTtHistories![id.toString()];
+      List<RankingPoint>? history;
+      if (rawHistory != null) {
+        history = (rawHistory as List).map((item) => RankingPoint(
+          ranking: item['ranking'] as int,
+          date: DateTime.parse(item['date'] as String),
+        )).toList();
+      }
+
+      // Return a new player object with history attached
+      return TableTennisPlayer(
+        id: base.id,
+        name: base.name,
+        country: base.country,
+        ranking: base.ranking,
+        birthDate: base.birthDate,
+        weight: base.weight,
+        playingStyle: base.playingStyle,
+        winPercentage: base.winPercentage,
+        imageUrl: base.imageUrl,
+        source: base.source,
+        gender: base.gender,
+        lastUpdated: base.lastUpdated,
+        rankingHistory: history,
+        careerHighRank: base.careerHighRank,
+        careerHighDate: base.careerHighDate,
       );
     } else {
       final response = await http.get(Uri.parse('$baseUrl/tt-players/$id'));
@@ -385,7 +428,7 @@ class ApiService {
   }) async {
     if (useLocalDatabase) {
       await _loadLocalDataIfNeeded();
-      var list = _localTtPlayers!.where((p) => p.ranking != null).toList();
+      var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
       if (gender != null) {
         list = list.where((p) => p.gender == gender).toList();
       }

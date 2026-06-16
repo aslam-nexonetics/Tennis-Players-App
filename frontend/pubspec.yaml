@@ -26,5 +26,6 @@ flutter:
   assets:
     - assets/data/players.json
     - assets/data/tt_players.json
+    - assets/data/tt_player_histories.json
     - assets/data/football_national_teams.json
     - assets/data/basketball_clubs.json
