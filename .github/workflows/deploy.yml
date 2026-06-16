@@ -4,9 +4,16 @@ on:
   push:
     branches:
       - main
+      - feature/**
+      - feat/**
+      - fix/**
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
+    concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,26 +28,29 @@ jobs:
           cd frontend
           flutter pub get
           
+      - name: Calculate Base Href & Target Dir
+        id: config
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "base_href=/${{ github.event.repository.name }}/" >> $GITHUB_OUTPUT
+            echo "dest_dir=" >> $GITHUB_OUTPUT
+          else
+            # Clean branch name for URL safety (replace slash with hyphen)
+            CLEAN_NAME=$(echo "${{ github.ref_name }}" | sed 's/\//-/g')
+            echo "base_href=/${{ github.event.repository.name }}/previews/${CLEAN_NAME}/" >> $GITHUB_OUTPUT
+            echo "dest_dir=previews/${CLEAN_NAME}" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Build Web
         run: |
           cd frontend
-          flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+          flutter build web --release --base-href "${{ steps.config.outputs.base_href }}"
           
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: frontend/build/web
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/build/web
+          destination_dir: ${{ steps.config.outputs.dest_dir }}
+          keep_files: true
 
-  deploy:
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
