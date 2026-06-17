@@ -164,8 +164,6 @@ class _MainNavigationState extends State<MainNavigation> {
         return const FootballTeamCompareScreen();
       case SportType.basketball:
         return const BasketballClubCompareScreen();
-      default:
-        return const SizedBox();
     }
   }
 
