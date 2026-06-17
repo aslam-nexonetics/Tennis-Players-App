@@ -3,7 +3,6 @@ import '../models/tt_player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
 import '../services/api_service.dart';
-import 'tt_player_compare_screen.dart';
 
 class TtPlayerDetailScreen extends StatefulWidget {
   final TableTennisPlayer player;
@@ -37,23 +36,6 @@ class _TtPlayerDetailScreenState extends State<TtPlayerDetailScreen> {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
         return Scaffold(
-          floatingActionButton: Padding(
-            padding: const EdgeInsets.only(bottom: 80),
-            child: FloatingActionButton.extended(
-              heroTag: 'compare-tt-${player.id}',
-              backgroundColor: const Color(0xFF0F9D58),
-              icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
-              label: const Text('Compare',
-                  style:
-                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => TtPlayerCompareScreen(playerA: player),
-                ),
-              ),
-            ),
-          ),
           backgroundColor: const Color(0xFFCEF0DE), // Teal-tinted glass theme
           extendBodyBehindAppBar: true,
           appBar: AppBar(
@@ -221,29 +203,6 @@ class _TtPlayerDetailScreenState extends State<TtPlayerDetailScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        TtPlayerCompareScreen(playerA: player),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.compare_arrows_rounded),
-                                label: const Text('Compare Player'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0F9D58),
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                ),
                               ),
                             ),
                           ],
