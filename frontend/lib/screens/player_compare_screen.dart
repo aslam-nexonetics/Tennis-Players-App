@@ -34,6 +34,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   Timer? _debounceB;
 
   bool _showComparison = false;
+  String _activeSearch = 'A';
 
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
@@ -62,6 +63,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   }
 
   void _onSearchA(String q) {
+    setState(() {
+      _activeSearch = 'A';
+    });
     if (_debounceA?.isActive ?? false) _debounceA!.cancel();
     _debounceA = Timer(const Duration(milliseconds: 400), () {
       if (q.trim().isNotEmpty) {
@@ -76,6 +80,9 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
   }
 
   void _onSearchB(String q) {
+    setState(() {
+      _activeSearch = 'B';
+    });
     if (_debounceB?.isActive ?? false) _debounceB!.cancel();
     _debounceB = Timer(const Duration(milliseconds: 400), () {
       if (q.trim().isNotEmpty) {
@@ -299,25 +306,31 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               _noResultsB)
             Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _resultsA.isNotEmpty
+              child: Builder(
+                builder: (context) {
+                  final showA = _resultsA.isNotEmpty || (_noResultsA && _ctrlA.text.isNotEmpty);
+                  final showB = _resultsB.isNotEmpty || (_noResultsB && _ctrlB.text.isNotEmpty);
+                  if (showA && showB) {
+                    if (_activeSearch == 'B') {
+                      return _resultsB.isNotEmpty
+                          ? _buildResultList(_resultsB, _selectB)
+                          : _buildNoResults();
+                    } else {
+                      return _resultsA.isNotEmpty
+                          ? _buildResultList(_resultsA, _selectA)
+                          : _buildNoResults();
+                    }
+                  } else if (showA) {
+                    return _resultsA.isNotEmpty
                         ? _buildResultList(_resultsA, _selectA)
-                        : (_noResultsA && _ctrlA.text.isNotEmpty
-                            ? _buildNoResults()
-                            : const SizedBox()),
-                  ),
-                  const SizedBox(width: 64),
-                  Expanded(
-                    child: _resultsB.isNotEmpty
+                        : _buildNoResults();
+                  } else if (showB) {
+                    return _resultsB.isNotEmpty
                         ? _buildResultList(_resultsB, _selectB)
-                        : (_noResultsB && _ctrlB.text.isNotEmpty
-                            ? _buildNoResults()
-                            : const SizedBox()),
-                  ),
-                ],
+                        : _buildNoResults();
+                  }
+                  return const SizedBox();
+                },
               ),
             ),
         ],
@@ -553,6 +566,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                 ),
                 title: Text(
                   p.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF1D1D1F),
                     fontWeight: FontWeight.w600,
@@ -561,6 +576,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                 ),
                 subtitle: Text(
                   p.country ?? 'Unknown',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 10,
