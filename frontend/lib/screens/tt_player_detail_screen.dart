@@ -67,28 +67,31 @@ class _TtPlayerDetailScreenState extends State<TtPlayerDetailScreen> {
   }
 
   Widget _buildMobileLayout(BuildContext context, TableTennisPlayer player, bool isLoading) {
-    return Stack(
-      children: [
-        // Teal gradient background
-        Container(
-          height: 400,
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF34A853),
-                Color(0xFF0F9D58),
-                Color(0xFF006837),
-              ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Teal gradient background
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF34A853),
+                  Color(0xFF0F9D58),
+                  Color(0xFF006837),
+                ],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
             ),
-          ),
-          child: Center(
+            padding: const EdgeInsets.only(top: 100, bottom: 32),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 80),
                 _buildProfileAvatar(player, size: 120),
                 const SizedBox(height: 12),
                 Text(
@@ -106,48 +109,33 @@ class _TtPlayerDetailScreenState extends State<TtPlayerDetailScreen> {
               ],
             ),
           ),
-        ),
 
-        // Scrollable content
-        SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 350),
-              GlassContainer(
-                borderRadius: 40,
-                opacity: 0.2,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    _buildHeader(player),
-                    const Divider(height: 40, thickness: 1),
-                    _buildRankingSection(player, isLoading),
-                    const SizedBox(height: 30),
-                    _buildStatGrid(context, player),
-                    const SizedBox(height: 32),
-                    _buildPerformanceSection(player),
-                    const SizedBox(height: 30),
-                    _buildSourceFooter(player),
-                    const SizedBox(height: 40),
-                  ],
-                ),
+          // Scrollable details card
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GlassContainer(
+              borderRadius: 24,
+              opacity: 0.1,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(player),
+                  const Divider(height: 40, thickness: 1),
+                  _buildRankingSection(player, isLoading),
+                  const SizedBox(height: 30),
+                  _buildStatGrid(context, player),
+                  const SizedBox(height: 32),
+                  _buildPerformanceSection(player),
+                  const SizedBox(height: 30),
+                  _buildSourceFooter(player),
+                  const SizedBox(height: 20),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

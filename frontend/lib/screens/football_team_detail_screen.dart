@@ -39,28 +39,31 @@ class FootballTeamDetailScreen extends StatelessWidget {
   }
 
   Widget _buildMobileLayout(BuildContext context) {
-    return Stack(
-      children: [
-        // Gradient background
-        Container(
-          height: 400,
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFF5F6D),
-                Color(0xFFE4405F),
-                Color(0xFF911E3B),
-              ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Gradient background
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFF5F6D),
+                  Color(0xFFE4405F),
+                  Color(0xFF911E3B),
+                ],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
             ),
-          ),
-          child: Center(
+            padding: const EdgeInsets.only(top: 100, bottom: 32),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 80),
                 _buildTeamLogo(size: 140),
                 const SizedBox(height: 16),
                 Text(
@@ -82,42 +85,27 @@ class FootballTeamDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-        ),
 
-        // Scrollable content
-        SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 380),
-              GlassContainer(
-                borderRadius: 40,
-                opacity: 0.2,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    _buildHeaderInfo(),
-                    const Divider(height: 40, thickness: 1),
-                    _buildMainDetails(),
-                    const SizedBox(height: 60),
-                  ],
-                ),
+          // Scrollable details card
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GlassContainer(
+              borderRadius: 24,
+              opacity: 0.1,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderInfo(),
+                  const Divider(height: 40, thickness: 1),
+                  _buildMainDetails(),
+                  const SizedBox(height: 20),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
