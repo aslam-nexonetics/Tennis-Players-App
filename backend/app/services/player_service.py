@@ -1,42 +1,269 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.models.player import Player
+from app.models.player import Player, TennisHistoricalPlayer, TennisHistoricalRanking
 from app.schemas.player import PlayerCreate, PlayerUpdate
 from typing import List, Optional
+from datetime import date
 
 class PlayerService:
     @staticmethod
+    def map_historical_player(db: Session, p: TennisHistoricalPlayer, rank: Optional[int] = None, include_history: bool = False):
+        # If rank is not provided, fetch the latest ranking
+        if rank is None:
+            latest_r = db.query(TennisHistoricalRanking).filter(
+                TennisHistoricalRanking.player_id == p.id
+            ).order_by(
+                TennisHistoricalRanking.ranking_year.desc(),
+                TennisHistoricalRanking.ranking_month.desc(),
+                TennisHistoricalRanking.ranking_date.desc()
+            ).first()
+            if latest_r:
+                rank = latest_r.rank
+        
+        # Try to match with old Player to get style, weight, height, wins, losses, turned_pro, image_url, etc.
+        full_name = f"{p.first_name} {p.last_name}"
+        style = None
+        height = None
+        weight = None
+        wins = 0
+        losses = 0
+        turned_pro = None
+        legacy_image = None
+        prize_money = p.prize_money # Use prize money from historical player first
+        
+        old_p = db.query(Player).filter(
+            Player.name == full_name
+        ).first()
+        if old_p:
+            style = old_p.playing_style
+            height = old_p.height
+            weight = old_p.weight
+            wins = old_p.wins or 0
+            losses = old_p.losses or 0
+            turned_pro = old_p.turned_pro
+            legacy_image = old_p.image_url
+            if not prize_money:
+                prize_money = old_p.prize_money
+        
+        # Calculate birth date if components exist
+        b_date = None
+        if p.birth_year and p.birth_month and p.birth_date:
+            try:
+                b_date = date(p.birth_year, p.birth_month, p.birth_date)
+            except ValueError:
+                pass
+
+        # Fetch career high rank and date (ignoring invalid ranks <= 0)
+        career_high_rank = None
+        career_high_date = None
+        ch_record = db.query(TennisHistoricalRanking).filter(
+            TennisHistoricalRanking.player_id == p.id,
+            TennisHistoricalRanking.rank > 0
+        ).order_by(
+            TennisHistoricalRanking.rank.asc(),
+            TennisHistoricalRanking.ranking_year.asc(),
+            TennisHistoricalRanking.ranking_month.asc(),
+            TennisHistoricalRanking.ranking_date.asc()
+        ).first()
+        
+        if ch_record:
+            career_high_rank = ch_record.rank
+            try:
+                career_high_date = date(ch_record.ranking_year, ch_record.ranking_month, ch_record.ranking_date)
+            except ValueError:
+                pass
+
+        history = None
+        if include_history:
+            # Query all historical ranking checkpoints where rank is valid
+            history_objs = db.query(TennisHistoricalRanking).filter(
+                TennisHistoricalRanking.player_id == p.id,
+                TennisHistoricalRanking.rank > 0
+            ).order_by(
+                TennisHistoricalRanking.ranking_year.asc(),
+                TennisHistoricalRanking.ranking_month.asc(),
+                TennisHistoricalRanking.ranking_date.asc()
+            ).all()
+            
+            # Sample up to 20 points across their entire career to show a meaningful timeline
+            sampled = []
+            if history_objs:
+                if len(history_objs) <= 20:
+                    sampled = history_objs
+                else:
+                    n = len(history_objs)
+                    for i in range(20):
+                        index = int(i * (n - 1) / 19)
+                        sampled.append(history_objs[index])
+            
+            history = []
+            for h in sampled:
+                try:
+                    h_date = date(h.ranking_year, h.ranking_month, h.ranking_date)
+                    history.append({
+                        "ranking": h.rank,
+                        "date": h_date
+                    })
+                except ValueError:
+                    pass
+
+        return {
+            "id": p.id,
+            "name": full_name,
+            "country": p.country,
+            "ranking": rank,
+            "birth_date": b_date,
+            "height": height,
+            "weight": weight,
+            "playing_style": style or "Unknown",
+            "wins": wins,
+            "losses": losses,
+            "turned_pro": turned_pro,
+            "prize_money": prize_money or "Unknown",
+            "image_url": p.picture or legacy_image,
+            "source": "ATP/WTA Historical Database",
+            "gender": "M" if p.gender == 0 else "F",
+            "last_updated": p.last_updated,
+            "ranking_history": history,
+            "highest_ranking": career_high_rank,
+            "highest_ranking_date": career_high_date,
+            "career_high_rank": career_high_rank,
+            "career_high_date": career_high_date
+        }
+
+    @staticmethod
     def get_player(db: Session, player_id: int):
-        return db.query(Player).filter(Player.id == player_id).first()
+        p = db.query(TennisHistoricalPlayer).filter(TennisHistoricalPlayer.id == player_id).first()
+        if not p:
+            return None
+        return PlayerService.map_historical_player(db, p, include_history=True)
 
     @staticmethod
     def get_players(db: Session, skip: int = 0, limit: int = 100, gender: Optional[str] = None):
-        query = db.query(Player).filter(Player.ranking != None)
+        latest_date = db.query(
+            TennisHistoricalRanking.ranking_year,
+            TennisHistoricalRanking.ranking_month,
+            TennisHistoricalRanking.ranking_date
+        ).order_by(
+            TennisHistoricalRanking.ranking_year.desc(),
+            TennisHistoricalRanking.ranking_month.desc(),
+            TennisHistoricalRanking.ranking_date.desc()
+        ).first()
+
+        if not latest_date:
+            return [], 0
+
+        ly, lm, ld = latest_date
+
+        query = db.query(
+            TennisHistoricalPlayer,
+            TennisHistoricalRanking.rank
+        ).join(
+            TennisHistoricalRanking,
+            TennisHistoricalPlayer.id == TennisHistoricalRanking.player_id
+        ).filter(
+            TennisHistoricalRanking.ranking_year == ly,
+            TennisHistoricalRanking.ranking_month == lm,
+            TennisHistoricalRanking.ranking_date == ld
+        )
+
         if gender:
-            query = query.filter(Player.gender == gender)
-        
-        total = query.with_entities(func.count(Player.id)).scalar()
-        items = query.order_by(Player.ranking.asc()).offset(skip).limit(limit).all()
+            g_val = 0 if gender == 'M' else 1
+            query = query.filter(TennisHistoricalPlayer.gender == g_val)
+
+        total = query.count()
+        results = query.order_by(TennisHistoricalRanking.rank.asc()).offset(skip).limit(limit).all()
+
+        items = []
+        for p, r in results:
+            items.append(PlayerService.map_historical_player(db, p, rank=r))
+
         return items, total
 
     @staticmethod
     def search_players(db: Session, query: str, skip: int = 0, limit: int = 20, gender: Optional[str] = None):
-        # Use ilike for case-insensitive search which is better supported by indexes in some DBs
-        # and generally more efficient than lower() calls on columns
-        search_filter = Player.name.ilike(f"%{query}%")
-        q = db.query(Player).filter(search_filter)
+        latest_date = db.query(
+            TennisHistoricalRanking.ranking_year,
+            TennisHistoricalRanking.ranking_month,
+            TennisHistoricalRanking.ranking_date
+        ).order_by(
+            TennisHistoricalRanking.ranking_year.desc(),
+            TennisHistoricalRanking.ranking_month.desc(),
+            TennisHistoricalRanking.ranking_date.desc()
+        ).first()
+
+        ly, lm, ld = latest_date if latest_date else (0, 0, 0)
+
+        search_filter = func.concat(
+            TennisHistoricalPlayer.first_name, ' ', TennisHistoricalPlayer.last_name
+        ).ilike(f"%{query}%")
+
+        q = db.query(
+            TennisHistoricalPlayer,
+            TennisHistoricalRanking.rank
+        ).outerjoin(
+            TennisHistoricalRanking,
+            (TennisHistoricalPlayer.id == TennisHistoricalRanking.player_id) &
+            (TennisHistoricalRanking.ranking_year == ly) &
+            (TennisHistoricalRanking.ranking_month == lm) &
+            (TennisHistoricalRanking.ranking_date == ld)
+        ).filter(search_filter)
+
         if gender:
-            q = q.filter(Player.gender == gender)
-        total = q.with_entities(func.count(Player.id)).scalar()
-        items = q.offset(skip).limit(limit).all()
+            g_val = 0 if gender == 'M' else 1
+            q = q.filter(TennisHistoricalPlayer.gender == g_val)
+
+        total = q.count()
+        results = q.order_by(
+            TennisHistoricalRanking.rank.asc().nullslast()
+        ).offset(skip).limit(limit).all()
+
+        items = []
+        for p, r in results:
+            items.append(PlayerService.map_historical_player(db, p, rank=r))
+
         return items, total
 
     @staticmethod
     def get_top_players(db: Session, limit: int = 10, gender: Optional[str] = None):
-        query = db.query(Player).filter(Player.ranking != None)
+        latest_date = db.query(
+            TennisHistoricalRanking.ranking_year,
+            TennisHistoricalRanking.ranking_month,
+            TennisHistoricalRanking.ranking_date
+        ).order_by(
+            TennisHistoricalRanking.ranking_year.desc(),
+            TennisHistoricalRanking.ranking_month.desc(),
+            TennisHistoricalRanking.ranking_date.desc()
+        ).first()
+
+        if not latest_date:
+            return []
+
+        ly, lm, ld = latest_date
+
+        query = db.query(
+            TennisHistoricalPlayer,
+            TennisHistoricalRanking.rank
+        ).join(
+            TennisHistoricalRanking,
+            TennisHistoricalPlayer.id == TennisHistoricalRanking.player_id
+        ).filter(
+            TennisHistoricalRanking.ranking_year == ly,
+            TennisHistoricalRanking.ranking_month == lm,
+            TennisHistoricalRanking.ranking_date == ld
+        )
+
         if gender:
-            query = query.filter(Player.gender == gender)
-        return query.order_by(Player.ranking.asc()).limit(limit).all()
+            g_val = 0 if gender == 'M' else 1
+            query = query.filter(TennisHistoricalPlayer.gender == g_val)
+
+        results = query.order_by(TennisHistoricalRanking.rank.asc()).limit(limit).all()
+
+        items = []
+        for p, r in results:
+            items.append(PlayerService.map_historical_player(db, p, rank=r))
+
+        return items
 
     @staticmethod
     def create_or_update_player(db: Session, player_data: PlayerCreate):
@@ -49,21 +276,22 @@ class PlayerService:
             db.add(db_player)
         
         db.commit()
-        # db.refresh(db_player) # Refresh is slow as it triggers a SELECT. Skip if not needed.
         return db_player
 
     @staticmethod
     def get_h2h(db: Session, player1_id: int, player2_id: int):
         import random
-        p1 = db.query(Player).filter(Player.id == player1_id).first()
-        p2 = db.query(Player).filter(Player.id == player2_id).first()
+        p1 = PlayerService.get_player(db, player1_id)
+        p2 = PlayerService.get_player(db, player2_id)
         
         if not p1 or not p2:
             return None
 
         # Determine number of matches based on rankings
         # Top players play each other more often
-        avg_rank = ( (p1.ranking or 100) + (p2.ranking or 100) ) / 2
+        p1_rank = p1.get("ranking") or 100
+        p2_rank = p2.get("ranking") or 100
+        avg_rank = (p1_rank + p2_rank) / 2
         num_matches = max(1, int(20 - (avg_rank / 5)) + random.randint(0, 5))
         if avg_rank > 100: num_matches = random.randint(1, 3)
         
@@ -74,12 +302,12 @@ class PlayerService:
         history = []
         p1_wins = 0
         p2_wins = 0
-        hard_wins = {p1.id: 0, p2.id: 0}
-        clay_wins = {p1.id: 0, p2.id: 0}
-        grass_wins = {p1.id: 0, p2.id: 0}
+        hard_wins = {p1["id"]: 0, p2["id"]: 0}
+        clay_wins = {p1["id"]: 0, p2["id"]: 0}
+        grass_wins = {p1["id"]: 0, p2["id"]: 0}
         
         # Bias based on ranking
-        p1_bias = 0.5 + ((p2.ranking or 100) - (p1.ranking or 100)) / 200
+        p1_bias = 0.5 + (p2_rank - p1_rank) / 200
         p1_bias = max(0.2, min(0.8, p1_bias))
 
         for i in range(num_matches):
@@ -87,16 +315,16 @@ class PlayerService:
             surface = random.choice(surfaces)
             winner = p1 if random.random() < p1_bias else p2
             
-            if winner.id == p1.id: 
+            if winner["id"] == p1["id"]: 
                 p1_wins += 1
-                if surface == "Hard": hard_wins[p1.id] += 1
-                elif surface == "Clay": clay_wins[p1.id] += 1
-                else: grass_wins[p1.id] += 1
+                if surface == "Hard": hard_wins[p1["id"]] += 1
+                elif surface == "Clay": clay_wins[p1["id"]] += 1
+                else: grass_wins[p1["id"]] += 1
             else: 
                 p2_wins += 1
-                if surface == "Hard": hard_wins[p2.id] += 1
-                elif surface == "Clay": clay_wins[p2.id] += 1
-                else: grass_wins[p2.id] += 1
+                if surface == "Hard": hard_wins[p2["id"]] += 1
+                elif surface == "Clay": clay_wins[p2["id"]] += 1
+                else: grass_wins[p2["id"]] += 1
                 
             history.append({
                 "year": year,
@@ -104,8 +332,8 @@ class PlayerService:
                 "round": random.choice(rounds),
                 "surface": surface,
                 "score": f"{random.choice(['6-4, 7-5', '6-3, 6-4', '7-6, 6-2', '6-1, 6-3', '4-6, 7-5, 6-4'])}",
-                "winner_id": winner.id,
-                "winner_name": winner.name
+                "winner_id": winner["id"],
+                "winner_name": winner["name"]
             })
             
         history.sort(key=lambda x: x['year'], reverse=True)

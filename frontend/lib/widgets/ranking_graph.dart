@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
-import '../models/tt_player.dart';
 
 class RankingPoint {
   final int ranking;
@@ -139,24 +138,25 @@ class _GraphPainter extends CustomPainter {
 }
 
 class ComparisonRankingGraph extends StatelessWidget {
-  final TableTennisPlayer playerA;
-  final TableTennisPlayer playerB;
+  final List<RankingPoint> pointsA;
+  final List<RankingPoint> pointsB;
+  final String nameA;
+  final String nameB;
   final Color colorA;
   final Color colorB;
 
   const ComparisonRankingGraph({
     super.key,
-    required this.playerA,
-    required this.playerB,
+    required this.pointsA,
+    required this.pointsB,
+    required this.nameA,
+    required this.nameB,
     this.colorA = const Color(0xFF0F9D58),
     this.colorB = const Color(0xFF5856D6),
   });
 
   @override
   Widget build(BuildContext context) {
-    final pointsA = playerA.rankingHistory ?? [];
-    final pointsB = playerB.rankingHistory ?? [];
-
     if (pointsA.isEmpty && pointsB.isEmpty) {
       return Container(
         height: 200,
@@ -184,8 +184,8 @@ class ComparisonRankingGraph extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(15, 25, 15, 45),
       child: CustomPaint(
         painter: _ComparisonGraphPainter(
-          playerA.name,
-          playerB.name,
+          nameA,
+          nameB,
           pointsA,
           pointsB,
           colorA,

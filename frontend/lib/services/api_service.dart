@@ -38,6 +38,7 @@ class ApiService {
   static List<TableTennisPlayer>? _localTtPlayers;
   // Histories loaded lazily only when detail screen is opened (large file ~7MB)
   static Map<String, dynamic>? _localTtHistories;
+  static Map<String, dynamic>? _localTennisHistories;
   static List<FootballNationalTeam>? _localFootballTeams;
   static List<BasketballClub>? _localBasketballClubs;
 
@@ -71,6 +72,13 @@ class ApiService {
     if (_localTtHistories == null) {
       final jsonStr = await rootBundle.loadString('assets/data/tt_player_histories.json');
       _localTtHistories = json.decode(jsonStr) as Map<String, dynamic>;
+    }
+  }
+
+  static Future<void> _loadTennisHistoriesIfNeeded() async {
+    if (_localTennisHistories == null) {
+      final jsonStr = await rootBundle.loadString('assets/data/player_histories.json');
+      _localTennisHistories = json.decode(jsonStr) as Map<String, dynamic>;
     }
   }
 
@@ -158,9 +166,43 @@ class ApiService {
   Future<Player> getPlayerDetail(int id) async {
     if (useLocalDatabase) {
       await _loadLocalDataIfNeeded();
-      return _localPlayers!.firstWhere(
+      await _loadTennisHistoriesIfNeeded();
+      final base = _localPlayers!.firstWhere(
         (p) => p.id == id,
         orElse: () => throw Exception('Player not found'),
+      );
+
+      final rawHistory = _localTennisHistories![id.toString()];
+      List<RankingPoint>? history;
+      if (rawHistory != null) {
+        history = (rawHistory as List).map((item) => RankingPoint(
+          ranking: item['ranking'] as int,
+          date: DateTime.parse(item['date'] as String),
+        )).toList();
+      }
+
+      return Player(
+        id: base.id,
+        name: base.name,
+        country: base.country,
+        ranking: base.ranking,
+        highestRanking: base.highestRanking,
+        highestRankingDate: base.highestRankingDate,
+        birthDate: base.birthDate,
+        height: base.height,
+        weight: base.weight,
+        playingStyle: base.playingStyle,
+        wins: base.wins,
+        losses: base.losses,
+        turnedPro: base.turnedPro,
+        prizeMoney: base.prizeMoney,
+        imageUrl: base.imageUrl,
+        source: base.source,
+        gender: base.gender,
+        lastUpdated: base.lastUpdated,
+        rankingHistory: history,
+        careerHighRank: base.careerHighRank,
+        careerHighDate: base.careerHighDate,
       );
     } else {
       final response = await http.get(Uri.parse('$baseUrl/players/$id'));

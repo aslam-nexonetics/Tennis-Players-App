@@ -1,23 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
+import '../services/api_service.dart';
 
-class PlayerDetailScreen extends StatelessWidget {
+class PlayerDetailScreen extends StatefulWidget {
   final Player player;
 
   const PlayerDetailScreen({super.key, required this.player});
 
-  // Helper to generate ranking path for graph
-  List<RankingPoint> _generateRankingTrend() {
+  @override
+  State<PlayerDetailScreen> createState() => _PlayerDetailScreenState();
+}
+
+class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
+  late Future<Player> _playerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _playerFuture = ApiService().getPlayerDetail(widget.player.id);
+  }
+
+  List<RankingPoint> _generateRankingTrend(Player player) {
+    if (player.rankingHistory != null && player.rankingHistory!.isNotEmpty) {
+      return player.rankingHistory!;
+    }
     final current = player.ranking ?? 100;
     final highest = player.highestRanking ?? current - 10;
     final highestDate = player.highestRankingDate ??
         DateTime.now().subtract(const Duration(days: 365 * 2));
 
-    // Generate 4-5 points to show a trend
     return [
       RankingPoint(
         ranking: highest + 5,
@@ -38,70 +52,105 @@ class PlayerDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFCFDEF3), // Matches liquid theme
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GlassContainer(
-            borderRadius: 12,
-            opacity: 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => Navigator.pop(context),
+    return FutureBuilder<Player>(
+      future: _playerFuture,
+      initialData: widget.player,
+      builder: (context, snapshot) {
+        final player = snapshot.data ?? widget.player;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFCFDEF3), // Matches liquid theme
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GlassContainer(
+                borderRadius: 12,
+                opacity: 0.1,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
             ),
           ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 900) {
+                return _buildWebLayout(context, player, isLoading, constraints);
+              }
+              return _buildMobileLayout(context, player, isLoading);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  String _initials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+
+  Widget _buildFallbackBanner(Player player, {required double height}) {
+    return Container(
+      height: height,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.indigo,
+            Colors.indigo.shade800,
+          ],
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 900) {
-            return _buildWebLayout(context, constraints);
-          }
-          return _buildMobileLayout(context);
-        },
+      child: Center(
+        child: Text(
+          _initials(player.name),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 72,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2,
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context) {
+  Widget _buildMobileLayout(BuildContext context, Player player, bool isLoading) {
     return SingleChildScrollView(
       child: Column(
         children: [
           // Splash background banner
-          if (player.imageUrl != null)
-            Hero(
-              tag: 'player-${player.id}',
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: player.imageUrl!,
-                  height: 300,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.topCenter,
-                ),
+          Hero(
+            tag: 'player-${player.id}',
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
-            )
-          else
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.indigo.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-              ),
-              child: const Icon(Icons.person, size: 80, color: Colors.blue),
+              child: player.imageUrl != null
+                  ? Image.network(
+                      player.imageUrl!,
+                      height: 300,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      errorBuilder: (_, __, ___) =>
+                          _buildFallbackBanner(player, height: 300),
+                    )
+                  : _buildFallbackBanner(player, height: 300),
             ),
+          ),
 
           // Scrollable details card
           Padding(
@@ -113,15 +162,13 @@ class PlayerDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(),
+                  _buildHeader(player),
                   const Divider(height: 40, thickness: 1),
-                  _buildRankingSection(),
+                  _buildRankingSection(player, isLoading),
                   const SizedBox(height: 30),
-                  _buildStatGrid(context),
-                  const SizedBox(height: 32),
-                  _buildPerformanceSection(),
+                  _buildStatGrid(context, player),
                   const SizedBox(height: 30),
-                  _buildSourceFooter(),
+                  _buildSourceFooter(player),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -132,7 +179,8 @@ class PlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWebLayout(BuildContext context, BoxConstraints constraints) {
+  Widget _buildWebLayout(
+      BuildContext context, Player player, bool isLoading, BoxConstraints constraints) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 40),
       child: Center(
@@ -154,33 +202,16 @@ class PlayerDetailScreen extends StatelessWidget {
                         borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(30)),
                         child: player.imageUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: player.imageUrl!,
+                            ? Image.network(
+                                player.imageUrl!,
                                 height: 350,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 alignment: Alignment.topCenter,
-                                placeholder: (context, url) => Container(
-                                  height: 350,
-                                  color: Colors.indigo.withOpacity(0.05),
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) => Container(
-                                  height: 350,
-                                  color: Colors.indigo.withOpacity(0.1),
-                                  child: const Icon(Icons.person,
-                                      size: 100, color: Colors.indigo),
-                                ),
+                                errorBuilder: (_, __, ___) =>
+                                    _buildFallbackBanner(player, height: 350),
                               )
-                            : Container(
-                                height: 350,
-                                color: Colors.indigo.withOpacity(0.1),
-                                child: const Icon(Icons.person,
-                                    size: 100, color: Colors.blue),
-                              ),
+                            : _buildFallbackBanner(player, height: 350),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(24.0),
@@ -221,7 +252,7 @@ class PlayerDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildRankingSection(),
+                      _buildRankingSection(player, isLoading),
                       const SizedBox(height: 40),
                       const Text(
                         'Player Statistics',
@@ -232,11 +263,9 @@ class PlayerDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildStatGrid(context),
+                      _buildStatGrid(context, player),
                       const SizedBox(height: 40),
-                      _buildPerformanceSection(),
-                      const SizedBox(height: 40),
-                      _buildSourceFooter(),
+                      _buildSourceFooter(player),
                     ],
                   ),
                 ),
@@ -248,7 +277,7 @@ class PlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Player player) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -291,14 +320,14 @@ class PlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRankingSection() {
+  Widget _buildRankingSection(Player player, bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const Text(
               'Ranking Progress',
               style: TextStyle(
                 fontSize: 18,
@@ -306,48 +335,60 @@ class PlayerDetailScreen extends StatelessWidget {
                 color: Colors.indigo,
               ),
             ),
-            Icon(Icons.query_stats_rounded, color: Colors.indigo, size: 20),
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                ),
+              )
+            else
+              const Icon(Icons.query_stats_rounded, color: Colors.indigo, size: 20),
           ],
         ),
         const SizedBox(height: 10),
-        RankingGraph(points: _generateRankingTrend()),
+        if (isLoading)
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.indigo.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Loading ranking history...',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          RankingGraph(points: _generateRankingTrend(player)),
       ],
     );
   }
 
-  Widget _buildPerformanceSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Career Performance',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSimpleStat(
-                'WINS',
-                player.wins.toString(),
-                Colors.green[400]!,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildSimpleStat(
-                'LOSSES',
-                player.losses.toString(),
-                Colors.red[400]!,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSourceFooter() {
+  Widget _buildSourceFooter(Player player) {
     if (player.source == null) return const SizedBox();
     return Text(
       'Verified by ${player.source}',
@@ -359,118 +400,40 @@ class PlayerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatGrid(BuildContext context) {
-    final isWomen = player.gender == 'F';
+  Widget _buildStatGrid(BuildContext context, Player player) {
+    final highestRankLabel = player.highestRankingDate != null
+        ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
+        : '#${player.highestRanking ?? 'N/A'}';
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 12) / 2;
 
-        if (isWomen) {
-          return _buildWomenStats(cardWidth);
-        } else {
-          return _buildMenStats(cardWidth);
-        }
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _buildStatCard(
+              cardWidth,
+              'Current Rank',
+              '#${player.ranking ?? 'N/A'}',
+              Icons.military_tech,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Career High',
+              highestRankLabel,
+              Icons.stars_rounded,
+            ),
+            _buildStatCard(
+              cardWidth,
+              'Prize Money',
+              player.prizeMoney ?? 'N/A',
+              Icons.attach_money_rounded,
+            ),
+          ],
+        );
       },
-    );
-  }
-
-  Widget _buildMenStats(double cardWidth) {
-    final highestRankLabel = player.highestRankingDate != null
-        ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
-        : '#${player.highestRanking ?? 'N/A'}';
-
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _buildStatCard(
-          cardWidth,
-          'Current Rank',
-          '#${player.ranking ?? 'N/A'}',
-          Icons.military_tech,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Career High',
-          highestRankLabel,
-          Icons.stars_rounded,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Playing Style',
-          player.playingStyle ?? 'N/A',
-          Icons.sports_tennis,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Height',
-          player.height ?? 'N/A',
-          Icons.height,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Weight',
-          player.weight ?? 'N/A',
-          Icons.monitor_weight_outlined,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Turned Pro',
-          player.turnedPro ?? 'N/A',
-          Icons.event_available,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Prize Money',
-          player.prizeMoney ?? 'N/A',
-          Icons.attach_money_rounded,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWomenStats(double cardWidth) {
-    final highestRankLabel = player.highestRankingDate != null
-        ? '#${player.highestRanking ?? 'N/A'} (${DateFormat('MMM yyyy').format(player.highestRankingDate!)})'
-        : '#${player.highestRanking ?? 'N/A'}';
-
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _buildStatCard(
-          cardWidth,
-          'Current Rank',
-          '#${player.ranking ?? 'N/A'}',
-          Icons.military_tech,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Career High',
-          highestRankLabel,
-          Icons.stars_rounded,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Playing Style',
-          player.playingStyle ?? 'N/A',
-          Icons.sports_tennis,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Height',
-          player.height ?? 'N/A',
-          Icons.height,
-        ),
-        _buildStatCard(
-          cardWidth,
-          'Prize Money',
-          player.prizeMoney ?? 'N/A',
-          Icons.attach_money_rounded,
-        ),
-        // Weight and Turned Pro are removed for WTA as they don't provide it
-      ],
     );
   }
 
@@ -512,32 +475,6 @@ class PlayerDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimpleStat(String label, String value, Color color) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      borderRadius: 20,
-      opacity: 0.1,
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
           ),
         ],
       ),

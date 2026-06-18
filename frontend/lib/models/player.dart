@@ -1,4 +1,4 @@
-import '../services/api_service.dart';
+import '../widgets/ranking_graph.dart';
 
 class Player {
   final int id;
@@ -19,6 +19,9 @@ class Player {
   final String? gender;
   final String? source;
   final DateTime? lastUpdated;
+  final List<RankingPoint>? rankingHistory;
+  final int? careerHighRank;
+  final DateTime? careerHighDate;
 
   Player({
     required this.id,
@@ -39,6 +42,9 @@ class Player {
     this.gender,
     this.source,
     this.lastUpdated,
+    this.rankingHistory,
+    this.careerHighRank,
+    this.careerHighDate,
   });
 
   int? get age {
@@ -72,13 +78,23 @@ class Player {
       losses: json['losses'] ?? 0,
       turnedPro: json['turned_pro'],
       prizeMoney: json['prize_money'],
-      imageUrl: json['image_url'] != null
-          ? ApiService.getProxyImageUrl(json['image_url'])
-          : null,
+      imageUrl: json['image_url'],
       gender: json['gender'],
       source: json['source'],
       lastUpdated: json['last_updated'] != null
           ? DateTime.parse(json['last_updated'])
+          : null,
+      rankingHistory: json['ranking_history'] != null
+          ? (json['ranking_history'] as List)
+              .map((item) => RankingPoint(
+                    ranking: item['ranking'],
+                    date: DateTime.parse(item['date']),
+                  ))
+              .toList()
+          : null,
+      careerHighRank: json['career_high_rank'],
+      careerHighDate: json['career_high_date'] != null
+          ? DateTime.parse(json['career_high_date'])
           : null,
     );
   }

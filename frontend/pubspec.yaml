@@ -25,6 +25,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/players.json
+    - assets/data/player_histories.json
     - assets/data/tt_players.json
     - assets/data/tt_player_histories.json
     - assets/data/football_national_teams.json

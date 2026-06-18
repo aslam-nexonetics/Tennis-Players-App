@@ -26,9 +26,16 @@ class PlayerCreate(PlayerBase):
 class PlayerUpdate(PlayerBase):
     name: Optional[str] = None
 
+class PlayerRankingHistoryPoint(BaseModel):
+    ranking: int
+    date: date
+
 class Player(PlayerBase):
     id: int
     last_updated: Optional[datetime] = None
+    ranking_history: Optional[List[PlayerRankingHistoryPoint]] = None
+    career_high_rank: Optional[int] = None
+    career_high_date: Optional[date] = None
 
     class Config:
         from_attributes = True

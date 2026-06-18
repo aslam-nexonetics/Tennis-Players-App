@@ -719,8 +719,10 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               ),
               const SizedBox(height: 10),
               ComparisonRankingGraph(
-                playerA: a,
-                playerB: b,
+                pointsA: a.rankingHistory ?? [],
+                pointsB: b.rankingHistory ?? [],
+                nameA: a.name,
+                nameB: b.name,
                 colorA: _kGreen,
                 colorB: _kPurple,
               ),

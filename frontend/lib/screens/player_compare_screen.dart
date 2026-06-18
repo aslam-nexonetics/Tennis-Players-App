@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../models/player.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
+import '../widgets/ranking_graph.dart';
 
 class PlayerCompareScreen extends StatefulWidget {
   final Player? playerA;
@@ -20,6 +20,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
 
   bool _searchingA = false;
   bool _searchingB = false;
+  bool _comparing = false;
 
   List<Player> _resultsA = [];
   List<Player> _resultsB = [];
@@ -148,12 +149,34 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     FocusScope.of(context).unfocus();
   }
 
-  void _compare() {
+  Future<void> _compare() async {
     if (_playerA != null && _playerB != null) {
       setState(() {
-        _showComparison = true;
+        _comparing = true;
+        _showComparison = false;
       });
-      _fadeCtrl.forward(from: 0);
+      try {
+        final detailedA = await ApiService().getPlayerDetail(_playerA!.id);
+        final detailedB = await ApiService().getPlayerDetail(_playerB!.id);
+        setState(() {
+          _playerA = detailedA;
+          _playerB = detailedB;
+          _showComparison = true;
+        });
+        _fadeCtrl.forward(from: 0);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to fetch comparison details: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _comparing = false;
+          });
+        }
+      }
     }
   }
 
@@ -187,7 +210,16 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
                     const SizedBox(height: 20),
                     _buildSelectionArea(),
                     const SizedBox(height: 20),
-                    if (_showComparison)
+                    if (_comparing)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                          ),
+                        ),
+                      )
+                    else if (_showComparison)
                       _buildComparisonResults()
                     else
                       _buildPlaceholder(),
@@ -270,7 +302,7 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               ),
               child: ElevatedButton(
                 onPressed:
-                    (_playerA != null && _playerB != null) ? _compare : null,
+                    (_playerA != null && _playerB != null && !_comparing) ? _compare : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
@@ -607,10 +639,68 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     );
   }
 
-  String _winRate(Player p) {
-    final total = p.wins + p.losses;
-    if (total == 0) return '0.0%';
-    return '${(p.wins / total * 100).toStringAsFixed(1)}%';
+  Widget _buildTimelineComparison(Player a, Player b) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('RANKING TIMELINE COMPARISON',
+            style: TextStyle(
+                color: Color(0xFF1D1D1F),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1)),
+        const SizedBox(height: 12),
+        GlassContainer(
+          borderRadius: 20,
+          opacity: 0.1,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF0F9D58),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    a.name,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 24),
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF5856D6),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    b.name,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ComparisonRankingGraph(
+                pointsA: a.rankingHistory ?? [],
+                pointsB: b.rankingHistory ?? [],
+                nameA: a.name,
+                nameB: b.name,
+                colorA: const Color(0xFF0F9D58),
+                colorB: const Color(0xFF5856D6),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildComparisonResults() {
@@ -622,6 +712,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
       child: Column(
         children: [
           _buildSummaryCard(a, b),
+          const SizedBox(height: 20),
+          _buildTimelineComparison(a, b),
           const SizedBox(height: 20),
           _buildStatsSummary(a, b),
           const SizedBox(height: 20),
@@ -735,11 +827,6 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
             ],
           ),
           const SizedBox(height: 6),
-          Text(p.playingStyle ?? "R-H",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.grey, fontSize: 10)),
-          const SizedBox(height: 4),
           Text('Rank ${p.ranking ?? "N/A"}',
               style: TextStyle(
                   color: accentColor,
@@ -776,19 +863,8 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               _buildStatRow('Highest Rank', '#${a.highestRanking ?? "N/A"}',
                   '#${b.highestRanking ?? "N/A"}',
                   lowerIsBetter: true),
-              _buildStatRow('Win Rate', _winRate(a), _winRate(b)),
-              _buildStatRow('Wins', '${a.wins}', '${b.wins}'),
-              _buildStatRow('Losses', '${a.losses}', '${b.losses}',
-                  lowerIsBetter: true),
               _buildStatRow(
                   'Prize Money', a.prizeMoney ?? 'N/A', b.prizeMoney ?? 'N/A',
-                  isNumeric: false),
-              _buildStatRow(
-                  'Turned Pro', a.turnedPro ?? 'N/A', b.turnedPro ?? 'N/A',
-                  isNumeric: false),
-              _buildStatRow('Height', a.height ?? 'N/A', b.height ?? 'N/A',
-                  isNumeric: false),
-              _buildStatRow('Weight', a.weight ?? 'N/A', b.weight ?? 'N/A',
                   isNumeric: false),
             ],
           ),
@@ -969,13 +1045,11 @@ class _Avatar extends StatelessWidget {
       ),
       child: ClipOval(
         child: imageUrl != null
-            ? CachedNetworkImage(
-                imageUrl: imageUrl!,
+            ? Image.network(
+                imageUrl!,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
-                placeholder: (context, url) =>
-                    Container(color: Colors.grey[200]),
-                errorWidget: (_, __, ___) => _initials(),
+                errorBuilder: (_, __, ___) => _initials(),
               )
             : _initials(),
       ),

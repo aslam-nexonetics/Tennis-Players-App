@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/player_provider.dart';
 import '../widgets/glass_widgets.dart';
 import 'player_detail_screen.dart';
@@ -168,10 +167,8 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                               child: ClipOval(
                                 child: player.imageUrl != null
-                                    ? Image(
-                                        image: CachedNetworkImageProvider(
-                                          player.imageUrl!,
-                                        ),
+                                    ? Image.network(
+                                        player.imageUrl!,
                                         fit: BoxFit.cover,
                                         alignment: Alignment.topCenter,
                                         errorBuilder: (_, __, ___) =>
