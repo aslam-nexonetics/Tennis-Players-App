@@ -71,7 +71,8 @@ ASSOC_TO_COUNTRY = {
 WEEK_DATE_FALLBACKS = {
     23: date(2026, 6, 2),
     24: date(2026, 6, 9),
-    25: date(2026, 6, 16)
+    25: date(2026, 6, 16),
+    26: date(2026, 6, 23)
 }
 
 def clean_name(name_str):
