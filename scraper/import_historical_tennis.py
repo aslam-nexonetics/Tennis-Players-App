@@ -48,7 +48,12 @@ def get_atp_dates():
             if select:
                 for opt in select.find_all("option"):
                     val = opt.get("value")
-                    if val and val != "Current Week" and re.match(r"^\d{4}-\d{2}-\d{2}$", val):
+                    text = opt.text.strip()
+                    if val == "Current Week":
+                        date_str = text.replace(".", "-")
+                        if re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+                            dates.append(date_str)
+                    elif val and re.match(r"^\d{4}-\d{2}-\d{2}$", val):
                         dates.append(val)
             browser.close()
     except Exception as e:
