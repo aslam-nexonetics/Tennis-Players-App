@@ -72,7 +72,9 @@ WEEK_DATE_FALLBACKS = {
     23: date(2026, 6, 2),
     24: date(2026, 6, 9),
     25: date(2026, 6, 16),
-    26: date(2026, 6, 23)
+    26: date(2026, 6, 23),
+    27: date(2026, 6, 30),
+    28: date(2026, 7, 7)
 }
 
 def clean_name(name_str):
@@ -83,26 +85,20 @@ def clean_name(name_str):
     name_str = re.sub(r'\s+', ' ', name_str)
     return name_str.strip()
 
-def resolve_player(db, name, country, gender):
-    """Find or create TableTennisHistoricalPlayer."""
+def resolve_player(db, name, country, gender, player_caches):
+    """Find or create TableTennisHistoricalPlayer and return player_id."""
     name_cleaned = clean_name(name)
     normalized_name = name_cleaned.lower()
     
-    # 1. Try matching "First Last" order case-insensitively
-    player = db.query(TableTennisHistoricalPlayer).filter(
-        func.lower(func.concat(TableTennisHistoricalPlayer.first_name, " ", TableTennisHistoricalPlayer.last_name)) == normalized_name
-    ).first()
-    
-    if player:
-        return player
+    # 1. Try matching "First Last" order case-insensitively in cache
+    player_id = player_caches["first_last"].get(normalized_name)
+    if player_id:
+        return player_id
         
-    # 2. Try matching "Last First" order case-insensitively
-    player = db.query(TableTennisHistoricalPlayer).filter(
-        func.lower(func.concat(TableTennisHistoricalPlayer.last_name, " ", TableTennisHistoricalPlayer.first_name)) == normalized_name
-    ).first()
-    
-    if player:
-        return player
+    # 2. Try matching "Last First" order case-insensitively in cache
+    player_id = player_caches["last_first"].get(normalized_name)
+    if player_id:
+        return player_id
         
     # 3. Create a new player
     # Standard splitting: First word as first_name, rest as last_name
@@ -126,7 +122,16 @@ def resolve_player(db, name, country, gender):
     )
     db.add(player)
     db.flush() # Populate ID
-    return player
+    
+    player_id = player.id
+    
+    # Add to caches
+    fl = f"{first_name} {last_name}".strip().lower()
+    lf = f"{last_name} {first_name}".strip().lower()
+    if fl: player_caches["first_last"][fl] = player_id
+    if lf: player_caches["last_first"][lf] = player_id
+    
+    return player_id
 
 def parse_html_date(soup, week_num):
     """Attempts to find a date in the HTML page."""
@@ -252,7 +257,7 @@ def parse_rankings_table(soup):
             
     return rankings_data
 
-def process_file(db, filepath):
+def process_file(db, filepath, player_caches):
     """Processes a single ITTF HTML file and saves rankings to DB."""
     filename = os.path.basename(filepath)
     log.info(f"\n==========================================")
@@ -292,27 +297,33 @@ def process_file(db, filepath):
         log.warning(f"No rankings found in {filename}")
         return
         
+    # Cache existing rankings for this target date to avoid N+1 query overhead
+    log.info("Querying existing rankings for target date...")
+    existing_rankings = db.query(TableTennisHistoricalRanking).filter_by(
+        ranking_year=year,
+        ranking_month=month,
+        ranking_date=day
+    ).all()
+    log.info(f"Found {len(existing_rankings)} existing rankings. Building ID set...")
+    existing_player_ids = {rk.player_id for rk in existing_rankings}
+    log.info(f"ID set built. Starting to process {len(rankings_list)} rankings...")
+    
     added_count = 0
     skipped_count = 0
     
-    for r in rankings_list:
+    for idx, r in enumerate(rankings_list):
+        if idx > 0 and idx % 100 == 0:
+            log.info(f"Processed {idx}/{len(rankings_list)} rankings...")
         try:
-            player = resolve_player(db, r["name"], r["assoc"], gender)
+            player_id = resolve_player(db, r["name"], r["assoc"], gender, player_caches)
             
-            # Check for duplicates
-            existing = db.query(TableTennisHistoricalRanking).filter_by(
-                player_id=player.id,
-                ranking_year=year,
-                ranking_month=month,
-                ranking_date=day
-            ).first()
-            
-            if existing:
+            # Check for duplicates in memory
+            if player_id in existing_player_ids:
                 skipped_count += 1
                 continue
                 
             new_rank = TableTennisHistoricalRanking(
-                player_id=player.id,
+                player_id=player_id,
                 points=r["points"],
                 rank=r["rank"],
                 ranking_year=year,
@@ -320,15 +331,18 @@ def process_file(db, filepath):
                 ranking_date=day
             )
             db.add(new_rank)
+            existing_player_ids.add(player_id)
             added_count += 1
             
             # Commit periodically to keep memory usage low
             if added_count % 100 == 0:
+                log.info(f"Committing batch of {added_count} rankings...")
                 db.commit()
         except Exception as e:
             log.error(f"Error saving ranking for {r.get('name')}: {e}")
             db.rollback()
             
+    log.info("Final commit for file...")
     db.commit()
     log.info(f"Completed {filename}: Saved {added_count} rankings, skipped {skipped_count} duplicates.")
 
@@ -340,12 +354,30 @@ def main():
         
     db = SessionLocal()
     try:
+        # Load and cache all players
+        log.info("Loading and caching players from database...")
+        all_players = db.query(TableTennisHistoricalPlayer).all()
+        first_last_cache = {}
+        last_first_cache = {}
+        for p in all_players:
+            first_name = p.first_name or ""
+            last_name = p.last_name or ""
+            fl = f"{first_name} {last_name}".strip().lower()
+            lf = f"{last_name} {first_name}".strip().lower()
+            if fl: first_last_cache[fl] = p.id
+            if lf: last_first_cache[lf] = p.id
+            
+        player_caches = {
+            "first_last": first_last_cache,
+            "last_first": last_first_cache
+        }
+        
         files = [os.path.join(scraped_dir, f) for f in os.listdir(scraped_dir) if f.endswith(".html")]
         files.sort()
         
         log.info(f"Found {len(files)} files to process in {scraped_dir}")
         for filepath in files:
-            process_file(db, filepath)
+            process_file(db, filepath, player_caches)
             
         log.info("\nHistorical Table Tennis ranking import complete!")
     finally:
