@@ -123,16 +123,27 @@ class TtPlayerService:
         return TtPlayerService.map_historical_player(db, p, include_history=True)
 
     @staticmethod
-    def get_players(db: Session, skip: int = 0, limit: int = 100, gender: Optional[str] = None):
-        latest_date = db.query(
+    def _latest_ranking_date(db: Session, gender: Optional[str] = None):
+        query = db.query(
             TableTennisHistoricalRanking.ranking_year,
             TableTennisHistoricalRanking.ranking_month,
             TableTennisHistoricalRanking.ranking_date
-        ).order_by(
+        ).join(
+            TableTennisHistoricalPlayer,
+            TableTennisHistoricalPlayer.id == TableTennisHistoricalRanking.player_id
+        )
+        if gender:
+            g_val = 0 if gender == 'M' else 1
+            query = query.filter(TableTennisHistoricalPlayer.gender == g_val)
+        return query.order_by(
             TableTennisHistoricalRanking.ranking_year.desc(),
             TableTennisHistoricalRanking.ranking_month.desc(),
             TableTennisHistoricalRanking.ranking_date.desc()
         ).first()
+
+    @staticmethod
+    def get_players(db: Session, skip: int = 0, limit: int = 100, gender: Optional[str] = None):
+        latest_date = TtPlayerService._latest_ranking_date(db, gender)
 
         if not latest_date:
             return [], 0
@@ -166,15 +177,7 @@ class TtPlayerService:
 
     @staticmethod
     def search_players(db: Session, query: str, skip: int = 0, limit: int = 20, gender: Optional[str] = None):
-        latest_date = db.query(
-            TableTennisHistoricalRanking.ranking_year,
-            TableTennisHistoricalRanking.ranking_month,
-            TableTennisHistoricalRanking.ranking_date
-        ).order_by(
-            TableTennisHistoricalRanking.ranking_year.desc(),
-            TableTennisHistoricalRanking.ranking_month.desc(),
-            TableTennisHistoricalRanking.ranking_date.desc()
-        ).first()
+        latest_date = TtPlayerService._latest_ranking_date(db, gender)
 
         ly, lm, ld = latest_date if latest_date else (0, 0, 0)
 
@@ -210,15 +213,7 @@ class TtPlayerService:
 
     @staticmethod
     def get_top_players(db: Session, limit: int = 50, gender: Optional[str] = None):
-        latest_date = db.query(
-            TableTennisHistoricalRanking.ranking_year,
-            TableTennisHistoricalRanking.ranking_month,
-            TableTennisHistoricalRanking.ranking_date
-        ).order_by(
-            TableTennisHistoricalRanking.ranking_year.desc(),
-            TableTennisHistoricalRanking.ranking_month.desc(),
-            TableTennisHistoricalRanking.ranking_date.desc()
-        ).first()
+        latest_date = TtPlayerService._latest_ranking_date(db, gender)
 
         if not latest_date:
             return []

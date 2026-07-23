@@ -11,9 +11,9 @@ import '../models/basketball_club.dart';
 import '../widgets/ranking_graph.dart';
 
 class ApiService {
-  // Toggle Switch: set to true to run fully client-side on local JSON exports.
-  // Set to false to hit the remote Render backend service.
-  static bool useLocalDatabase = true;
+  // Toggle Switch: set to false to use the backend service by default.
+  // Local JSON exports are stale and contain duplicate ranking entries.
+  static bool useLocalDatabase = false;
 
   static String get baseUrl {
     if (kIsWeb) {
@@ -82,6 +82,218 @@ class ApiService {
     }
   }
 
+  Future<T> _tryRemote<T>(Future<T> Function() remote, Future<T> Function() local) async {
+    try {
+      return await remote();
+    } catch (_) {
+      // If the backend is unavailable, fall back to local JSON data so the UI still works.
+      // Do not toggle the global `useLocalDatabase` flag here so the app will retry
+      // the backend on subsequent requests (once it becomes available).
+      await _loadLocalDataIfNeeded();
+      return await local();
+    }
+  }
+
+  Future<PlayerListResponse> _getPlayersLocal({
+    int page = 1,
+    int size = 20,
+    String? gender,
+  }) async {
+    await _loadLocalDataIfNeeded();
+    var list = _localPlayers!.where((p) => p.ranking != null).toList();
+    if (gender != null) {
+      list = list.where((p) => p.gender == gender).toList();
+    }
+    list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
+    final total = list.length;
+    final start = (page - 1) * size;
+    if (start >= total) {
+      return PlayerListResponse(items: [], total: total, page: page, size: size);
+    }
+    final end = (start + size).clamp(0, total);
+    final items = list.sublist(start, end);
+    return PlayerListResponse(items: items, total: total, page: page, size: size);
+  }
+
+  Future<PlayerListResponse> _searchPlayersLocal(
+    String query, {
+    int page = 1,
+    int size = 20,
+    String? gender,
+  }) async {
+    await _loadLocalDataIfNeeded();
+    final q = query.toLowerCase();
+    var list = _localPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
+    if (gender != null) {
+      list = list.where((p) => p.gender == gender).toList();
+    }
+    list.sort((a, b) {
+      final aPref = a.name.toLowerCase().startsWith(q);
+      final bPref = b.name.toLowerCase().startsWith(q);
+      if (aPref && !bPref) return -1;
+      if (!aPref && bPref) return 1;
+      return (a.ranking ?? 9999).compareTo(b.ranking ?? 9999);
+    });
+    final total = list.length;
+    final start = (page - 1) * size;
+    if (start >= total) {
+      return PlayerListResponse(items: [], total: total, page: page, size: size);
+    }
+    final end = (start + size).clamp(0, total);
+    final items = list.sublist(start, end);
+    return PlayerListResponse(items: items, total: total, page: page, size: size);
+  }
+
+  Future<Player> _getPlayerDetailLocal(int id) async {
+    await _loadLocalDataIfNeeded();
+    await _loadTennisHistoriesIfNeeded();
+    final base = _localPlayers!.firstWhere(
+      (p) => p.id == id,
+      orElse: () => throw Exception('Player not found'),
+    );
+    final rawHistory = _localTennisHistories![id.toString()];
+    List<RankingPoint>? history;
+    if (rawHistory != null) {
+      history = (rawHistory as List).map((item) => RankingPoint(
+            ranking: item['ranking'] as int,
+            date: DateTime.parse(item['date'] as String),
+          )).toList();
+    }
+    return Player(
+      id: base.id,
+      name: base.name,
+      country: base.country,
+      ranking: base.ranking,
+      highestRanking: base.highestRanking,
+      highestRankingDate: base.highestRankingDate,
+      birthDate: base.birthDate,
+      height: base.height,
+      weight: base.weight,
+      playingStyle: base.playingStyle,
+      wins: base.wins,
+      losses: base.losses,
+      turnedPro: base.turnedPro,
+      prizeMoney: base.prizeMoney,
+      imageUrl: base.imageUrl,
+      source: base.source,
+      gender: base.gender,
+      lastUpdated: base.lastUpdated,
+      rankingHistory: history,
+      careerHighRank: base.careerHighRank,
+      careerHighDate: base.careerHighDate,
+    );
+  }
+
+  Future<List<Player>> _getTopPlayersLocal({
+    int limit = 10,
+    String? gender,
+  }) async {
+    await _loadLocalDataIfNeeded();
+    var list = _localPlayers!.where((p) => p.ranking != null).toList();
+    if (gender != null) {
+      list = list.where((p) => p.gender == gender).toList();
+    }
+    list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
+    return list.take(limit).toList();
+  }
+
+  Future<TtPlayerListResponse> _getTtPlayersLocal({
+    int page = 1,
+    int size = 20,
+    String? gender,
+  }) async {
+    await _loadLocalDataIfNeeded();
+    var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
+    if (gender != null) {
+      list = list.where((p) => p.gender == gender).toList();
+    }
+    list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
+    final total = list.length;
+    final start = (page - 1) * size;
+    if (start >= total) {
+      return TtPlayerListResponse(items: [], total: total, page: page, size: size);
+    }
+    final end = (start + size).clamp(0, total);
+    final items = list.sublist(start, end);
+    return TtPlayerListResponse(items: items, total: total, page: page, size: size);
+  }
+
+  Future<TtPlayerListResponse> _searchTtPlayersLocal(
+    String query, {
+    int page = 1,
+    int size = 20,
+    String? gender,
+  }) async {
+    await _loadLocalDataIfNeeded();
+    final q = query.toLowerCase();
+    var list = _localTtPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
+    if (gender != null) {
+      list = list.where((p) => p.gender == gender).toList();
+    }
+    list.sort((a, b) {
+      final aPref = a.name.toLowerCase().startsWith(q);
+      final bPref = b.name.toLowerCase().startsWith(q);
+      if (aPref && !bPref) return -1;
+      if (!aPref && bPref) return 1;
+      return (a.ranking ?? 9999).compareTo(b.ranking ?? 9999);
+    });
+    final total = list.length;
+    final start = (page - 1) * size;
+    if (start >= total) {
+      return TtPlayerListResponse(items: [], total: total, page: page, size: size);
+    }
+    final end = (start + size).clamp(0, total);
+    final items = list.sublist(start, end);
+    return TtPlayerListResponse(items: items, total: total, page: page, size: size);
+  }
+
+  Future<TableTennisPlayer> _getTtPlayerDetailLocal(int id) async {
+    await _loadLocalDataIfNeeded();
+    await _loadTtHistoriesIfNeeded();
+    final base = _localTtPlayers!.firstWhere(
+      (p) => p.id == id,
+      orElse: () => throw Exception('TT Player not found'),
+    );
+    final rawHistory = _localTtHistories![id.toString()];
+    List<RankingPoint>? history;
+    if (rawHistory != null) {
+      history = (rawHistory as List).map((item) => RankingPoint(
+            ranking: item['ranking'] as int,
+            date: DateTime.parse(item['date'] as String),
+          )).toList();
+    }
+    return TableTennisPlayer(
+      id: base.id,
+      name: base.name,
+      country: base.country,
+      ranking: base.ranking,
+      birthDate: base.birthDate,
+      weight: base.weight,
+      playingStyle: base.playingStyle,
+      winPercentage: base.winPercentage,
+      imageUrl: base.imageUrl,
+      source: base.source,
+      gender: base.gender,
+      lastUpdated: base.lastUpdated,
+      rankingHistory: history,
+      careerHighRank: base.careerHighRank,
+      careerHighDate: base.careerHighDate,
+    );
+  }
+
+  Future<List<TableTennisPlayer>> _getTtTopPlayersLocal({
+    int limit = 50,
+    String? gender,
+  }) async {
+    await _loadLocalDataIfNeeded();
+    var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
+    if (gender != null) {
+      list = list.where((p) => p.gender == gender).toList();
+    }
+    list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
+    return list.take(limit).toList();
+  }
+
   // ── Tennis Players ─────────────────────────────────────────────────────────
 
   Future<PlayerListResponse> getPlayers({
@@ -90,32 +302,22 @@ class ApiService {
     String? gender,
   }) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      var list = _localPlayers!.where((p) => p.ranking != null).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-      list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-
-      final total = list.length;
-      final start = (page - 1) * size;
-      if (start >= total) {
-        return PlayerListResponse(items: [], total: total, page: page, size: size);
-      }
-      final end = (start + size).clamp(0, total);
-      final items = list.sublist(start, end);
-      return PlayerListResponse(items: items, total: total, page: page, size: size);
-    } else {
-      final genderParam = gender != null ? '&gender=$gender' : '';
-      final response = await http.get(
-        Uri.parse('$baseUrl/players/?page=$page&size=$size$genderParam'),
-      );
-      if (response.statusCode == 200) {
-        return PlayerListResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load players');
-      }
+      return _getPlayersLocal(page: page, size: size, gender: gender);
     }
+
+    return _tryRemote(
+      () async {
+        final genderParam = gender != null ? '&gender=$gender' : '';
+        final response = await http.get(
+          Uri.parse('$baseUrl/players/?page=$page&size=$size$genderParam'),
+        );
+        if (response.statusCode == 200) {
+          return PlayerListResponse.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to load players');
+      },
+      () => _getPlayersLocal(page: page, size: size, gender: gender),
+    );
   }
 
   Future<PlayerListResponse> searchPlayers(
@@ -125,93 +327,39 @@ class ApiService {
     String? gender,
   }) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      final q = query.toLowerCase();
-      var list = _localPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-
-      list.sort((a, b) {
-        final aPref = a.name.toLowerCase().startsWith(q);
-        final bPref = b.name.toLowerCase().startsWith(q);
-        if (aPref && !bPref) return -1;
-        if (!aPref && bPref) return 1;
-        return (a.ranking ?? 9999).compareTo(b.ranking ?? 9999);
-      });
-
-      final total = list.length;
-      final start = (page - 1) * size;
-      if (start >= total) {
-        return PlayerListResponse(items: [], total: total, page: page, size: size);
-      }
-      final end = (start + size).clamp(0, total);
-      final items = list.sublist(start, end);
-      return PlayerListResponse(items: items, total: total, page: page, size: size);
-    } else {
-      final genderParam = gender != null ? '&gender=$gender' : '';
-      final response = await http.get(
-        Uri.parse(
-          '$baseUrl/players/search?q=$query&page=$page&size=$size$genderParam',
-        ),
-      );
-      if (response.statusCode == 200) {
-        return PlayerListResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to search players');
-      }
+      return _searchPlayersLocal(query, page: page, size: size, gender: gender);
     }
+
+    return _tryRemote(
+      () async {
+        final genderParam = gender != null ? '&gender=$gender' : '';
+        final response = await http.get(
+          Uri.parse('$baseUrl/players/search?q=$query&page=$page&size=$size$genderParam'),
+        );
+        if (response.statusCode == 200) {
+          return PlayerListResponse.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to search players');
+      },
+      () => _searchPlayersLocal(query, page: page, size: size, gender: gender),
+    );
   }
 
   Future<Player> getPlayerDetail(int id) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      await _loadTennisHistoriesIfNeeded();
-      final base = _localPlayers!.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('Player not found'),
-      );
-
-      final rawHistory = _localTennisHistories![id.toString()];
-      List<RankingPoint>? history;
-      if (rawHistory != null) {
-        history = (rawHistory as List).map((item) => RankingPoint(
-          ranking: item['ranking'] as int,
-          date: DateTime.parse(item['date'] as String),
-        )).toList();
-      }
-
-      return Player(
-        id: base.id,
-        name: base.name,
-        country: base.country,
-        ranking: base.ranking,
-        highestRanking: base.highestRanking,
-        highestRankingDate: base.highestRankingDate,
-        birthDate: base.birthDate,
-        height: base.height,
-        weight: base.weight,
-        playingStyle: base.playingStyle,
-        wins: base.wins,
-        losses: base.losses,
-        turnedPro: base.turnedPro,
-        prizeMoney: base.prizeMoney,
-        imageUrl: base.imageUrl,
-        source: base.source,
-        gender: base.gender,
-        lastUpdated: base.lastUpdated,
-        rankingHistory: history,
-        careerHighRank: base.careerHighRank,
-        careerHighDate: base.careerHighDate,
-      );
-    } else {
-      final response = await http.get(Uri.parse('$baseUrl/players/$id'));
-      if (response.statusCode == 200) {
-        return Player.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load player details');
-      }
+      return _getPlayerDetailLocal(id);
     }
+
+    return _tryRemote(
+      () async {
+        final response = await http.get(Uri.parse('$baseUrl/players/$id'));
+        if (response.statusCode == 200) {
+          return Player.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to load player details');
+      },
+      () => _getPlayerDetailLocal(id),
+    );
   }
 
   Future<H2HResponse> getH2H(int p1Id, int p2Id) async {
@@ -317,25 +465,23 @@ class ApiService {
 
   Future<List<Player>> getTopPlayers({int limit = 10, String? gender}) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      var list = _localPlayers!.where((p) => p.ranking != null).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-      list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-      return list.take(limit).toList();
-    } else {
-      final genderParam = gender != null ? '&gender=$gender' : '';
-      final response = await http.get(
-        Uri.parse('$baseUrl/players/top?limit=$limit$genderParam'),
-      );
-      if (response.statusCode == 200) {
-        final List data = json.decode(response.body);
-        return data.map((i) => Player.fromJson(i)).toList();
-      } else {
-        throw Exception('Failed to load top players');
-      }
+      return _getTopPlayersLocal(limit: limit, gender: gender);
     }
+
+    return _tryRemote(
+      () async {
+        final genderParam = gender != null ? '&gender=$gender' : '';
+        final response = await http.get(
+          Uri.parse('$baseUrl/players/top?limit=$limit$genderParam'),
+        );
+        if (response.statusCode == 200) {
+          final List data = json.decode(response.body);
+          return data.map((i) => Player.fromJson(i)).toList();
+        }
+        throw Exception('Failed to load top players');
+      },
+      () => _getTopPlayersLocal(limit: limit, gender: gender),
+    );
   }
 
   // ── Table Tennis ─────────────────────────────────────────────────────────
@@ -346,31 +492,21 @@ class ApiService {
     String? gender,
   }) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-      list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-
-      final total = list.length;
-      final start = (page - 1) * size;
-      if (start >= total) {
-        return TtPlayerListResponse(items: [], total: total, page: page, size: size);
-      }
-      final end = (start + size).clamp(0, total);
-      final items = list.sublist(start, end);
-      return TtPlayerListResponse(items: items, total: total, page: page, size: size);
-    } else {
-      var url = '$baseUrl/tt-players/?page=$page&size=$size';
-      if (gender != null) url += '&gender=$gender';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return TtPlayerListResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load TT players');
-      }
+      return _getTtPlayersLocal(page: page, size: size, gender: gender);
     }
+
+    return _tryRemote(
+      () async {
+        var url = '$baseUrl/tt-players/?page=$page&size=$size';
+        if (gender != null) url += '&gender=$gender';
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          return TtPlayerListResponse.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to load TT players');
+      },
+      () => _getTtPlayersLocal(page: page, size: size, gender: gender),
+    );
   }
 
   Future<TtPlayerListResponse> searchTtPlayers(
@@ -380,88 +516,38 @@ class ApiService {
     String? gender,
   }) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      final q = query.toLowerCase();
-      var list = _localTtPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-
-      list.sort((a, b) {
-        final aPref = a.name.toLowerCase().startsWith(q);
-        final bPref = b.name.toLowerCase().startsWith(q);
-        if (aPref && !bPref) return -1;
-        if (!aPref && bPref) return 1;
-        return (a.ranking ?? 9999).compareTo(b.ranking ?? 9999);
-      });
-
-      final total = list.length;
-      final start = (page - 1) * size;
-      if (start >= total) {
-        return TtPlayerListResponse(items: [], total: total, page: page, size: size);
-      }
-      final end = (start + size).clamp(0, total);
-      final items = list.sublist(start, end);
-      return TtPlayerListResponse(items: items, total: total, page: page, size: size);
-    } else {
-      var url = '$baseUrl/tt-players/search?q=$query&page=$page&size=$size';
-      if (gender != null) url += '&gender=$gender';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return TtPlayerListResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to search TT players');
-      }
+      return _searchTtPlayersLocal(query, page: page, size: size, gender: gender);
     }
+
+    return _tryRemote(
+      () async {
+        var url = '$baseUrl/tt-players/search?q=$query&page=$page&size=$size';
+        if (gender != null) url += '&gender=$gender';
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          return TtPlayerListResponse.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to search TT players');
+      },
+      () => _searchTtPlayersLocal(query, page: page, size: size, gender: gender),
+    );
   }
 
   Future<TableTennisPlayer> getTtPlayerDetail(int id) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      // Load histories lazily (only when a detail screen is opened)
-      await _loadTtHistoriesIfNeeded();
-
-      final base = _localTtPlayers!.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('TT Player not found'),
-      );
-
-      // Merge ranking_history from the histories file
-      final rawHistory = _localTtHistories![id.toString()];
-      List<RankingPoint>? history;
-      if (rawHistory != null) {
-        history = (rawHistory as List).map((item) => RankingPoint(
-          ranking: item['ranking'] as int,
-          date: DateTime.parse(item['date'] as String),
-        )).toList();
-      }
-
-      // Return a new player object with history attached
-      return TableTennisPlayer(
-        id: base.id,
-        name: base.name,
-        country: base.country,
-        ranking: base.ranking,
-        birthDate: base.birthDate,
-        weight: base.weight,
-        playingStyle: base.playingStyle,
-        winPercentage: base.winPercentage,
-        imageUrl: base.imageUrl,
-        source: base.source,
-        gender: base.gender,
-        lastUpdated: base.lastUpdated,
-        rankingHistory: history,
-        careerHighRank: base.careerHighRank,
-        careerHighDate: base.careerHighDate,
-      );
-    } else {
-      final response = await http.get(Uri.parse('$baseUrl/tt-players/$id'));
-      if (response.statusCode == 200) {
-        return TableTennisPlayer.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load TT player details');
-      }
+      return _getTtPlayerDetailLocal(id);
     }
+
+    return _tryRemote(
+      () async {
+        final response = await http.get(Uri.parse('$baseUrl/tt-players/$id'));
+        if (response.statusCode == 200) {
+          return TableTennisPlayer.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to load TT player details');
+      },
+      () => _getTtPlayerDetailLocal(id),
+    );
   }
 
   Future<List<TableTennisPlayer>> getTtTopPlayers({
@@ -469,24 +555,22 @@ class ApiService {
     String? gender,
   }) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
-      if (gender != null) {
-        list = list.where((p) => p.gender == gender).toList();
-      }
-      list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-      return list.take(limit).toList();
-    } else {
-      var url = '$baseUrl/tt-players/top?limit=$limit';
-      if (gender != null) url += '&gender=$gender';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final List data = json.decode(response.body);
-        return data.map((i) => TableTennisPlayer.fromJson(i)).toList();
-      } else {
-        throw Exception('Failed to load top TT players');
-      }
+      return _getTtTopPlayersLocal(limit: limit, gender: gender);
     }
+
+    return _tryRemote(
+      () async {
+        var url = '$baseUrl/tt-players/top?limit=$limit';
+        if (gender != null) url += '&gender=$gender';
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final List data = json.decode(response.body);
+          return data.map((i) => TableTennisPlayer.fromJson(i)).toList();
+        }
+        throw Exception('Failed to load top TT players');
+      },
+      () => _getTtTopPlayersLocal(limit: limit, gender: gender),
+    );
   }
 
   // ── Football ─────────────────────────────────────────────────────────────
