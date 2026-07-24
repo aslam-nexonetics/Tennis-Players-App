@@ -8,17 +8,19 @@ from datetime import date
 class PlayerService:
     @staticmethod
     def map_historical_player(db: Session, p: TennisHistoricalPlayer, rank: Optional[int] = None, include_history: bool = False):
-        # If rank is not provided, fetch the latest ranking
+        # If rank is not provided, fetch rank on the latest global ranking date for their gender
         if rank is None:
-            latest_r = db.query(TennisHistoricalRanking).filter(
-                TennisHistoricalRanking.player_id == p.id
-            ).order_by(
-                TennisHistoricalRanking.ranking_year.desc(),
-                TennisHistoricalRanking.ranking_month.desc(),
-                TennisHistoricalRanking.ranking_date.desc()
-            ).first()
-            if latest_r:
-                rank = latest_r.rank
+            latest_global = PlayerService._latest_ranking_date(db, 'M' if p.gender == 0 else 'F')
+            if latest_global:
+                ly, lm, ld = latest_global
+                latest_r = db.query(TennisHistoricalRanking).filter(
+                    TennisHistoricalRanking.player_id == p.id,
+                    TennisHistoricalRanking.ranking_year == ly,
+                    TennisHistoricalRanking.ranking_month == lm,
+                    TennisHistoricalRanking.ranking_date == ld
+                ).first()
+                if latest_r:
+                    rank = latest_r.rank
         
         # Try to match with old Player to get style, weight, height, wins, losses, turned_pro, image_url, etc.
         full_name = f"{p.first_name} {p.last_name}"

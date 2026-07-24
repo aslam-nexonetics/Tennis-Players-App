@@ -70,6 +70,24 @@ def map_all_historical_tt_players(db: Session):
             rankings_by_player[pid] = []
         rankings_by_player[pid].append(row)
 
+    print("  Fetching latest global ranking dates per gender...")
+    latest_m = db.execute(text("""
+        SELECT r.ranking_year, r.ranking_month, r.ranking_date 
+        FROM tt_rankings_historical r
+        JOIN tt_players_historical p ON r.player_id = p.id
+        WHERE p.gender = 0
+        ORDER BY r.ranking_year DESC, r.ranking_month DESC, r.ranking_date DESC
+        LIMIT 1
+    """)).fetchone()
+    latest_f = db.execute(text("""
+        SELECT r.ranking_year, r.ranking_month, r.ranking_date 
+        FROM tt_rankings_historical r
+        JOIN tt_players_historical p ON r.player_id = p.id
+        WHERE p.gender = 1
+        ORDER BY r.ranking_year DESC, r.ranking_month DESC, r.ranking_date DESC
+        LIMIT 1
+    """)).fetchone()
+
     print("  Mapping players...")
     player_list = []
     histories_dict = {}
@@ -78,9 +96,14 @@ def map_all_historical_tt_players(db: Session):
     for p in players:
         p_rankings = rankings_by_player.get(p.id, [])
 
-        # Latest rank (chronologically last); treat rank=0 as unranked (None)
+        # Assign current rank ONLY if player was ranked on the latest global ranking date for their gender
         latest_r = p_rankings[-1] if p_rankings else None
-        rank = latest_r[1] if (latest_r and latest_r[1] > 0) else None
+        target_date = latest_m if p.gender == 0 else latest_f
+        
+        rank = None
+        if latest_r and latest_r[1] > 0 and target_date:
+            if (latest_r[3], latest_r[4], latest_r[5]) == (target_date[0], target_date[1], target_date[2]):
+                rank = latest_r[1]
 
         # Build name variants for matching
         full_name = f"{p.first_name} {p.last_name}"

@@ -13,7 +13,7 @@ import '../widgets/ranking_graph.dart';
 class ApiService {
   // Toggle Switch: set to false to use the backend service by default.
   // Local JSON exports are stale and contain duplicate ranking entries.
-  static bool useLocalDatabase = false;
+  static bool useLocalDatabase = true;
 
   static String get baseUrl {
     if (kIsWeb) {
@@ -51,38 +51,47 @@ class ApiService {
       _localPlayers = decoded.map((item) => Player.fromJson(item)).toList();
     }
     if (_localTtPlayers == null) {
-      final jsonStr = await rootBundle.loadString('assets/data/tt_players.json');
+      final jsonStr =
+          await rootBundle.loadString('assets/data/tt_players.json');
       final List decoded = json.decode(jsonStr);
-      _localTtPlayers = decoded.map((item) => TableTennisPlayer.fromJson(item)).toList();
+      _localTtPlayers =
+          decoded.map((item) => TableTennisPlayer.fromJson(item)).toList();
     }
     if (_localFootballTeams == null) {
-      final jsonStr = await rootBundle.loadString('assets/data/football_national_teams.json');
+      final jsonStr = await rootBundle
+          .loadString('assets/data/football_national_teams.json');
       final List decoded = json.decode(jsonStr);
-      _localFootballTeams = decoded.map((item) => FootballNationalTeam.fromJson(item)).toList();
+      _localFootballTeams =
+          decoded.map((item) => FootballNationalTeam.fromJson(item)).toList();
     }
     if (_localBasketballClubs == null) {
-      final jsonStr = await rootBundle.loadString('assets/data/basketball_clubs.json');
+      final jsonStr =
+          await rootBundle.loadString('assets/data/basketball_clubs.json');
       final List decoded = json.decode(jsonStr);
-      _localBasketballClubs = decoded.map((item) => BasketballClub.fromJson(item)).toList();
+      _localBasketballClubs =
+          decoded.map((item) => BasketballClub.fromJson(item)).toList();
     }
   }
 
   /// Load the histories file lazily (only needed for detail screens)
   static Future<void> _loadTtHistoriesIfNeeded() async {
     if (_localTtHistories == null) {
-      final jsonStr = await rootBundle.loadString('assets/data/tt_player_histories.json');
+      final jsonStr =
+          await rootBundle.loadString('assets/data/tt_player_histories.json');
       _localTtHistories = json.decode(jsonStr) as Map<String, dynamic>;
     }
   }
 
   static Future<void> _loadTennisHistoriesIfNeeded() async {
     if (_localTennisHistories == null) {
-      final jsonStr = await rootBundle.loadString('assets/data/player_histories.json');
+      final jsonStr =
+          await rootBundle.loadString('assets/data/player_histories.json');
       _localTennisHistories = json.decode(jsonStr) as Map<String, dynamic>;
     }
   }
 
-  Future<T> _tryRemote<T>(Future<T> Function() remote, Future<T> Function() local) async {
+  Future<T> _tryRemote<T>(
+      Future<T> Function() remote, Future<T> Function() local) async {
     try {
       return await remote();
     } catch (_) {
@@ -108,11 +117,13 @@ class ApiService {
     final total = list.length;
     final start = (page - 1) * size;
     if (start >= total) {
-      return PlayerListResponse(items: [], total: total, page: page, size: size);
+      return PlayerListResponse(
+          items: [], total: total, page: page, size: size);
     }
     final end = (start + size).clamp(0, total);
     final items = list.sublist(start, end);
-    return PlayerListResponse(items: items, total: total, page: page, size: size);
+    return PlayerListResponse(
+        items: items, total: total, page: page, size: size);
   }
 
   Future<PlayerListResponse> _searchPlayersLocal(
@@ -123,7 +134,8 @@ class ApiService {
   }) async {
     await _loadLocalDataIfNeeded();
     final q = query.toLowerCase();
-    var list = _localPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
+    var list =
+        _localPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
     if (gender != null) {
       list = list.where((p) => p.gender == gender).toList();
     }
@@ -137,11 +149,13 @@ class ApiService {
     final total = list.length;
     final start = (page - 1) * size;
     if (start >= total) {
-      return PlayerListResponse(items: [], total: total, page: page, size: size);
+      return PlayerListResponse(
+          items: [], total: total, page: page, size: size);
     }
     final end = (start + size).clamp(0, total);
     final items = list.sublist(start, end);
-    return PlayerListResponse(items: items, total: total, page: page, size: size);
+    return PlayerListResponse(
+        items: items, total: total, page: page, size: size);
   }
 
   Future<Player> _getPlayerDetailLocal(int id) async {
@@ -154,10 +168,12 @@ class ApiService {
     final rawHistory = _localTennisHistories![id.toString()];
     List<RankingPoint>? history;
     if (rawHistory != null) {
-      history = (rawHistory as List).map((item) => RankingPoint(
-            ranking: item['ranking'] as int,
-            date: DateTime.parse(item['date'] as String),
-          )).toList();
+      history = (rawHistory as List)
+          .map((item) => RankingPoint(
+                ranking: item['ranking'] as int,
+                date: DateTime.parse(item['date'] as String),
+              ))
+          .toList();
     }
     return Player(
       id: base.id,
@@ -203,7 +219,9 @@ class ApiService {
     String? gender,
   }) async {
     await _loadLocalDataIfNeeded();
-    var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
+    var list = _localTtPlayers!
+        .where((p) => p.ranking != null && p.ranking! > 0)
+        .toList();
     if (gender != null) {
       list = list.where((p) => p.gender == gender).toList();
     }
@@ -211,11 +229,13 @@ class ApiService {
     final total = list.length;
     final start = (page - 1) * size;
     if (start >= total) {
-      return TtPlayerListResponse(items: [], total: total, page: page, size: size);
+      return TtPlayerListResponse(
+          items: [], total: total, page: page, size: size);
     }
     final end = (start + size).clamp(0, total);
     final items = list.sublist(start, end);
-    return TtPlayerListResponse(items: items, total: total, page: page, size: size);
+    return TtPlayerListResponse(
+        items: items, total: total, page: page, size: size);
   }
 
   Future<TtPlayerListResponse> _searchTtPlayersLocal(
@@ -226,7 +246,9 @@ class ApiService {
   }) async {
     await _loadLocalDataIfNeeded();
     final q = query.toLowerCase();
-    var list = _localTtPlayers!.where((p) => p.name.toLowerCase().contains(q)).toList();
+    var list = _localTtPlayers!
+        .where((p) => p.name.toLowerCase().contains(q))
+        .toList();
     if (gender != null) {
       list = list.where((p) => p.gender == gender).toList();
     }
@@ -240,11 +262,13 @@ class ApiService {
     final total = list.length;
     final start = (page - 1) * size;
     if (start >= total) {
-      return TtPlayerListResponse(items: [], total: total, page: page, size: size);
+      return TtPlayerListResponse(
+          items: [], total: total, page: page, size: size);
     }
     final end = (start + size).clamp(0, total);
     final items = list.sublist(start, end);
-    return TtPlayerListResponse(items: items, total: total, page: page, size: size);
+    return TtPlayerListResponse(
+        items: items, total: total, page: page, size: size);
   }
 
   Future<TableTennisPlayer> _getTtPlayerDetailLocal(int id) async {
@@ -257,10 +281,12 @@ class ApiService {
     final rawHistory = _localTtHistories![id.toString()];
     List<RankingPoint>? history;
     if (rawHistory != null) {
-      history = (rawHistory as List).map((item) => RankingPoint(
-            ranking: item['ranking'] as int,
-            date: DateTime.parse(item['date'] as String),
-          )).toList();
+      history = (rawHistory as List)
+          .map((item) => RankingPoint(
+                ranking: item['ranking'] as int,
+                date: DateTime.parse(item['date'] as String),
+              ))
+          .toList();
     }
     return TableTennisPlayer(
       id: base.id,
@@ -286,7 +312,9 @@ class ApiService {
     String? gender,
   }) async {
     await _loadLocalDataIfNeeded();
-    var list = _localTtPlayers!.where((p) => p.ranking != null && p.ranking! > 0).toList();
+    var list = _localTtPlayers!
+        .where((p) => p.ranking != null && p.ranking! > 0)
+        .toList();
     if (gender != null) {
       list = list.where((p) => p.gender == gender).toList();
     }
@@ -334,7 +362,8 @@ class ApiService {
       () async {
         final genderParam = gender != null ? '&gender=$gender' : '';
         final response = await http.get(
-          Uri.parse('$baseUrl/players/search?q=$query&page=$page&size=$size$genderParam'),
+          Uri.parse(
+              '$baseUrl/players/search?q=$query&page=$page&size=$size$genderParam'),
         );
         if (response.statusCode == 200) {
           return PlayerListResponse.fromJson(json.decode(response.body));
@@ -374,14 +403,30 @@ class ApiService {
         orElse: () => throw Exception('Player 2 not found'),
       );
 
-      final random = Random(p1Id ^ p2Id); // Seed with player IDs to make H2H results stable
+      final random = Random(
+          p1Id ^ p2Id); // Seed with player IDs to make H2H results stable
       final avgRank = ((p1.ranking ?? 100) + (p2.ranking ?? 100)) / 2;
       int numMatches = max(1, (20 - (avgRank / 5)).toInt() + random.nextInt(6));
       if (avgRank > 100) numMatches = random.nextInt(3) + 1;
 
       final surfaces = ["Hard", "Clay", "Grass"];
-      final rounds = ["Final", "Semifinal", "Quarterfinal", "Round of 16", "Round of 32"];
-      final tournaments = ["Miami Open", "Indian Wells", "Roland Garros", "Wimbledon", "US Open", "Australian Open", "Madrid Open", "Rome Masters"];
+      final rounds = [
+        "Final",
+        "Semifinal",
+        "Quarterfinal",
+        "Round of 16",
+        "Round of 32"
+      ];
+      final tournaments = [
+        "Miami Open",
+        "Indian Wells",
+        "Roland Garros",
+        "Wimbledon",
+        "US Open",
+        "Australian Open",
+        "Madrid Open",
+        "Rome Masters"
+      ];
 
       final List<H2HMatch> history = [];
       int p1Wins = 0;
@@ -418,7 +463,13 @@ class ApiService {
           }
         }
 
-        final scores = ['6-4, 7-5', '6-3, 6-4', '7-6, 6-2', '6-1, 6-3', '4-6, 7-5, 6-4'];
+        final scores = [
+          '6-4, 7-5',
+          '6-3, 6-4',
+          '7-6, 6-2',
+          '6-1, 6-3',
+          '4-6, 7-5, 6-4'
+        ];
 
         history.add(H2HMatch(
           year: year,
@@ -437,8 +488,10 @@ class ApiService {
         matchesPlayed: numMatches,
         player1Wins: p1Wins,
         player2Wins: p2Wins,
-        player1WinPct: double.parse((p1Wins / numMatches * 100).toStringAsFixed(1)),
-        player2WinPct: double.parse((p2Wins / numMatches * 100).toStringAsFixed(1)),
+        player1WinPct:
+            double.parse((p1Wins / numMatches * 100).toStringAsFixed(1)),
+        player2WinPct:
+            double.parse((p2Wins / numMatches * 100).toStringAsFixed(1)),
         hardCourtWins: hardWins,
         clayCourtWins: clayWins,
         grassCourtWins: grassWins,
@@ -516,7 +569,8 @@ class ApiService {
     String? gender,
   }) async {
     if (useLocalDatabase) {
-      return _searchTtPlayersLocal(query, page: page, size: size, gender: gender);
+      return _searchTtPlayersLocal(query,
+          page: page, size: size, gender: gender);
     }
 
     return _tryRemote(
@@ -529,7 +583,8 @@ class ApiService {
         }
         throw Exception('Failed to search TT players');
       },
-      () => _searchTtPlayersLocal(query, page: page, size: size, gender: gender),
+      () =>
+          _searchTtPlayersLocal(query, page: page, size: size, gender: gender),
     );
   }
 
@@ -584,7 +639,9 @@ class ApiService {
     if (useLocalDatabase) {
       await _loadLocalDataIfNeeded();
       final q = query.toLowerCase();
-      var list = _localFootballTeams!.where((p) => p.name.toLowerCase().contains(q)).toList();
+      var list = _localFootballTeams!
+          .where((p) => p.name.toLowerCase().contains(q))
+          .toList();
       if (category != null) {
         list = list.where((p) => p.category == category).toList();
       }
@@ -599,11 +656,13 @@ class ApiService {
       final total = list.length;
       final start = (page - 1) * size;
       if (start >= total) {
-        return FootballNationalTeamListResponse(items: [], total: total, page: page, size: size);
+        return FootballNationalTeamListResponse(
+            items: [], total: total, page: page, size: size);
       }
       final end = (start + size).clamp(0, total);
       final items = list.sublist(start, end);
-      return FootballNationalTeamListResponse(items: items, total: total, page: page, size: size);
+      return FootballNationalTeamListResponse(
+          items: items, total: total, page: page, size: size);
     } else {
       final categoryParam = category != null ? '&category=$category' : '';
       final response = await http.get(
@@ -654,11 +713,13 @@ class ApiService {
       final total = list.length;
       final start = (page - 1) * size;
       if (start >= total) {
-        return FootballNationalTeamListResponse(items: [], total: total, page: page, size: size);
+        return FootballNationalTeamListResponse(
+            items: [], total: total, page: page, size: size);
       }
       final end = (start + size).clamp(0, total);
       final items = list.sublist(start, end);
-      return FootballNationalTeamListResponse(items: items, total: total, page: page, size: size);
+      return FootballNationalTeamListResponse(
+          items: items, total: total, page: page, size: size);
     } else {
       final categoryParam = category != null ? '&category=$category' : '';
       final response = await http.get(
@@ -683,7 +744,8 @@ class ApiService {
   }) async {
     if (useLocalDatabase) {
       await _loadLocalDataIfNeeded();
-      var list = _localBasketballClubs!.where((p) => p.ranking != null).toList();
+      var list =
+          _localBasketballClubs!.where((p) => p.ranking != null).toList();
       if (category != null) {
         list = list.where((p) => p.category == category).toList();
       }
@@ -692,11 +754,13 @@ class ApiService {
       final total = list.length;
       final start = (page - 1) * size;
       if (start >= total) {
-        return BasketballClubListResponse(items: [], total: total, page: page, size: size);
+        return BasketballClubListResponse(
+            items: [], total: total, page: page, size: size);
       }
       final end = (start + size).clamp(0, total);
       final items = list.sublist(start, end);
-      return BasketballClubListResponse(items: items, total: total, page: page, size: size);
+      return BasketballClubListResponse(
+          items: items, total: total, page: page, size: size);
     } else {
       final categoryParam = category != null ? '&category=$category' : '';
       final response = await http.get(
@@ -740,11 +804,13 @@ class ApiService {
       final total = list.length;
       final start = (page - 1) * size;
       if (start >= total) {
-        return BasketballClubListResponse(items: [], total: total, page: page, size: size);
+        return BasketballClubListResponse(
+            items: [], total: total, page: page, size: size);
       }
       final end = (start + size).clamp(0, total);
       final items = list.sublist(start, end);
-      return BasketballClubListResponse(items: items, total: total, page: page, size: size);
+      return BasketballClubListResponse(
+          items: items, total: total, page: page, size: size);
     } else {
       final categoryParam = category != null ? '&category=$category' : '';
       final response = await http.get(
@@ -768,7 +834,8 @@ class ApiService {
         orElse: () => throw Exception('Basketball club not found'),
       );
     } else {
-      final response = await http.get(Uri.parse('$baseUrl/basketball-clubs/$id'));
+      final response =
+          await http.get(Uri.parse('$baseUrl/basketball-clubs/$id'));
       if (response.statusCode == 200) {
         return BasketballClub.fromJson(json.decode(response.body));
       } else {
@@ -810,4 +877,3 @@ class ApiService {
     }
   }
 }
-

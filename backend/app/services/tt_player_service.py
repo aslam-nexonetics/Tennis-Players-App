@@ -9,17 +9,19 @@ from datetime import date
 class TtPlayerService:
     @staticmethod
     def map_historical_player(db: Session, p: TableTennisHistoricalPlayer, rank: Optional[int] = None, include_history: bool = False):
-        # If rank is not provided, fetch the latest ranking
+        # If rank is not provided, fetch rank on the latest global ranking date for their gender
         if rank is None:
-            latest_r = db.query(TableTennisHistoricalRanking).filter(
-                TableTennisHistoricalRanking.player_id == p.id
-            ).order_by(
-                TableTennisHistoricalRanking.ranking_year.desc(),
-                TableTennisHistoricalRanking.ranking_month.desc(),
-                TableTennisHistoricalRanking.ranking_date.desc()
-            ).first()
-            if latest_r:
-                rank = latest_r.rank
+            latest_global = TtPlayerService._latest_ranking_date(db, 'M' if p.gender == 0 else 'F')
+            if latest_global:
+                ly, lm, ld = latest_global
+                latest_r = db.query(TableTennisHistoricalRanking).filter(
+                    TableTennisHistoricalRanking.player_id == p.id,
+                    TableTennisHistoricalRanking.ranking_year == ly,
+                    TableTennisHistoricalRanking.ranking_month == lm,
+                    TableTennisHistoricalRanking.ranking_date == ld
+                ).first()
+                if latest_r:
+                    rank = latest_r.rank
         
         # Try to match with old TableTennisPlayer to get style, weight, and win %
         full_name = f"{p.first_name} {p.last_name}"
