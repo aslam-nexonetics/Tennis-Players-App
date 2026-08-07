@@ -81,7 +81,7 @@ def clean_name(name_str):
     """Normalize player name (remove extra spaces, uppercase conversion)."""
     if not name_str:
         return ""
-    # Normalize unicode spaces and clean up
+    name_str = name_str.replace('^^', ' ')
     name_str = re.sub(r'\s+', ' ', name_str)
     return name_str.strip()
 
@@ -99,8 +99,15 @@ def resolve_player(db, name, country, gender, player_caches):
     player_id = player_caches["last_first"].get(normalized_name)
     if player_id:
         return player_id
+
+    # 3. Try matching outer tokens (first token + last token)
+    words = re.findall(r'\b[a-z]+\b', normalized_name)
+    if len(words) >= 2 and "tokens" in player_caches:
+        t_id = player_caches["tokens"].get((gender, words[0], words[-1]))
+        if t_id:
+            return t_id
         
-    # 3. Create a new player
+    # 4. Create a new player
     # Standard splitting: First word as first_name, rest as last_name
     parts = name_cleaned.split()
     if len(parts) > 1:
@@ -130,6 +137,8 @@ def resolve_player(db, name, country, gender, player_caches):
     lf = f"{last_name} {first_name}".strip().lower()
     if fl: player_caches["first_last"][fl] = player_id
     if lf: player_caches["last_first"][lf] = player_id
+    if len(words) >= 2 and "tokens" in player_caches:
+        player_caches["tokens"][(gender, words[0], words[-1])] = player_id
     
     return player_id
 

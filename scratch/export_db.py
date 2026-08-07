@@ -96,14 +96,11 @@ def map_all_historical_tt_players(db: Session):
     for p in players:
         p_rankings = rankings_by_player.get(p.id, [])
 
-        # Assign current rank ONLY if player was ranked on the latest global ranking date for their gender
+        # Assign current rank from their latest valid ranking record
         latest_r = p_rankings[-1] if p_rankings else None
-        target_date = latest_m if p.gender == 0 else latest_f
-        
         rank = None
-        if latest_r and latest_r[1] > 0 and target_date:
-            if (latest_r[3], latest_r[4], latest_r[5]) == (target_date[0], target_date[1], target_date[2]):
-                rank = latest_r[1]
+        if latest_r and latest_r[1] > 0:
+            rank = latest_r[1]
 
         # Build name variants for matching
         full_name = f"{p.first_name} {p.last_name}"
