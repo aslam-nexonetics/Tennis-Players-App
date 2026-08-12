@@ -7,3 +7,10 @@ python-dotenv
 pytest
 httpx
 psycopg2-binary
+pyjwt
+passlib[bcrypt]
+bcrypt
+email-validator
+python-multipart
+
+

@@ -4,12 +4,18 @@ import hashlib
 from fastapi import FastAPI, Response, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import players, tt_players, football_national_teams, basketball_clubs
+from app.api.endpoints import players, tt_players, football_national_teams, basketball_clubs, auth
 from app.db.session import engine, Base
+import app.models  # Import models to ensure they are registered with Base metadata
 import uvicorn
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Warning: Could not automatically create database tables on startup: {e}")
+
+
 
 # Ensure cache directory exists
 CACHE_DIR = "static/images"
@@ -80,10 +86,12 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Include routes
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(players.router, prefix="/players", tags=["Players"])
 app.include_router(tt_players.router, prefix="/tt-players", tags=["Table Tennis"])
 app.include_router(football_national_teams.router, prefix="/football-national-teams", tags=["Football National Teams"])
 app.include_router(basketball_clubs.router, prefix="/basketball-clubs", tags=["Basketball Clubs"])
+
 
 @app.post("/trigger", tags=["Admin"])
 def trigger_scraper():
