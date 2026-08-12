@@ -7,6 +7,7 @@ import 'providers/tt_player_provider.dart';
 import 'providers/football_national_team_provider.dart';
 import 'providers/basketball_club_provider.dart';
 import 'providers/sport_provider.dart';
+import 'providers/auth_provider.dart';
 import 'screens/search_screen.dart';
 import 'screens/top_players_screen.dart';
 import 'screens/tt_search_screen.dart';
@@ -19,6 +20,9 @@ import 'screens/player_compare_screen.dart';
 import 'screens/tt_player_compare_screen.dart';
 import 'screens/football_team_compare_screen.dart';
 import 'screens/basketball_club_compare_screen.dart';
+import 'screens/auth_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/landing_screen.dart';
 import 'widgets/glass_widgets.dart';
 
 void main() {
@@ -30,6 +34,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => FootballNationalTeamProvider()),
         ChangeNotifierProvider(create: (_) => BasketballClubProvider()),
         ChangeNotifierProvider(create: (_) => SportProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const TennisApp(),
     ),
@@ -62,10 +67,26 @@ class TennisApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const MainNavigation(),
+      home: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          if (!auth.isInitialized) {
+            return const Scaffold(
+              backgroundColor: Color(0xFF0F172A),
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+              ),
+            );
+          }
+          if (!auth.isLoggedIn) {
+            return const LandingScreen();
+          }
+          return const MainNavigation();
+        },
+      ),
     );
   }
 }
+
 
 // ── Breakpoints ──────────────────────────────────────────────────────────────
 const double _kCompactBreakpoint = 600; // below = mobile bottom nav
@@ -300,6 +321,9 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, Sport currentSport) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return AppBar(
       title: Row(
         mainAxisSize: MainAxisSize.min,
@@ -309,8 +333,104 @@ class _MainNavigationState extends State<MainNavigation> {
           Text(currentSport.name),
         ],
       ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: authProvider.isLoggedIn && user != null
+              ? GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: currentSport.accentColor.withOpacity(0.5)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: currentSport.accentColor,
+                          child: Text(
+                            user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          user.username,
+                          style: TextStyle(
+                            color: const Color(0xFF1D1D1F),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          currentSport.accentColor,
+                          currentSport.accentColor.withOpacity(0.8),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: currentSport.accentColor.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.person_outline_rounded, color: Colors.white, size: 16),
+                        SizedBox(width: 6),
+                        Text(
+                          'Sign In',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ],
     );
   }
+
 }
 
 // ── Sport Category Bar ───────────────────────────────────────────────────────
