@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <base href="/Tennis-Players-App/previews/feature-authentication/">
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sports Player Search — Find and compare Tennis and Table Tennis players worldwide.">
+  <meta name="theme-color" content="#5D5FEF">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Sports Player Search">
+  <meta property="og:description" content="Find and compare top Tennis and Table Tennis players worldwide.">
+  <meta property="og:type" content="website">
+
+  <!-- iOS -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Sports Search">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <title>Sports Player Search</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Prevent white flash before Flutter renders */
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #E0EAFC 0%, #CFDEF3 100%);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Loading spinner */
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #E0EAFC 0%, #CFDEF3 100%);
+      z-index: 9999;
+      transition: opacity 0.4s ease;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(93, 95, 239, 0.2);
+      border-top-color: #5D5FEF;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .loading-text {
+      margin-top: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: #5D5FEF;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Sports Player Search</div>
+  </div>
+  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Hide loader once Flutter is ready
+    window.addEventListener('flutter-first-frame', function () {
+      const loader = document.getElementById('loading');
+      if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(() => loader.remove(), 500);
+      }
+    });
+  </script>
+</body>
+
+</html>
