@@ -17,7 +17,11 @@ class ApiService {
 
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:8000';
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'http://localhost:8000';
+      }
+      return 'https://tennis-players-app.onrender.com';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Physical Android device on LAN
@@ -26,6 +30,7 @@ class ApiService {
     // iOS simulator, macOS, Linux, Windows desktop
     return 'http://localhost:8000';
   }
+
 
   static String getProxyImageUrl(String originalUrl) {
     if (!kIsWeb) return originalUrl;

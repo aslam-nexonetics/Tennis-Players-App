@@ -16,13 +16,18 @@ class AuthApiException implements Exception {
 class AuthApiService {
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:8000';
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'http://localhost:8000';
+      }
+      return 'https://tennis-players-app.onrender.com';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       return 'http://192.168.29.84:8000';
     }
     return 'http://localhost:8000';
   }
+
 
   static Map<String, String> _headers([String? token]) {
     final headers = {
