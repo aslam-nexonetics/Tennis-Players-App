@@ -59,6 +59,7 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 // Profile Avatar & Main Card
                 GlassContainer(
+                  width: double.infinity,
                   opacity: 0.12,
                   borderRadius: 28,
                   padding: const EdgeInsets.all(24),
@@ -95,6 +96,7 @@ class ProfileScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       Text(
                         user.fullName ?? user.username,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -104,6 +106,7 @@ class ProfileScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         '@${user.username}',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF818CF8),
@@ -126,6 +129,7 @@ class ProfileScreen extends StatelessWidget {
 
                 // Account Details Card
                 GlassContainer(
+                  width: double.infinity,
                   opacity: 0.12,
                   borderRadius: 24,
                   padding: const EdgeInsets.all(20),
@@ -143,6 +147,7 @@ class ProfileScreen extends StatelessWidget {
 
                 // Actions Menu
                 GlassContainer(
+                  width: double.infinity,
                   opacity: 0.12,
                   borderRadius: 24,
                   padding: const EdgeInsets.all(12),
@@ -207,14 +212,20 @@ class ProfileScreen extends StatelessWidget {
       children: [
         Icon(icon, color: const Color(0xFF818CF8), size: 22),
         const SizedBox(width: 14),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-            const SizedBox(height: 2),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
-          ],
-        )
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
