@@ -21,10 +21,24 @@ from app.schemas.user import UserResponse
 router = APIRouter()
 
 class ConnectionManager:
-    """Manages active WebSocket connections grouped by conversation_id."""
+    """Manages active WebSocket connections grouped by user_id and conversation_id."""
     def __init__(self):
-        # Maps conversation_id to set of active WebSocket instances
+        # Maps user_id to set of active WebSocket instances (app-wide)
+        self.user_connections: Dict[int, Set[WebSocket]] = {}
+        # Maps conversation_id to set of active WebSocket instances (room specific)
         self.active_connections: Dict[int, Set[WebSocket]] = {}
+
+    async def connect_user(self, user_id: int, websocket: WebSocket):
+        await websocket.accept()
+        if user_id not in self.user_connections:
+            self.user_connections[user_id] = set()
+        self.user_connections[user_id].add(websocket)
+
+    def disconnect_user(self, user_id: int, websocket: WebSocket):
+        if user_id in self.user_connections:
+            self.user_connections[user_id].discard(websocket)
+            if not self.user_connections[user_id]:
+                del self.user_connections[user_id]
 
     async def connect(self, conversation_id: int, websocket: WebSocket):
         await websocket.accept()
@@ -38,21 +52,41 @@ class ConnectionManager:
             if not self.active_connections[conversation_id]:
                 del self.active_connections[conversation_id]
 
+    async def broadcast_to_users(self, user_ids: List[int], data: dict):
+        stale_sockets = []
+        for uid in user_ids:
+            if uid in self.user_connections:
+                for connection in list(self.user_connections[uid]):
+                    try:
+                        await connection.send_json(data)
+                    except Exception:
+                        stale_sockets.append((uid, connection))
+        for uid, dead in stale_sockets:
+            self.disconnect_user(uid, dead)
+
     async def broadcast_to_conversation(self, conversation_id: int, data: dict):
         if conversation_id in self.active_connections:
-            # Send message payload to all websockets connected to this conversation
             stale_sockets = set()
-            for connection in self.active_connections[conversation_id]:
+            for connection in list(self.active_connections[conversation_id]):
                 try:
                     await connection.send_json(data)
                 except Exception:
                     stale_sockets.add(connection)
-            
-            # Clean up stale sockets if any failed
             for dead in stale_sockets:
                 self.active_connections[conversation_id].discard(dead)
 
 manager = ConnectionManager()
+
+
+async def broadcast_message_to_participants(db: Session, conversation_id: int, payload: dict):
+    participant_user_ids = [
+        row[0] for row in db.query(ConversationParticipant.user_id).filter(
+            ConversationParticipant.conversation_id == conversation_id
+        ).all()
+    ]
+    await manager.broadcast_to_users(participant_user_ids, payload)
+    await manager.broadcast_to_conversation(conversation_id, payload)
+
 
 
 @router.get("/conversations", response_model=List[ConversationResponse])
@@ -252,6 +286,100 @@ def mark_conversation_read(
     return {"message": "Conversation marked as read"}
 
 
+@router.websocket("/ws")
+async def user_websocket_endpoint(
+    websocket: WebSocket,
+    token: str = Query(...),
+    db: Session = Depends(deps.get_db)
+):
+    """
+    User-scoped WebSocket endpoint for app-wide real-time messaging and chat list updates.
+    """
+    try:
+        payload = security.decode_jwt(token)
+        if not payload or payload.get("type") != "access":
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        user_id = int(user_id_str)
+        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        if not user:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        await manager.connect_user(user_id, websocket)
+
+        try:
+            while True:
+                data_str = await websocket.receive_text()
+                try:
+                    data = json.loads(data_str)
+                except Exception:
+                    continue
+
+                conversation_id = data.get("conversation_id")
+                content = data.get("content", "").strip()
+                if not conversation_id or not content:
+                    continue
+
+                participant = db.query(ConversationParticipant).filter(
+                    ConversationParticipant.conversation_id == conversation_id,
+                    ConversationParticipant.user_id == user.id
+                ).first()
+                if not participant:
+                    continue
+
+                msg = ChatMessage(
+                    conversation_id=conversation_id,
+                    sender_id=user.id,
+                    content=content
+                )
+                db.add(msg)
+
+                conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+                if conv:
+                    conv.updated_at = datetime.now(timezone.utc)
+
+                participant.last_read_at = datetime.now(timezone.utc)
+
+                db.commit()
+                db.refresh(msg)
+
+                msg = db.query(ChatMessage).options(
+                    joinedload(ChatMessage.sender)
+                ).filter(ChatMessage.id == msg.id).first()
+
+                payload_to_broadcast = {
+                    "type": "chat_message",
+                    "data": {
+                        "id": msg.id,
+                        "conversation_id": msg.conversation_id,
+                        "sender_id": msg.sender_id,
+                        "content": msg.content,
+                        "created_at": msg.created_at.isoformat(),
+                        "sender": {
+                            "id": user.id,
+                            "username": user.username,
+                            "email": user.email,
+                            "full_name": user.full_name,
+                        }
+                    }
+                }
+
+                await broadcast_message_to_participants(db, conversation_id, payload_to_broadcast)
+
+        except WebSocketDisconnect:
+            manager.disconnect_user(user_id, websocket)
+
+    except Exception:
+        manager.disconnect_user(user_id, websocket)
+
+
 @router.websocket("/ws/{conversation_id}")
 async def websocket_chat_endpoint(
     websocket: WebSocket,
@@ -260,7 +388,7 @@ async def websocket_chat_endpoint(
     db: Session = Depends(deps.get_db)
 ):
     """
-    WebSocket endpoint for real-time messaging.
+    WebSocket endpoint for real-time messaging inside a specific conversation room.
     Requires token query parameter (JWT Bearer token).
     """
     try:
@@ -346,12 +474,13 @@ async def websocket_chat_endpoint(
                     }
                 }
 
-                # Broadcast to all connected sockets in this room
-                await manager.broadcast_to_conversation(conversation_id, payload_to_broadcast)
+                # Broadcast to all participants (both room & user-scoped sockets)
+                await broadcast_message_to_participants(db, conversation_id, payload_to_broadcast)
 
         except WebSocketDisconnect:
             manager.disconnect(conversation_id, websocket)
 
     except Exception:
         manager.disconnect(conversation_id, websocket)
+
 

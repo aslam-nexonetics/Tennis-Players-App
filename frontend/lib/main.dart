@@ -106,6 +106,20 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0; // 0: Rankings, 1: Search
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      final token = authProvider.accessToken;
+      final userId = authProvider.user?.id;
+      if (token != null) {
+        chatProvider.fetchConversations(token, currentUserId: userId);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final sportProvider = Provider.of<SportProvider>(context);
     final currentSport = sportProvider.currentSport;

@@ -33,9 +33,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     final token = authProvider.accessToken;
+    final currentUserId = authProvider.user?.id;
 
     if (token != null) {
-      await chatProvider.enterConversationRoom(widget.conversation.id, token);
+      await chatProvider.enterConversationRoom(widget.conversation.id, token, currentUserId: currentUserId);
       _scrollToBottom();
     }
   }

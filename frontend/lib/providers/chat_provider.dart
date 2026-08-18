@@ -12,12 +12,19 @@ class ChatProvider extends ChangeNotifier {
   List<SearchedUserModel> _searchResults = [];
   List<ChatMessageModel> _activeMessages = [];
   int? _activeConversationId;
+  int? _currentUserId;
+  String? _currentToken;
 
   bool _isLoadingConversations = false;
   bool _isSearching = false;
   bool _isLoadingMessages = false;
   String? _errorMessage;
 
+  // User-scoped app-wide socket
+  WebSocketChannel? _userChannel;
+  StreamSubscription? _userSubscription;
+
+  // Room-scoped socket (optional fallback)
   WebSocketChannel? _channel;
   StreamSubscription? _subscription;
 
@@ -62,14 +69,21 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 2. Fetch Inbox / Conversations
-  Future<void> fetchConversations(String token) async {
+  // 2. Fetch Inbox / Conversations & Connect User Socket
+  Future<void> fetchConversations(String token, {int? currentUserId}) async {
+    _currentToken = token;
+    if (currentUserId != null) {
+      _currentUserId = currentUserId;
+    }
+
     _isLoadingConversations = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _conversations = await _chatService.getConversations(token);
+      // Connect app-wide socket for user
+      initializeUserSocket(token, currentUserId: _currentUserId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -78,13 +92,56 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  // Connect App-Wide User WebSocket
+  void initializeUserSocket(String token, {int? currentUserId}) {
+    _currentToken = token;
+    if (currentUserId != null) {
+      _currentUserId = currentUserId;
+    }
+
+    // Don't reconnect if already connected
+    if (_userChannel != null) return;
+
+    try {
+      _userChannel = _chatService.connectUserWebSocket(token);
+      _userSubscription = _userChannel!.stream.listen(
+        (data) {
+          _handleIncomingUserWebSocketMessage(data);
+        },
+        onError: (err) {
+          debugPrint('User WebSocket error: $err');
+          _disconnectUserSocket();
+          // Retry after delay
+          Future.delayed(const Duration(seconds: 5), () {
+            if (_currentToken != null && _userChannel == null) {
+              initializeUserSocket(_currentToken!, currentUserId: _currentUserId);
+            }
+          });
+        },
+        onDone: () {
+          debugPrint('User WebSocket closed.');
+          _disconnectUserSocket();
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to initialize user websocket: $e');
+    }
+  }
+
+  void _disconnectUserSocket() {
+    _userSubscription?.cancel();
+    _userChannel?.sink.close();
+    _userSubscription = null;
+    _userChannel = null;
+  }
+
   // 3. Start or Open Direct Chat
-  Future<ConversationModel?> openDirectChat(int targetUserId, String token) async {
+  Future<ConversationModel?> openDirectChat(int targetUserId, String token, {int? currentUserId}) async {
     _errorMessage = null;
     try {
       final conv = await _chatService.getOrCreateDirectConversation(targetUserId, token);
       // Refresh conversations list in background
-      fetchConversations(token);
+      fetchConversations(token, currentUserId: currentUserId);
       return conv;
     } catch (e) {
       _errorMessage = e.toString();
@@ -93,38 +150,35 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // 4. Connect WebSocket & Load Messages for Conversation Room
-  Future<void> enterConversationRoom(int conversationId, String token) async {
-    // Leave previous channel if any
-    leaveConversationRoom();
+  // 4. Enter Conversation Room
+  Future<void> enterConversationRoom(int conversationId, String token, {int? currentUserId}) async {
+    _currentToken = token;
+    if (currentUserId != null) {
+      _currentUserId = currentUserId;
+    }
+
+    // Leave previous room socket if open
+    leaveRoomSocketOnly();
 
     _activeConversationId = conversationId;
     _isLoadingMessages = true;
     _activeMessages = [];
+
+    // Mark conversation unread count as 0 locally
+    _markConversationReadLocally(conversationId);
     notifyListeners();
 
     try {
-      // Mark read via REST
+      // Ensure user socket is connected
+      initializeUserSocket(token, currentUserId: _currentUserId);
+
+      // Mark read via REST backend
       _chatService.markRead(conversationId, token);
 
       // Load initial message history
       _activeMessages = await _chatService.getMessages(conversationId, token);
       _isLoadingMessages = false;
       notifyListeners();
-
-      // Connect WebSocket
-      _channel = _chatService.connectWebSocket(conversationId, token);
-      _subscription = _channel!.stream.listen(
-        (data) {
-          _handleIncomingWebSocketMessage(data);
-        },
-        onError: (err) {
-          debugPrint('WebSocket error: $err');
-        },
-        onDone: () {
-          debugPrint('WebSocket closed.');
-        },
-      );
     } catch (e) {
       _errorMessage = e.toString();
       _isLoadingMessages = false;
@@ -132,45 +186,115 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  void _handleIncomingWebSocketMessage(dynamic data) {
+  void _markConversationReadLocally(int conversationId) {
+    final convIndex = _conversations.indexWhere((c) => c.id == conversationId);
+    if (convIndex != -1) {
+      final conv = _conversations[convIndex];
+      if (conv.unreadCount > 0) {
+        _conversations[convIndex] = conv.copyWith(unreadCount: 0);
+      }
+    }
+  }
+
+  // Handle incoming real-time messages from User WebSocket
+  void _handleIncomingUserWebSocketMessage(dynamic data) {
     try {
       final parsed = json.decode(data.toString());
       if (parsed['type'] == 'chat_message' && parsed['data'] != null) {
         final message = ChatMessageModel.fromJson(parsed['data']);
-        
-        // Append to active messages if matching room
-        if (message.conversationId == _activeConversationId) {
-          // Avoid duplicate messages
+        final int conversationId = message.conversationId;
+
+        // 1. If user is currently in this conversation room, append to active messages
+        if (conversationId == _activeConversationId) {
           if (!_activeMessages.any((m) => m.id == message.id)) {
             _activeMessages.add(message);
-            notifyListeners();
+          }
+          if (_currentToken != null) {
+            _chatService.markRead(conversationId, _currentToken!);
           }
         }
+
+        // 2. Update conversation list item (last message, timestamp, unread count) & move to top
+        final convIndex = _conversations.indexWhere((c) => c.id == conversationId);
+        if (convIndex != -1) {
+          final conv = _conversations[convIndex];
+          final bool isFromOtherUser = _currentUserId != null ? message.senderId != _currentUserId : true;
+          final bool isCurrentlyActiveRoom = _activeConversationId == conversationId;
+
+          int newUnreadCount = conv.unreadCount;
+          if (isCurrentlyActiveRoom) {
+            newUnreadCount = 0;
+          } else if (isFromOtherUser) {
+            newUnreadCount += 1;
+          }
+
+          final updatedConv = conv.copyWith(
+            lastMessage: message,
+            updatedAt: message.createdAt,
+            unreadCount: newUnreadCount,
+          );
+
+          // Re-order list: move updated conversation to top
+          _conversations.removeAt(convIndex);
+          _conversations.insert(0, updatedConv);
+        } else {
+          // If conversation isn't in local list yet, re-fetch conversations
+          if (_currentToken != null) {
+            _chatService.getConversations(_currentToken!).then((freshList) {
+              _conversations = freshList;
+              notifyListeners();
+            }).catchError((_) {});
+          }
+        }
+
+        notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error parsing websocket payload: $e');
+      debugPrint('Error parsing user websocket payload: $e');
     }
   }
 
   // Send message over WebSocket
   void sendMessage(String content) {
-    if (content.trim().isEmpty || _channel == null || _activeConversationId == null) {
+    final text = content.trim();
+    if (text.isEmpty || _activeConversationId == null) {
       return;
     }
 
-    final payload = json.encode({
-      'content': content.trim(),
-    });
-    _channel!.sink.add(payload);
+    if (_userChannel != null) {
+      final payload = json.encode({
+        'conversation_id': _activeConversationId,
+        'content': text,
+      });
+      _userChannel!.sink.add(payload);
+    } else if (_channel != null) {
+      final payload = json.encode({
+        'content': text,
+      });
+      _channel!.sink.add(payload);
+    }
   }
 
-  // Disconnect WebSocket when leaving detail screen
+  // Leave specific conversation room detail view
   void leaveConversationRoom() {
+    leaveRoomSocketOnly();
+    _activeConversationId = null;
+    _activeMessages = [];
+    notifyListeners();
+  }
+
+  void leaveRoomSocketOnly() {
     _subscription?.cancel();
     _channel?.sink.close();
     _subscription = null;
     _channel = null;
-    _activeConversationId = null;
-    _activeMessages = [];
+  }
+
+  @override
+  void dispose() {
+    _disconnectUserSocket();
+    leaveRoomSocketOnly();
+    super.dispose();
   }
 }
+

@@ -129,6 +129,28 @@ class ConversationModel {
     return 'Chat';
   }
 
+  ConversationModel copyWith({
+    int? id,
+    bool? isGroup,
+    String? title,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<ConversationParticipantModel>? participants,
+    ChatMessageModel? lastMessage,
+    int? unreadCount,
+  }) {
+    return ConversationModel(
+      id: id ?? this.id,
+      isGroup: isGroup ?? this.isGroup,
+      title: title ?? this.title,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      participants: participants ?? this.participants,
+      lastMessage: lastMessage ?? this.lastMessage,
+      unreadCount: unreadCount ?? this.unreadCount,
+    );
+  }
+
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
     return ConversationModel(
       id: json['id'],

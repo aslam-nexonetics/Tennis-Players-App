@@ -108,7 +108,13 @@ class ChatService {
     );
   }
 
-  // 6. Connect to WebSocket
+  // 6. Connect to User WebSocket (App-Wide)
+  WebSocketChannel connectUserWebSocket(String token) {
+    final uri = Uri.parse('$wsBaseUrl/chat/ws?token=$token');
+    return WebSocketChannel.connect(uri);
+  }
+
+  // 7. Connect to Room WebSocket
   WebSocketChannel connectWebSocket(int conversationId, String token) {
     final uri = Uri.parse('$wsBaseUrl/chat/ws/$conversationId?token=$token');
     return WebSocketChannel.connect(uri);

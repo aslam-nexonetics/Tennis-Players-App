@@ -144,7 +144,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                       onPressed: () async {
                         if (token == null) return;
                         final conversation =
-                            await chatProvider.openDirectChat(user.id, token);
+                            await chatProvider.openDirectChat(user.id, token, currentUserId: authProvider.user?.id);
                         if (conversation != null && context.mounted) {
                           Navigator.push(
                             context,
