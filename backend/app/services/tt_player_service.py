@@ -145,12 +145,16 @@ class TtPlayerService:
 
     @staticmethod
     def get_players(db: Session, skip: int = 0, limit: int = 100, gender: Optional[str] = None):
+        if not gender:
+            gender = 'M'
+
         latest_date = TtPlayerService._latest_ranking_date(db, gender)
 
         if not latest_date:
             return [], 0
 
         ly, lm, ld = latest_date
+        g_val = 0 if gender == 'M' else 1
 
         query = db.query(
             TableTennisHistoricalPlayer,
@@ -161,27 +165,32 @@ class TtPlayerService:
         ).filter(
             TableTennisHistoricalRanking.ranking_year == ly,
             TableTennisHistoricalRanking.ranking_month == lm,
-            TableTennisHistoricalRanking.ranking_date == ld
+            TableTennisHistoricalRanking.ranking_date == ld,
+            TableTennisHistoricalPlayer.gender == g_val
         )
 
-        if gender:
-            g_val = 0 if gender == 'M' else 1
-            query = query.filter(TableTennisHistoricalPlayer.gender == g_val)
-
         total = query.count()
-        results = query.order_by(TableTennisHistoricalRanking.rank.asc()).offset(skip).limit(limit).all()
+        results = query.order_by(TableTennisHistoricalRanking.rank.asc(), TableTennisHistoricalPlayer.id.asc()).offset(skip).limit(limit).all()
 
         items = []
+        seen_ranks = set()
         for p, r in results:
+            if r in seen_ranks:
+                continue
+            seen_ranks.add(r)
             items.append(TtPlayerService.map_historical_player(db, p, rank=r))
 
         return items, total
 
     @staticmethod
     def search_players(db: Session, query: str, skip: int = 0, limit: int = 20, gender: Optional[str] = None):
+        if not gender:
+            gender = 'M'
+
         latest_date = TtPlayerService._latest_ranking_date(db, gender)
 
         ly, lm, ld = latest_date if latest_date else (0, 0, 0)
+        g_val = 0 if gender == 'M' else 1
 
         search_filter = func.concat(
             TableTennisHistoricalPlayer.first_name, ' ', TableTennisHistoricalPlayer.last_name
@@ -196,15 +205,15 @@ class TtPlayerService:
             (TableTennisHistoricalRanking.ranking_year == ly) &
             (TableTennisHistoricalRanking.ranking_month == lm) &
             (TableTennisHistoricalRanking.ranking_date == ld)
-        ).filter(search_filter)
-
-        if gender:
-            g_val = 0 if gender == 'M' else 1
-            q = q.filter(TableTennisHistoricalPlayer.gender == g_val)
+        ).filter(
+            search_filter,
+            TableTennisHistoricalPlayer.gender == g_val
+        )
 
         total = q.count()
         results = q.order_by(
-            TableTennisHistoricalRanking.rank.asc().nullslast()
+            TableTennisHistoricalRanking.rank.asc().nullslast(),
+            TableTennisHistoricalPlayer.id.asc()
         ).offset(skip).limit(limit).all()
 
         items = []
@@ -215,12 +224,16 @@ class TtPlayerService:
 
     @staticmethod
     def get_top_players(db: Session, limit: int = 50, gender: Optional[str] = None):
+        if not gender:
+            gender = 'M'
+
         latest_date = TtPlayerService._latest_ranking_date(db, gender)
 
         if not latest_date:
             return []
 
         ly, lm, ld = latest_date
+        g_val = 0 if gender == 'M' else 1
 
         query = db.query(
             TableTennisHistoricalPlayer,
@@ -231,18 +244,21 @@ class TtPlayerService:
         ).filter(
             TableTennisHistoricalRanking.ranking_year == ly,
             TableTennisHistoricalRanking.ranking_month == lm,
-            TableTennisHistoricalRanking.ranking_date == ld
+            TableTennisHistoricalRanking.ranking_date == ld,
+            TableTennisHistoricalPlayer.gender == g_val
         )
 
-        if gender:
-            g_val = 0 if gender == 'M' else 1
-            query = query.filter(TableTennisHistoricalPlayer.gender == g_val)
-
-        results = query.order_by(TableTennisHistoricalRanking.rank.asc()).limit(limit).all()
+        results = query.order_by(TableTennisHistoricalRanking.rank.asc(), TableTennisHistoricalPlayer.id.asc()).limit(limit * 2).all()
 
         items = []
+        seen_ranks = set()
         for p, r in results:
+            if r in seen_ranks:
+                continue
+            seen_ranks.add(r)
             items.append(TtPlayerService.map_historical_player(db, p, rank=r))
+            if len(items) >= limit:
+                break
 
         return items
 
