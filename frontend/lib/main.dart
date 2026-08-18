@@ -8,6 +8,7 @@ import 'providers/football_national_team_provider.dart';
 import 'providers/basketball_club_provider.dart';
 import 'providers/sport_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/chat_provider.dart';
 import 'screens/search_screen.dart';
 import 'screens/top_players_screen.dart';
 import 'screens/tt_search_screen.dart';
@@ -23,6 +24,7 @@ import 'screens/basketball_club_compare_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/landing_screen.dart';
+import 'screens/chat_list_screen.dart';
 import 'widgets/glass_widgets.dart';
 
 void main() {
@@ -35,11 +37,13 @@ void main() {
         ChangeNotifierProvider(create: (_) => BasketballClubProvider()),
         ChangeNotifierProvider(create: (_) => SportProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const TennisApp(),
     ),
   );
 }
+
 
 class TennisApp extends StatelessWidget {
   const TennisApp({super.key});
@@ -334,9 +338,55 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
       ),
       actions: [
+        if (authProvider.isLoggedIn)
+          Consumer<ChatProvider>(
+            builder: (context, chat, _) {
+              final unread = chat.totalUnreadCount;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF1D1D1F)),
+                    tooltip: 'Chats & Messages',
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ChatListScreen()),
+                      );
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: authProvider.isLoggedIn && user != null
+
               ? GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
