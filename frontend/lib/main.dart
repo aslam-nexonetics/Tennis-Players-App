@@ -111,10 +111,9 @@ class _MainNavigationState extends State<MainNavigation> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-      final token = authProvider.accessToken;
       final userId = authProvider.user?.id;
-      if (token != null) {
-        chatProvider.fetchConversations(token, currentUserId: userId);
+      if (authProvider.isLoggedIn) {
+        chatProvider.fetchConversations(authProvider, currentUserId: userId);
       }
     });
   }

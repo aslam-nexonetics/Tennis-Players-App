@@ -26,10 +26,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void _loadConversations() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final token = authProvider.accessToken;
     final currentUserId = authProvider.user?.id;
-    if (token != null) {
-      chatProvider.fetchConversations(token, currentUserId: currentUserId);
+    if (authProvider.isLoggedIn) {
+      chatProvider.fetchConversations(authProvider, currentUserId: currentUserId);
     }
   }
 

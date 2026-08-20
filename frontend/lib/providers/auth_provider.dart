@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/auth_api_service.dart';
+import '../services/authenticated_client.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _user;
@@ -11,6 +13,8 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isInitialized = false;
   String? _errorMessage;
+
+  Completer<bool>? _refreshCompleter;
 
   User? get user => _user;
   String? get accessToken => _accessToken;
@@ -31,6 +35,66 @@ class AuthProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Thread-safe token refresh mechanism with mutex lock using Completer.
+  Future<bool> refreshAccessToken() async {
+    // If a refresh operation is already in progress, await its result
+    if (_refreshCompleter != null) {
+      return _refreshCompleter!.future;
+    }
+
+    if (_refreshToken == null || _refreshToken!.isEmpty) {
+      await logout();
+      return false;
+    }
+
+    final completer = Completer<bool>();
+    _refreshCompleter = completer;
+
+    try {
+      debugPrint('[AUTH PROVIDER] Exchanging refresh token for new access token...');
+      final tokenRes = await AuthApiService.refreshToken(_refreshToken!);
+      _accessToken = tokenRes.accessToken;
+      _refreshToken = tokenRes.refreshToken;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyAccessToken, _accessToken!);
+      await prefs.setString(_keyRefreshToken, _refreshToken!);
+
+      if (_user == null) {
+        try {
+          _user = await AuthApiService.fetchProfile(_accessToken!);
+          await _saveUserToPrefs(_user!);
+        } catch (_) {}
+      }
+
+      notifyListeners();
+      completer.complete(true);
+      return true;
+    } catch (e) {
+      debugPrint('[AUTH PROVIDER] Refresh token exchange failed: $e');
+      await logout();
+      completer.complete(false);
+      return false;
+    } finally {
+      _refreshCompleter = null;
+    }
+  }
+
+  /// Returns a valid access token. Automatically triggers token refresh if expiring soon.
+  Future<String?> getValidAccessToken() async {
+    if (_accessToken == null || _refreshToken == null) {
+      return null;
+    }
+
+    if (JwtUtils.isTokenExpiringSoon(_accessToken!)) {
+      debugPrint('[AUTH PROVIDER] Token expiring soon. Triggering preemptive refresh...');
+      final success = await refreshAccessToken();
+      if (!success) return null;
+    }
+
+    return _accessToken;
   }
 
   Future<void> initializeAuth() async {
@@ -57,18 +121,7 @@ class AuthProvider extends ChangeNotifier {
         } catch (e) {
           // Access token might be expired, try refresh token
           if (_refreshToken != null) {
-            try {
-              final tokenRes = await AuthApiService.refreshToken(_refreshToken!);
-              _accessToken = tokenRes.accessToken;
-              _refreshToken = tokenRes.refreshToken;
-              await prefs.setString(_keyAccessToken, _accessToken!);
-              await prefs.setString(_keyRefreshToken, _refreshToken!);
-              _user = await AuthApiService.fetchProfile(_accessToken!);
-              await _saveUserToPrefs(_user!);
-            } catch (_) {
-              // Refresh failed, clear invalid tokens
-              await _clearPrefs();
-            }
+            await refreshAccessToken();
           } else {
             await _clearPrefs();
           }
@@ -170,14 +223,15 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> updateProfile({String? fullName, String? email}) async {
-    if (_accessToken == null) return false;
+    final validToken = await getValidAccessToken();
+    if (validToken == null) return false;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final updatedUser = await AuthApiService.updateProfile(
-        accessToken: _accessToken!,
+        accessToken: validToken,
         fullName: fullName,
         email: email,
       );
@@ -198,14 +252,15 @@ class AuthProvider extends ChangeNotifier {
     required String currentPassword,
     required String newPassword,
   }) async {
-    if (_accessToken == null) return false;
+    final validToken = await getValidAccessToken();
+    if (validToken == null) return false;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       await AuthApiService.changePassword(
-        accessToken: _accessToken!,
+        accessToken: validToken,
         currentPassword: currentPassword,
         newPassword: newPassword,
       );

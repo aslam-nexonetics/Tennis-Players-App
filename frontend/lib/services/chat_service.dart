@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../models/chat_model.dart';
+import '../providers/auth_provider.dart';
 import 'auth_api_service.dart';
+import 'authenticated_client.dart';
 
 class ChatService {
   static String get baseUrl => AuthApiService.baseUrl;
@@ -16,15 +17,12 @@ class ChatService {
   }
 
   // 1. Search active users
-  Future<List<SearchedUserModel>> searchUsers(String query, String token) async {
+  Future<List<SearchedUserModel>> searchUsers(String query, AuthProvider authProvider) async {
     if (query.trim().isEmpty) return [];
 
-    final response = await http.get(
+    final client = AuthenticatedClient(authProvider);
+    final response = await client.get(
       Uri.parse('$baseUrl/users/search?q=${Uri.encodeComponent(query)}'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
     );
 
     if (response.statusCode == 200) {
@@ -37,13 +35,10 @@ class ChatService {
   }
 
   // 2. Fetch conversations list
-  Future<List<ConversationModel>> getConversations(String token) async {
-    final response = await http.get(
+  Future<List<ConversationModel>> getConversations(AuthProvider authProvider) async {
+    final client = AuthenticatedClient(authProvider);
+    final response = await client.get(
       Uri.parse('$baseUrl/chat/conversations'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
     );
 
     if (response.statusCode == 200) {
@@ -56,13 +51,10 @@ class ChatService {
   }
 
   // 3. Get or create direct conversation
-  Future<ConversationModel> getOrCreateDirectConversation(int targetUserId, String token) async {
-    final response = await http.post(
+  Future<ConversationModel> getOrCreateDirectConversation(int targetUserId, AuthProvider authProvider) async {
+    final client = AuthenticatedClient(authProvider);
+    final response = await client.post(
       Uri.parse('$baseUrl/chat/conversations/direct/$targetUserId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
     );
 
     if (response.statusCode == 200) {
@@ -76,16 +68,13 @@ class ChatService {
   // 4. Fetch conversation messages
   Future<List<ChatMessageModel>> getMessages(
     int conversationId,
-    String token, {
+    AuthProvider authProvider, {
     int limit = 50,
     int offset = 0,
   }) async {
-    final response = await http.get(
+    final client = AuthenticatedClient(authProvider);
+    final response = await client.get(
       Uri.parse('$baseUrl/chat/conversations/$conversationId/messages?limit=$limit&offset=$offset'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
     );
 
     if (response.statusCode == 200) {
@@ -98,13 +87,10 @@ class ChatService {
   }
 
   // 5. Mark conversation read
-  Future<void> markRead(int conversationId, String token) async {
-    await http.post(
+  Future<void> markRead(int conversationId, AuthProvider authProvider) async {
+    final client = AuthenticatedClient(authProvider);
+    await client.post(
       Uri.parse('$baseUrl/chat/conversations/$conversationId/read'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
     );
   }
 

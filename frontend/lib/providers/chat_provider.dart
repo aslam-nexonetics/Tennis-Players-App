@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../models/chat_model.dart';
+import '../providers/auth_provider.dart';
 import '../services/chat_service.dart';
 
 class ChatProvider extends ChangeNotifier {
@@ -13,7 +14,8 @@ class ChatProvider extends ChangeNotifier {
   List<ChatMessageModel> _activeMessages = [];
   int? _activeConversationId;
   int? _currentUserId;
-  String? _currentToken;
+
+  AuthProvider? _authProvider;
 
   bool _isLoadingConversations = false;
   bool _isSearching = false;
@@ -43,7 +45,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // 1. Search Users
-  Future<void> searchUsers(String query, String token) async {
+  Future<void> searchUsers(String query, AuthProvider authProvider) async {
+    _authProvider = authProvider;
     if (query.trim().isEmpty) {
       _searchResults = [];
       notifyListeners();
@@ -55,7 +58,7 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _searchResults = await _chatService.searchUsers(query, token);
+      _searchResults = await _chatService.searchUsers(query, authProvider);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -70,8 +73,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // 2. Fetch Inbox / Conversations & Connect User Socket
-  Future<void> fetchConversations(String token, {int? currentUserId}) async {
-    _currentToken = token;
+  Future<void> fetchConversations(AuthProvider authProvider, {int? currentUserId}) async {
+    _authProvider = authProvider;
     if (currentUserId != null) {
       _currentUserId = currentUserId;
     }
@@ -81,9 +84,9 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _conversations = await _chatService.getConversations(token);
+      _conversations = await _chatService.getConversations(authProvider);
       // Connect app-wide socket for user
-      initializeUserSocket(token, currentUserId: _currentUserId);
+      initializeUserSocket(authProvider, currentUserId: _currentUserId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -92,15 +95,18 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // Connect App-Wide User WebSocket
-  void initializeUserSocket(String token, {int? currentUserId}) {
-    _currentToken = token;
+  // Connect App-Wide User WebSocket using valid token
+  Future<void> initializeUserSocket(AuthProvider authProvider, {int? currentUserId}) async {
+    _authProvider = authProvider;
     if (currentUserId != null) {
       _currentUserId = currentUserId;
     }
 
     // Don't reconnect if already connected
     if (_userChannel != null) return;
+
+    final token = await authProvider.getValidAccessToken();
+    if (token == null || token.isEmpty) return;
 
     try {
       _userChannel = _chatService.connectUserWebSocket(token);
@@ -111,10 +117,10 @@ class ChatProvider extends ChangeNotifier {
         onError: (err) {
           debugPrint('User WebSocket error: $err');
           _disconnectUserSocket();
-          // Retry after delay
-          Future.delayed(const Duration(seconds: 5), () {
-            if (_currentToken != null && _userChannel == null) {
-              initializeUserSocket(_currentToken!, currentUserId: _currentUserId);
+          // Retry after delay with fresh token
+          Future.delayed(const Duration(seconds: 5), () async {
+            if (_authProvider != null && _userChannel == null) {
+              await initializeUserSocket(_authProvider!, currentUserId: _currentUserId);
             }
           });
         },
@@ -136,12 +142,13 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // 3. Start or Open Direct Chat
-  Future<ConversationModel?> openDirectChat(int targetUserId, String token, {int? currentUserId}) async {
+  Future<ConversationModel?> openDirectChat(int targetUserId, AuthProvider authProvider, {int? currentUserId}) async {
+    _authProvider = authProvider;
     _errorMessage = null;
     try {
-      final conv = await _chatService.getOrCreateDirectConversation(targetUserId, token);
+      final conv = await _chatService.getOrCreateDirectConversation(targetUserId, authProvider);
       // Refresh conversations list in background
-      fetchConversations(token, currentUserId: currentUserId);
+      fetchConversations(authProvider, currentUserId: currentUserId);
       return conv;
     } catch (e) {
       _errorMessage = e.toString();
@@ -151,8 +158,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // 4. Enter Conversation Room
-  Future<void> enterConversationRoom(int conversationId, String token, {int? currentUserId}) async {
-    _currentToken = token;
+  Future<void> enterConversationRoom(int conversationId, AuthProvider authProvider, {int? currentUserId}) async {
+    _authProvider = authProvider;
     if (currentUserId != null) {
       _currentUserId = currentUserId;
     }
@@ -170,13 +177,13 @@ class ChatProvider extends ChangeNotifier {
 
     try {
       // Ensure user socket is connected
-      initializeUserSocket(token, currentUserId: _currentUserId);
+      initializeUserSocket(authProvider, currentUserId: _currentUserId);
 
       // Mark read via REST backend
-      _chatService.markRead(conversationId, token);
+      _chatService.markRead(conversationId, authProvider);
 
       // Load initial message history
-      _activeMessages = await _chatService.getMessages(conversationId, token);
+      _activeMessages = await _chatService.getMessages(conversationId, authProvider);
       _isLoadingMessages = false;
       notifyListeners();
     } catch (e) {
@@ -209,8 +216,8 @@ class ChatProvider extends ChangeNotifier {
           if (!_activeMessages.any((m) => m.id == message.id)) {
             _activeMessages.add(message);
           }
-          if (_currentToken != null) {
-            _chatService.markRead(conversationId, _currentToken!);
+          if (_authProvider != null) {
+            _chatService.markRead(conversationId, _authProvider!);
           }
         }
 
@@ -239,8 +246,8 @@ class ChatProvider extends ChangeNotifier {
           _conversations.insert(0, updatedConv);
         } else {
           // If conversation isn't in local list yet, re-fetch conversations
-          if (_currentToken != null) {
-            _chatService.getConversations(_currentToken!).then((freshList) {
+          if (_authProvider != null) {
+            _chatService.getConversations(_authProvider!).then((freshList) {
               _conversations = freshList;
               notifyListeners();
             }).catchError((_) {});
@@ -297,4 +304,3 @@ class ChatProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

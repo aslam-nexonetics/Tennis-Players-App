@@ -32,11 +32,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Future<void> _initChat() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final token = authProvider.accessToken;
     final currentUserId = authProvider.user?.id;
 
-    if (token != null) {
-      await chatProvider.enterConversationRoom(widget.conversation.id, token, currentUserId: currentUserId);
+    if (authProvider.isLoggedIn) {
+      await chatProvider.enterConversationRoom(widget.conversation.id, authProvider, currentUserId: currentUserId);
       _scrollToBottom();
     }
   }
@@ -86,9 +85,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           chatProvider.leaveConversationRoom();
-          final token = authProvider.accessToken;
-          if (token != null) {
-            chatProvider.fetchConversations(token);
+          if (authProvider.isLoggedIn) {
+            chatProvider.fetchConversations(authProvider);
           }
         }
       },

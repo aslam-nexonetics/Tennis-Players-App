@@ -23,10 +23,9 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   void _performSearch() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final token = authProvider.accessToken;
 
-    if (token != null) {
-      chatProvider.searchUsers(_searchController.text, token);
+    if (authProvider.isLoggedIn) {
+      chatProvider.searchUsers(_searchController.text, authProvider);
     }
   }
 
@@ -34,7 +33,6 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final chatProvider = Provider.of<ChatProvider>(context);
-    final token = authProvider.accessToken;
 
     return Scaffold(
       appBar: AppBar(
@@ -142,9 +140,9 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                         elevation: 0,
                       ),
                       onPressed: () async {
-                        if (token == null) return;
+                        if (!authProvider.isLoggedIn) return;
                         final conversation =
-                            await chatProvider.openDirectChat(user.id, token, currentUserId: authProvider.user?.id);
+                            await chatProvider.openDirectChat(user.id, authProvider, currentUserId: authProvider.user?.id);
                         if (conversation != null && context.mounted) {
                           Navigator.push(
                             context,
