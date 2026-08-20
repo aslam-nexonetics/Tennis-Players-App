@@ -119,7 +119,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       String timeStr = '';
                       if (lastMsg != null) {
                         final now = DateTime.now();
-                        final msgTime = lastMsg.createdAt;
+                        final msgTime = lastMsg.createdAt.toLocal();
                         if (now.day == msgTime.day &&
                             now.month == msgTime.month &&
                             now.year == msgTime.year) {

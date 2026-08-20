@@ -156,7 +156,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       itemBuilder: (context, index) {
                         final msg = messages[index];
                         final isMe = msg.senderId == currentUserId;
-                        final timeStr = DateFormat('hh:mm a').format(msg.createdAt);
+                        final timeStr = DateFormat('hh:mm a').format(msg.createdAt.toLocal());
 
                         return Align(
                           alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,

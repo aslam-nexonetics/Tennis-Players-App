@@ -1,5 +1,20 @@
 import 'user.dart';
 
+DateTime parseUtcDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  final String str = value.toString().trim();
+  if (str.isEmpty) return DateTime.now();
+
+  // If ISO string lacks timezone offset/Z (e.g. "2026-08-20T10:19:00"), treat as UTC
+  if (!str.endsWith('Z') && !str.contains('+') && !RegExp(r'-\d{2}:?\d{2}$').hasMatch(str)) {
+    final parsed = DateTime.tryParse('${str}Z');
+    if (parsed != null) return parsed.toLocal();
+  }
+  final parsed = DateTime.tryParse(str);
+  if (parsed != null) return parsed.toLocal();
+  return DateTime.now();
+}
+
 class SearchedUserModel {
   final int id;
   final String username;
@@ -50,9 +65,7 @@ class ChatMessageModel {
           ? json['sender_id']
           : int.parse(json['sender_id'].toString()),
       content: json['content'] ?? '',
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : DateTime.now(),
+      createdAt: parseUtcDateTime(json['created_at']),
       sender: json['sender'] != null ? User.fromJson(json['sender']) : null,
     );
   }
@@ -78,9 +91,9 @@ class ConversationParticipantModel {
       id: json['id'],
       userId: json['user_id'],
       user: User.fromJson(json['user']),
-      joinedAt: DateTime.parse(json['joined_at']),
+      joinedAt: parseUtcDateTime(json['joined_at']),
       lastReadAt: json['last_read_at'] != null
-          ? DateTime.parse(json['last_read_at'])
+          ? parseUtcDateTime(json['last_read_at'])
           : null,
     );
   }
@@ -156,8 +169,8 @@ class ConversationModel {
       id: json['id'],
       isGroup: json['is_group'] ?? false,
       title: json['title'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: parseUtcDateTime(json['created_at']),
+      updatedAt: parseUtcDateTime(json['updated_at']),
       participants: (json['participants'] as List? ?? [])
           .map((p) => ConversationParticipantModel.fromJson(p))
           .toList(),

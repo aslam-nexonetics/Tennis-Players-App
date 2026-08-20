@@ -361,7 +361,7 @@ async def user_websocket_endpoint(
                         "conversation_id": msg.conversation_id,
                         "sender_id": msg.sender_id,
                         "content": msg.content,
-                        "created_at": msg.created_at.isoformat(),
+                        "created_at": (msg.created_at.replace(tzinfo=timezone.utc) if msg.created_at.tzinfo is None else msg.created_at).isoformat(),
                         "sender": {
                             "id": user.id,
                             "username": user.username,
@@ -464,7 +464,7 @@ async def websocket_chat_endpoint(
                         "conversation_id": msg.conversation_id,
                         "sender_id": msg.sender_id,
                         "content": msg.content,
-                        "created_at": msg.created_at.isoformat(),
+                        "created_at": (msg.created_at.replace(tzinfo=timezone.utc) if msg.created_at.tzinfo is None else msg.created_at).isoformat(),
                         "sender": {
                             "id": user.id,
                             "username": user.username,
