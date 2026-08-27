@@ -159,9 +159,10 @@ def scrape_tt_wtt(target_date_str="2026-08-24"):
                         country_cell = row.select_one(".country_name") or row.select_one("td:nth-child(3)")
                         pts_cell = row.select_one(".points") or row.select_one("td:nth-child(4)")
                         if not rank_cell or not name_cell: continue
-                        r_txt = rank_cell.text.strip()
-                        if not r_txt.isdigit(): continue
-                        rank = int(r_txt)
+                        raw_rank_txt = rank_cell.text.strip()
+                        match = re.search(r'^\s*(\d+)', raw_rank_txt) or re.search(r'(\d+)', raw_rank_txt)
+                        if not match: continue
+                        rank = int(match.group(1))
                         name = clean_tt_name(name_cell.text)
                         country = country_cell.text.strip() if country_cell else "Unknown"
                         pts = 0
