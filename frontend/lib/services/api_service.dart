@@ -122,6 +122,13 @@ class ApiService {
       list = list.where((p) => p.gender == gender).toList();
     }
     list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
+    final Map<int, Player> uniqueByRank = {};
+    for (var p in list) {
+      if (p.ranking != null && !uniqueByRank.containsKey(p.ranking)) {
+        uniqueByRank[p.ranking!] = p;
+      }
+    }
+    list = uniqueByRank.values.toList();
     final total = list.length;
     final start = (page - 1) * size;
     if (start >= total) {
@@ -218,7 +225,13 @@ class ApiService {
       list = list.where((p) => p.gender == gender).toList();
     }
     list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-    return list.take(limit).toList();
+    final Map<int, Player> uniqueByRank = {};
+    for (var p in list) {
+      if (p.ranking != null && !uniqueByRank.containsKey(p.ranking)) {
+        uniqueByRank[p.ranking!] = p;
+      }
+    }
+    return uniqueByRank.values.take(limit).toList();
   }
 
   Future<TtPlayerListResponse> _getTtPlayersLocal({
@@ -234,6 +247,13 @@ class ApiService {
       list = list.where((p) => p.gender == gender).toList();
     }
     list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
+    final Map<int, TableTennisPlayer> uniqueByRank = {};
+    for (var p in list) {
+      if (p.ranking != null && !uniqueByRank.containsKey(p.ranking)) {
+        uniqueByRank[p.ranking!] = p;
+      }
+    }
+    list = uniqueByRank.values.toList();
     final total = list.length;
     final start = (page - 1) * size;
     if (start >= total) {
@@ -327,7 +347,13 @@ class ApiService {
       list = list.where((p) => p.gender == gender).toList();
     }
     list.sort((a, b) => (a.ranking ?? 9999).compareTo(b.ranking ?? 9999));
-    return list.take(limit).toList();
+    final Map<int, TableTennisPlayer> uniqueByRank = {};
+    for (var p in list) {
+      if (p.ranking != null && !uniqueByRank.containsKey(p.ranking)) {
+        uniqueByRank[p.ranking!] = p;
+      }
+    }
+    return uniqueByRank.values.take(limit).toList();
   }
 
   // ── Tennis Players ─────────────────────────────────────────────────────────
