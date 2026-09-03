@@ -53,10 +53,8 @@ class ApiService {
     if (_localPlayers == null) {
       final jsonStr = await rootBundle.loadString('assets/data/players.json');
       final List decoded = json.decode(jsonStr);
-      _localPlayers = decoded
-          .map((item) => Player.fromJson(item))
-          .where((p) => p.source != 'atp' && p.source != 'wta')
-          .toList();
+      _localPlayers =
+          decoded.map((item) => Player.fromJson(item)).toList();
     }
     if (_localTtPlayers == null) {
       final jsonStr =

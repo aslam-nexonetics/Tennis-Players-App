@@ -57,7 +57,9 @@ def write_json(path, obj):
 
 def export_players(base_url, session):
     url = urljoin(base_url, '/players/')
-    items = paged_fetch(session, url)
+    items_m = paged_fetch(session, url, params={'gender': 'M'})
+    items_f = paged_fetch(session, url, params={'gender': 'F'})
+    items = items_m + items_f
     write_json(os.path.join(OUT_DIR, 'players.json'), items)
 
     # Export individual histories
@@ -77,7 +79,9 @@ def export_players(base_url, session):
 
 def export_tt_players(base_url, session):
     url = urljoin(base_url, '/tt-players/')
-    items = paged_fetch(session, url)
+    items_m = paged_fetch(session, url, params={'gender': 'M'})
+    items_f = paged_fetch(session, url, params={'gender': 'F'})
+    items = items_m + items_f
     write_json(os.path.join(OUT_DIR, 'tt_players.json'), items)
 
     histories = {}
