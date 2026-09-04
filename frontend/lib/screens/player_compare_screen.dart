@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/player.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
@@ -860,8 +861,14 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
                   '#${b.ranking ?? "N/A"}',
                   lowerIsBetter: true),
-              _buildStatRow('Highest Rank', '#${a.highestRanking ?? "N/A"}',
-                  '#${b.highestRanking ?? "N/A"}',
+              _buildStatRow(
+                  'Highest Rank',
+                  (a.highestRanking ?? a.careerHighRank) != null
+                      ? '#${a.highestRanking ?? a.careerHighRank}${(a.highestRankingDate ?? a.careerHighDate) != null ? " (${DateFormat('MMM yyyy').format((a.highestRankingDate ?? a.careerHighDate)!)})" : ""}'
+                      : 'N/A',
+                  (b.highestRanking ?? b.careerHighRank) != null
+                      ? '#${b.highestRanking ?? b.careerHighRank}${(b.highestRankingDate ?? b.careerHighDate) != null ? " (${DateFormat('MMM yyyy').format((b.highestRankingDate ?? b.careerHighDate)!)})" : ""}'
+                      : 'N/A',
                   lowerIsBetter: true),
               _buildStatRow(
                   'Prize Money', a.prizeMoney ?? 'N/A', b.prizeMoney ?? 'N/A',
@@ -879,8 +886,10 @@ class _PlayerCompareScreenState extends State<PlayerCompareScreen>
     bool bWins = false;
 
     if (isNumeric) {
-      num? nvA = num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
-      num? nvB = num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+      final matchA = RegExp(r'#?(\d+)').firstMatch(aVal);
+      final matchB = RegExp(r'#?(\d+)').firstMatch(bVal);
+      num? nvA = matchA != null ? num.tryParse(matchA.group(1)!) : num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+      num? nvB = matchB != null ? num.tryParse(matchB.group(1)!) : num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
 
       if (nvA != null && nvB != null) {
         if (lowerIsBetter) {

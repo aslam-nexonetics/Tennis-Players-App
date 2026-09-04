@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/tt_player.dart';
 import '../services/api_service.dart';
@@ -874,8 +875,13 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
               _buildStatRow('Current Rank', '#${a.ranking ?? "N/A"}',
                   '#${b.ranking ?? "N/A"}',
                   lowerIsBetter: true),
-              _buildStatRow('Career High Rank', '#${a.careerHighRank ?? "N/A"}',
-                  '#${b.careerHighRank ?? "N/A"}',
+              _buildStatRow('Career High Rank',
+                  a.careerHighRank != null
+                      ? '#${a.careerHighRank}${a.careerHighDate != null ? " (${DateFormat('MMM yyyy').format(a.careerHighDate!)})" : ""}'
+                      : 'N/A',
+                  b.careerHighRank != null
+                      ? '#${b.careerHighRank}${b.careerHighDate != null ? " (${DateFormat('MMM yyyy').format(b.careerHighDate!)})" : ""}'
+                      : 'N/A',
                   lowerIsBetter: true),
             ],
           ),
@@ -886,8 +892,14 @@ class _TtPlayerCompareScreenState extends State<TtPlayerCompareScreen>
 
   Widget _buildStatRow(String label, String aVal, String bVal,
       {bool lowerIsBetter = false, bool isNumeric = true, bool highlight = false}) {
-    num? nvA = isNumeric ? num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), '')) : null;
-    num? nvB = isNumeric ? num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), '')) : null;
+    num? nvA;
+    num? nvB;
+    if (isNumeric) {
+      final matchA = RegExp(r'#?(\d+)').firstMatch(aVal);
+      final matchB = RegExp(r'#?(\d+)').firstMatch(bVal);
+      nvA = matchA != null ? num.tryParse(matchA.group(1)!) : num.tryParse(aVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+      nvB = matchB != null ? num.tryParse(matchB.group(1)!) : num.tryParse(bVal.replaceAll(RegExp(r'[^0-9.]'), ''));
+    }
     bool aWins = false;
     bool bWins = false;
     if (nvA != null && nvB != null) {

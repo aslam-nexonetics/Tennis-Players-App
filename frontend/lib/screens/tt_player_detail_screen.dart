@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/tt_player.dart';
 import '../widgets/glass_widgets.dart';
 import '../widgets/ranking_graph.dart';
@@ -525,7 +526,7 @@ class _TtPlayerDetailScreenState extends State<TtPlayerDetailScreen> {
         
         String chDateStr = '';
         if (player.careerHighDate != null) {
-          chDateStr = ' (${player.careerHighDate!.year})';
+          chDateStr = ' (${DateFormat('MMM yyyy').format(player.careerHighDate!)})';
         }
 
         return Wrap(
