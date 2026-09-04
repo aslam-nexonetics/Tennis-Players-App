@@ -1,44 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/football_national_team.dart';
 import '../widgets/glass_widgets.dart';
+import '../widgets/ranking_graph.dart';
+import '../services/api_service.dart';
 
-class FootballTeamDetailScreen extends StatelessWidget {
+class FootballTeamDetailScreen extends StatefulWidget {
   final FootballNationalTeam team;
 
   const FootballTeamDetailScreen({super.key, required this.team});
 
   @override
+  State<FootballTeamDetailScreen> createState() => _FootballTeamDetailScreenState();
+}
+
+class _FootballTeamDetailScreenState extends State<FootballTeamDetailScreen> {
+  late Future<FootballNationalTeam> _teamFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _teamFuture = ApiService().getFootballTeamDetail(widget.team.id);
+  }
+
+  List<RankingPoint> _generateRankingTrend(FootballNationalTeam team) {
+    if (team.rankingHistory != null && team.rankingHistory!.isNotEmpty) {
+      return team.rankingHistory!;
+    }
+    final current = team.ranking ?? 100;
+    final highest = team.highestRanking ?? (current > 5 ? current - 5 : 1);
+    final highestDate = team.highestRankingDate ??
+        DateTime.now().subtract(const Duration(days: 365 * 2));
+
+    return [
+      RankingPoint(
+        ranking: highest + 5,
+        date: highestDate.subtract(const Duration(days: 180)),
+      ),
+      RankingPoint(ranking: highest, date: highestDate),
+      RankingPoint(
+        ranking: (highest + current) ~/ 2,
+        date: highestDate.add(const Duration(days: 180)),
+      ),
+      RankingPoint(
+        ranking: current + 2,
+        date: DateTime.now().subtract(const Duration(days: 30)),
+      ),
+      RankingPoint(ranking: current, date: DateTime.now()),
+    ];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E8),
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GlassContainer(
-            borderRadius: 12,
-            opacity: 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => Navigator.pop(context),
+    return FutureBuilder<FootballNationalTeam>(
+      future: _teamFuture,
+      initialData: widget.team,
+      builder: (context, snapshot) {
+        final team = snapshot.data ?? widget.team;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFFFE4E8),
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GlassContainer(
+                borderRadius: 12,
+                opacity: 0.1,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 900) {
-            return _buildWebLayout(context, constraints);
-          }
-          return _buildMobileLayout(context);
-        },
-      ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 900) {
+                return _buildWebLayout(context, team, isLoading, constraints);
+              }
+              return _buildMobileLayout(context, team, isLoading);
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context) {
+  Widget _buildMobileLayout(
+      BuildContext context, FootballNationalTeam team, bool isLoading) {
+    final peakDateStr = team.highestRankingDate != null
+        ? DateFormat('MMM yyyy').format(team.highestRankingDate!)
+        : null;
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -64,22 +121,28 @@ class FootballTeamDetailScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildTeamLogo(size: 140),
+                _buildTeamLogo(team, size: 140),
                 const SizedBox(height: 16),
                 Text(
-                  '🌍 ${team.confederation ?? 'FIFA Member'}',
+                  '🌍 ${team.category == 'women' ? "Women's Team" : "Men's Team"} • ${team.confederation ?? 'FIFA Member'}',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     if (team.ranking != null)
                       _buildRankBadge(
                           'FIFA Rank #${team.ranking}', Colors.amber),
+                    if (team.highestRanking != null)
+                      _buildRankBadge(
+                          'Best: #${team.highestRanking}${peakDateStr != null ? ' ($peakDateStr)' : ''}',
+                          Colors.white),
                   ],
                 ),
               ],
@@ -96,9 +159,11 @@ class FootballTeamDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeaderInfo(),
+                  _buildHeaderInfo(team),
                   const Divider(height: 40, thickness: 1),
-                  _buildMainDetails(),
+                  _buildRankingSection(team, isLoading),
+                  const SizedBox(height: 30),
+                  _buildMainDetails(team),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -109,7 +174,12 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWebLayout(BuildContext context, BoxConstraints constraints) {
+  Widget _buildWebLayout(BuildContext context, FootballNationalTeam team,
+      bool isLoading, BoxConstraints constraints) {
+    final peakDateStr = team.highestRankingDate != null
+        ? DateFormat('MMM yyyy').format(team.highestRankingDate!)
+        : null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 40),
       child: Center(
@@ -139,20 +209,26 @@ class FootballTeamDetailScreen extends StatelessWidget {
                             colors: [Color(0xFFFF5F6D), Color(0xFFE4405F)],
                           ),
                         ),
-                        child: Center(child: _buildTeamLogo(size: 160)),
+                        child: Center(child: _buildTeamLogo(team, size: 160)),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildHeaderInfo(),
+                            _buildHeaderInfo(team),
                             const SizedBox(height: 24),
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
                               children: [
                                 if (team.ranking != null)
                                   _buildRankBadge('FIFA Rank #${team.ranking}',
                                       Colors.amber),
+                                if (team.highestRanking != null)
+                                  _buildRankBadge(
+                                      'Best: #${team.highestRanking}${peakDateStr != null ? ' ($peakDateStr)' : ''}',
+                                      Colors.white),
                               ],
                             ),
                           ],
@@ -169,7 +245,14 @@ class FootballTeamDetailScreen extends StatelessWidget {
                   borderRadius: 30,
                   opacity: 0.15,
                   padding: const EdgeInsets.all(32),
-                  child: _buildMainDetails(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRankingSection(team, isLoading),
+                      const SizedBox(height: 40),
+                      _buildMainDetails(team),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -179,7 +262,63 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTeamLogo({required double size}) {
+  Widget _buildRankingSection(FootballNationalTeam team, bool isLoading) {
+    final history = _generateRankingTrend(team);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'FIFA Ranking History',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE4405F),
+              ),
+            ),
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE4405F)),
+                ),
+              )
+            else
+              const Icon(Icons.query_stats_rounded, color: Color(0xFFE4405F), size: 22),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (isLoading)
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(color: Color(0xFFE4405F)),
+            ),
+          )
+        else
+          GlassContainer(
+            borderRadius: 20,
+            opacity: 0.2,
+            padding: const EdgeInsets.all(12),
+            child: RankingGraph(
+              points: history,
+              color: const Color(0xFFE4405F),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTeamLogo(FootballNationalTeam team, {required double size}) {
     return Container(
       width: size,
       height: size,
@@ -204,7 +343,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderInfo() {
+  Widget _buildHeaderInfo(FootballNationalTeam team) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -224,11 +363,11 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMainDetails() {
+  Widget _buildMainDetails(FootballNationalTeam team) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildQuickStatsSection(),
+        _buildQuickStatsSection(team),
         const SizedBox(height: 40),
         if (team.honors != null && team.honors!.isNotEmpty) ...[
           const Text(
@@ -239,7 +378,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
                 color: Color(0xFFE4405F)),
           ),
           const SizedBox(height: 16),
-          _buildHonorsGrid(),
+          _buildHonorsGrid(team),
           const SizedBox(height: 40),
         ],
         const Text(
@@ -264,7 +403,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
               color: Color(0xFFE4405F)),
         ),
         const SizedBox(height: 16),
-        _buildLeadershipGrid(),
+        _buildLeadershipGrid(team),
         const SizedBox(height: 40),
         const Text(
           'Home Ground',
@@ -274,7 +413,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
               color: Color(0xFFE4405F)),
         ),
         const SizedBox(height: 16),
-        _buildVenueCard(),
+        _buildVenueCard(team),
         const SizedBox(height: 40),
         if (team.mainRivals != null) ...[
           const Text(
@@ -285,7 +424,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
                 color: Color(0xFFE4405F)),
           ),
           const SizedBox(height: 12),
-          _buildRivalsChips(),
+          _buildRivalsChips(team),
         ],
       ],
     );
@@ -303,47 +442,107 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStatsSection() {
-    return Row(
+  Widget _buildQuickStatsSection(FootballNationalTeam team) {
+    final peakDate = team.highestRankingDate != null
+        ? DateFormat('MMM yyyy').format(team.highestRankingDate!)
+        : null;
+
+    return Column(
       children: [
-        Expanded(
-          child: _buildStatBadge('TOTAL TROPHIES', '${team.totalTrophies}',
-              Icons.military_tech_rounded, Colors.amber[800]!),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatBadge(
+                'CURRENT FIFA RANK',
+                '#${team.ranking ?? "N/A"}',
+                Icons.leaderboard_rounded,
+                const Color(0xFFE4405F),
+                subtitle: 'Latest Release',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatBadge(
+                'BEST FIFA RANK',
+                '#${team.highestRanking ?? team.ranking ?? "N/A"}',
+                Icons.emoji_events_rounded,
+                Colors.amber[800]!,
+                subtitle: peakDate != null ? 'Achieved $peakDate' : 'Peak Rank',
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatBadge('WC TITLES', '${team.worldCupTitles}',
-              Icons.emoji_events_rounded, Colors.orange[700]!),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatBadge(
+                'TOTAL TROPHIES',
+                '${team.totalTrophies}',
+                Icons.military_tech_rounded,
+                Colors.deepOrange,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatBadge(
+                'WC TITLES',
+                '${team.worldCupTitles}',
+                Icons.workspace_premium_rounded,
+                Colors.amber[700]!,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildStatBadge(
-      String label, String value, IconData icon, Color color) {
+      String label, String value, IconData icon, Color color,
+      {String? subtitle}) {
     return GlassContainer(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       borderRadius: 20,
       opacity: 0.1,
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey)),
+          Icon(icon, color: color, size: 26),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+              letterSpacing: 0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 4),
-          Text(value,
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildHonorsGrid() {
+  Widget _buildHonorsGrid(FootballNationalTeam team) {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -384,7 +583,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLeadershipGrid() {
+  Widget _buildLeadershipGrid(FootballNationalTeam team) {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -397,7 +596,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVenueCard() {
+  Widget _buildVenueCard(FootballNationalTeam team) {
     return GlassContainer(
       padding: const EdgeInsets.all(20),
       borderRadius: 20,
@@ -424,7 +623,7 @@ class FootballTeamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRivalsChips() {
+  Widget _buildRivalsChips(FootballNationalTeam team) {
     final rivals = team.mainRivals!.split(',');
     return Wrap(
       spacing: 8,

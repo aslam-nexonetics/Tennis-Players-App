@@ -1,3 +1,5 @@
+import '../widgets/ranking_graph.dart';
+
 class FootballNationalTeam {
   final int id;
   final String name;
@@ -12,6 +14,9 @@ class FootballNationalTeam {
   final String? description;
   final int? ranking;
   final String category;
+  final List<RankingPoint>? rankingHistory;
+  final int? highestRanking;
+  final DateTime? highestRankingDate;
 
   // Enhanced Statistics
   final int totalTrophies;
@@ -36,6 +41,9 @@ class FootballNationalTeam {
     this.description,
     this.ranking,
     required this.category,
+    this.rankingHistory,
+    this.highestRanking,
+    this.highestRankingDate,
     this.totalTrophies = 0,
     this.worldCupTitles = 0,
     this.captain,
@@ -58,6 +66,20 @@ class FootballNationalTeam {
       description: json['description'],
       ranking: json['ranking'],
       category: json['category'] ?? 'men',
+      rankingHistory: json['ranking_history'] != null
+          ? (json['ranking_history'] as List)
+              .map((item) => RankingPoint(
+                    ranking: item['ranking'],
+                    date: DateTime.parse(item['date']),
+                  ))
+              .toList()
+          : null,
+      highestRanking: json['highest_ranking'] ?? json['career_high_rank'],
+      highestRankingDate: json['highest_ranking_date'] != null
+          ? DateTime.parse(json['highest_ranking_date'])
+          : (json['career_high_date'] != null
+              ? DateTime.parse(json['career_high_date'])
+              : null),
       totalTrophies: json['total_trophies'] ?? 0,
       worldCupTitles: json['world_cup_titles'] ?? 0,
       captain: json['captain'],

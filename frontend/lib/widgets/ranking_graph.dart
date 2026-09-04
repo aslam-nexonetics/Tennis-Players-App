@@ -105,10 +105,10 @@ class _GraphPainter extends CustomPainter {
       textPainter.layout();
       textPainter.paint(canvas, Offset(x - (textPainter.width / 2), y - 20));
 
-      // Draw Year below
+      // Draw Month and Year below
       textPainter.text = TextSpan(
-        text: DateFormat('yy').format(points[i].date),
-        style: const TextStyle(color: Colors.grey, fontSize: 10),
+        text: DateFormat("MMM ''yy").format(points[i].date),
+        style: const TextStyle(color: Colors.grey, fontSize: 9, fontWeight: FontWeight.w500),
       );
       textPainter.layout();
       textPainter.paint(

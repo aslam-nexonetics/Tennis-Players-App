@@ -210,7 +210,9 @@ class _FootballTopTeamsScreenState extends State<FootballTopTeamsScreen> {
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                subtitle: Text('${team.confederation}'),
+                                subtitle: Text(
+                                  '${team.category == 'women' ? "Women's Team" : "Men's Team"} • ${team.confederation ?? 'FIFA Member'}',
+                                ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
                                   Navigator.push(

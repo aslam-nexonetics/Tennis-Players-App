@@ -237,7 +237,7 @@ class _FootballTeamSearchScreenState extends State<FootballTeamSearchScreen> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${team.confederation ?? 'Unknown'}',
+                            '${team.category == 'women' ? "Women's Team" : "Men's Team"} • ${team.confederation ?? 'FIFA Member'}',
                           ),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,

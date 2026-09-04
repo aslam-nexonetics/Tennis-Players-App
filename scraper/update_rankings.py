@@ -242,6 +242,28 @@ def scrape_new_tt_rankings(limit_per_gender=500):
         return False
 
 
+def scrape_new_football_rankings():
+    """Scrape latest football national team rankings from FIFA."""
+    log.info('\n' + '='*60)
+    log.info('SCRAPING NEW FOOTBALL NATIONAL TEAM RANKINGS')
+    log.info('='*60)
+    
+    try:
+        from scrapers.football_national_team_scraper import FootballNationalTeamScraper
+        
+        log.info('\n⚽ Scraping FIFA National Team Rankings (Men & Women)...')
+        scraper = FootballNationalTeamScraper()
+        scraper.scrape_all()
+        log.info('✅ Football national team rankings updated successfully!')
+        return True
+        
+    except Exception as e:
+        log.error(f'❌ Error scraping football rankings: {e}')
+        import traceback
+        log.error(traceback.format_exc())
+        return False
+
+
 def show_data_sources():
     """Display information about data sources."""
     log.info('\n' + '='*60)
@@ -252,21 +274,26 @@ def show_data_sources():
     log.info('  WTA (Women): https://api.wtatennis.com/tennis/players/ranked')
     log.info('\n🏓 TABLE TENNIS:')
     log.info('  WTT (Both):  https://www.worldtabletennis.com/allplayersranking')
+    log.info('\n⚽ FOOTBALL:')
+    log.info('  FIFA (Both): https://inside.fifa.com/fifa-world-ranking')
     log.info('\n📝 NOTES:')
     log.info('  - Tennis rankings update weekly (usually Mondays)')
     log.info('  - Table tennis rankings update weekly (usually Tuesdays)')
-    log.info('  - The scraper uses Playwright to handle dynamic content')
+    log.info('  - Football rankings update per FIFA calendar window')
+    log.info('  - The scraper uses official APIs and Playwright where needed')
     log.info('='*60)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Update tennis and table tennis rankings')
+    parser = argparse.ArgumentParser(description='Update tennis, table tennis, and football rankings')
     parser.add_argument('--check-only', action='store_true', 
                         help='Only check current rankings without scraping')
     parser.add_argument('--tennis', action='store_true', 
                         help='Update only tennis rankings')
     parser.add_argument('--table-tennis', action='store_true', 
                         help='Update only table tennis rankings')
+    parser.add_argument('--football', action='store_true', 
+                        help='Update only football national team rankings')
     parser.add_argument('--tennis-limit', type=int, default=100,
                         help='Number of players to scrape per gender for tennis (default: 100)')
     parser.add_argument('--tt-limit', type=int, default=500,
@@ -289,12 +316,14 @@ def main():
     
     # If check-only mode, stop here
     if args.check_only:
-        log.info('\n✅ Check complete. Use --tennis or --table-tennis to update rankings.')
+        log.info('\n✅ Check complete. Use --tennis, --table-tennis, or --football to update rankings.')
         return
     
     # Determine what to scrape
-    scrape_tennis = args.tennis or (not args.tennis and not args.table_tennis)
-    scrape_tt = args.table_tennis or (not args.tennis and not args.table_tennis)
+    specific_selected = args.tennis or args.table_tennis or args.football
+    scrape_tennis = args.tennis or not specific_selected
+    scrape_tt = args.table_tennis or not specific_selected
+    scrape_fb = args.football or not specific_selected
     
     success = True
     
@@ -306,6 +335,11 @@ def main():
     # Scrape table tennis rankings
     if scrape_tt:
         if not scrape_new_tt_rankings(limit_per_gender=args.tt_limit):
+            success = False
+
+    # Scrape football rankings
+    if scrape_fb:
+        if not scrape_new_football_rankings():
             success = False
     
     # Final status check
@@ -321,3 +355,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

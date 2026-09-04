@@ -44,6 +44,7 @@ class ApiService {
   // Histories loaded lazily only when detail screen is opened (large file ~7MB)
   static Map<String, dynamic>? _localTtHistories;
   static Map<String, dynamic>? _localTennisHistories;
+  static Map<String, dynamic>? _localFootballHistories;
   static List<FootballNationalTeam>? _localFootballTeams;
   static List<BasketballClub>? _localBasketballClubs;
 
@@ -93,6 +94,18 @@ class ApiService {
       final jsonStr =
           await rootBundle.loadString('assets/data/player_histories.json');
       _localTennisHistories = json.decode(jsonStr) as Map<String, dynamic>;
+    }
+  }
+
+  static Future<void> _loadFootballHistoriesIfNeeded() async {
+    if (_localFootballHistories == null) {
+      try {
+        final jsonStr = await rootBundle
+            .loadString('assets/data/football_team_histories.json');
+        _localFootballHistories = json.decode(jsonStr) as Map<String, dynamic>;
+      } catch (_) {
+        _localFootballHistories = {};
+      }
     }
   }
 
@@ -711,22 +724,64 @@ class ApiService {
     }
   }
 
+  Future<FootballNationalTeam> _getFootballTeamDetailLocal(int id) async {
+    await _loadLocalDataIfNeeded();
+    await _loadFootballHistoriesIfNeeded();
+    final base = _localFootballTeams!.firstWhere(
+      (p) => p.id == id,
+      orElse: () => throw Exception('Football team not found'),
+    );
+    final rawHistory = _localFootballHistories?[id.toString()];
+    List<RankingPoint>? history;
+    if (rawHistory != null) {
+      history = (rawHistory as List)
+          .map((item) => RankingPoint(
+                ranking: item['ranking'] as int,
+                date: DateTime.parse(item['date'] as String),
+              ))
+          .toList();
+    }
+    return FootballNationalTeam(
+      id: base.id,
+      name: base.name,
+      country: base.country,
+      confederation: base.confederation,
+      foundedYear: base.foundedYear,
+      stadium: base.stadium,
+      manager: base.manager,
+      nickname: base.nickname,
+      imageUrl: base.imageUrl,
+      website: base.website,
+      description: base.description,
+      ranking: base.ranking,
+      category: base.category,
+      rankingHistory: history ?? base.rankingHistory,
+      highestRanking: base.highestRanking,
+      highestRankingDate: base.highestRankingDate,
+      totalTrophies: base.totalTrophies,
+      worldCupTitles: base.worldCupTitles,
+      captain: base.captain,
+      mainRivals: base.mainRivals,
+      honors: base.honors,
+    );
+  }
+
   Future<FootballNationalTeam> getFootballTeamDetail(int id) async {
     if (useLocalDatabase) {
-      await _loadLocalDataIfNeeded();
-      return _localFootballTeams!.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('Football team not found'),
-      );
-    } else {
-      final response =
-          await http.get(Uri.parse('$baseUrl/football-national-teams/$id'));
-      if (response.statusCode == 200) {
-        return FootballNationalTeam.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load football team details');
-      }
+      return _getFootballTeamDetailLocal(id);
     }
+
+    return _tryRemote(
+      () async {
+        final response =
+            await http.get(Uri.parse('$baseUrl/football-national-teams/$id'));
+        if (response.statusCode == 200) {
+          return FootballNationalTeam.fromJson(json.decode(response.body));
+        }
+        throw Exception('Failed to load football team details');
+      },
+      () => _getFootballTeamDetailLocal(id),
+    );
   }
 
   Future<FootballNationalTeamListResponse> getFootballTopTeams({

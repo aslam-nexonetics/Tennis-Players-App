@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional, List, Dict
 
 class FootballNationalTeamBase(BaseModel):
@@ -31,9 +31,18 @@ class FootballNationalTeamCreate(FootballNationalTeamBase):
 class FootballNationalTeamUpdate(FootballNationalTeamBase):
     name: Optional[str] = None
 
+class FootballRankingHistoryPoint(BaseModel):
+    ranking: int
+    date: date
+
 class FootballNationalTeam(FootballNationalTeamBase):
     id: int
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
+    ranking_history: Optional[List[FootballRankingHistoryPoint]] = None
+    highest_ranking: Optional[int] = None
+    highest_ranking_date: Optional[date] = None
+    career_high_rank: Optional[int] = None
+    career_high_date: Optional[date] = None
 
     class Config:
         from_attributes = True
@@ -43,3 +52,4 @@ class FootballNationalTeamList(BaseModel):
     total: int
     page: int
     size: int
+

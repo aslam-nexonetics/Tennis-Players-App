@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/football_national_team.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
+import '../widgets/ranking_graph.dart';
 
 class FootballTeamCompareScreen extends StatefulWidget {
   final FootballNationalTeam? teamA;
@@ -129,7 +131,7 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
     }
   }
 
-  void _selectA(FootballNationalTeam c) {
+  void _selectA(FootballNationalTeam c) async {
     setState(() {
       _teamA = c;
       _resultsA = [];
@@ -138,9 +140,17 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
       _showComparison = false;
     });
     FocusScope.of(context).unfocus();
+    try {
+      final detail = await ApiService().getFootballTeamDetail(c.id);
+      if (mounted) {
+        setState(() {
+          _teamA = detail;
+        });
+      }
+    } catch (_) {}
   }
 
-  void _selectB(FootballNationalTeam c) {
+  void _selectB(FootballNationalTeam c) async {
     setState(() {
       _teamB = c;
       _resultsB = [];
@@ -149,14 +159,32 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
       _showComparison = false;
     });
     FocusScope.of(context).unfocus();
+    try {
+      final detail = await ApiService().getFootballTeamDetail(c.id);
+      if (mounted) {
+        setState(() {
+          _teamB = detail;
+        });
+      }
+    } catch (_) {}
   }
 
-  void _compare() {
+  void _compare() async {
     if (_teamA != null && _teamB != null) {
       setState(() {
         _showComparison = true;
       });
       _fadeCtrl.forward(from: 0);
+      try {
+        final detailA = await ApiService().getFootballTeamDetail(_teamA!.id);
+        final detailB = await ApiService().getFootballTeamDetail(_teamB!.id);
+        if (mounted) {
+          setState(() {
+            _teamA = detailA;
+            _teamB = detailB;
+          });
+        }
+      } catch (_) {}
     }
   }
 
@@ -383,7 +411,7 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  t.confederation ?? 'Unknown',
+                  '${t.category == 'women' ? "Women's Team" : "Men's Team"} • ${t.confederation ?? 'Unknown'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -578,7 +606,7 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
                   ),
                 ),
                 subtitle: Text(
-                  t.confederation ?? 'Unknown',
+                  '${t.category == 'women' ? "Women's Team" : "Men's Team"} • ${t.confederation ?? 'Unknown'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -617,10 +645,76 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
         children: [
           _buildSummaryCard(),
           const SizedBox(height: 20),
+          _buildTimelineComparison(),
+          const SizedBox(height: 20),
           _buildStatsComparison(),
           const SizedBox(height: 20),
           _buildExtraInfo(),
           const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineComparison() {
+    return GlassContainer(
+      borderRadius: 20,
+      opacity: 0.1,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'FIFA RANKING HISTORY COMPARISON',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+              fontSize: 12,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFE4405F),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _teamA!.name,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 20),
+              Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF5856D6),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _teamB!.name,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ComparisonRankingGraph(
+            pointsA: _teamA!.rankingHistory ?? [],
+            pointsB: _teamB!.rankingHistory ?? [],
+            nameA: _teamA!.name,
+            nameB: _teamB!.name,
+            colorA: const Color(0xFFE4405F),
+            colorB: const Color(0xFF5856D6),
+          ),
         ],
       ),
     );
@@ -668,7 +762,8 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
                   fontSize: 18,
                   fontWeight: FontWeight.bold),
               textAlign: isLeft ? TextAlign.left : TextAlign.right),
-          Text(c.confederation ?? "N/A",
+          Text(
+              '${c.category == 'women' ? "Women's Team" : "Men's Team"} • ${c.confederation ?? "N/A"}',
               style: const TextStyle(color: Colors.grey)),
         ],
       ),
@@ -676,6 +771,20 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
   }
 
   Widget _buildStatsComparison() {
+    final peakDateA = _teamA!.highestRankingDate != null
+        ? DateFormat('MMM yyyy').format(_teamA!.highestRankingDate!)
+        : '';
+    final bestRankA = _teamA!.highestRanking != null
+        ? '#${_teamA!.highestRanking}${peakDateA.isNotEmpty ? " ($peakDateA)" : ""}'
+        : '#${_teamA!.ranking ?? "N/A"}';
+
+    final peakDateB = _teamB!.highestRankingDate != null
+        ? DateFormat('MMM yyyy').format(_teamB!.highestRankingDate!)
+        : '';
+    final bestRankB = _teamB!.highestRanking != null
+        ? '#${_teamB!.highestRanking}${peakDateB.isNotEmpty ? " ($peakDateB)" : ""}'
+        : '#${_teamB!.ranking ?? "N/A"}';
+
     return GlassContainer(
       borderRadius: 20,
       opacity: 0.1,
@@ -691,6 +800,9 @@ class _FootballTeamCompareScreenState extends State<FootballTeamCompareScreen>
           const SizedBox(height: 20),
           _buildStatRow(
               'FIFA Rank', '#${_teamA!.ranking}', '#${_teamB!.ranking}',
+              isLowerBetter: true),
+          _buildStatRow(
+              'Best FIFA Rank', bestRankA, bestRankB,
               isLowerBetter: true),
           _buildStatRow('Total Trophies', '${_teamA!.totalTrophies}',
               '${_teamB!.totalTrophies}'),
